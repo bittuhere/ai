@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>BitBot AI — BitBot v1 • Private</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff6a00'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='60' font-weight='900' fill='white'>B</text></svg>">
 <style>
@@ -21,34 +24,47 @@
     --text-tertiary:#6a6a6a;
     --accent:#ff6a00;
     --accent-blue:#1f6feb;
-    --accent-purple:#8957e5;
     --green:#3fb950;
     --red:#f85149;
     --radius-xl:24px;
     --radius-lg:16px;
     --radius-md:12px;
     --shadow:0 8px 32px rgba(0,0,0,0.4);
+    --safe-bottom:env(safe-area-inset-bottom, 0px);
   }
-  *{margin:0;padding:0;box-sizing:border-box}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%;height:100dvh}
   body{
     background:var(--bg-main);
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
-    height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;
+    height:100%;height:100dvh;overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+    touch-action:manipulation;
   }
-  .app{display:flex;height:100vh;width:100vw;overflow:hidden}
+  .app{display:flex;height:100%;height:100dvh;width:100vw;overflow:hidden;position:relative}
+
+  /* BACKDROP for mobile sidebar */
+  #sidebarBackdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    z-index:35;display:none;opacity:0;transition:opacity 0.25s ease;
+    backdrop-filter:blur(2px);
+  }
+  #sidebarBackdrop.open{display:block;opacity:1}
 
   /* SIDEBAR */
   #sidebar{
-    width:260px;background:var(--bg-sidebar);
+    width:280px;max-width:85vw;background:var(--bg-sidebar);
     border-right:1px solid var(--border);
     display:flex;flex-direction:column;
     padding:12px;gap:8px;flex-shrink:0;
-    transition:transform 0.25s ease, width 0.25s ease;
-    z-index:30;
+    transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
+    z-index:40;
+    overflow:hidden;
   }
-  #sidebar.collapsed{transform:translateX(-100%);width:0;padding:0;overflow:hidden;border:none}
-  .sidebar-top{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 12px 6px}
+  #sidebar.collapsed{transform:translateX(-100%);width:0;min-width:0;padding:0;overflow:hidden;border:none}
+  .sidebar-top{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 12px 6px;flex-shrink:0}
   .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-0.2px}
   .logo-icon{
     width:28px;height:28px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
@@ -57,246 +73,300 @@
   }
   .collapse-btn{
     background:transparent;border:1px solid var(--border);color:var(--text-secondary);
-    width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;
+    width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 0.15s;flex-shrink:0;
   }
   .collapse-btn:hover{background:var(--bg-input);color:var(--text);border-color:var(--border-light)}
+  .collapse-btn:active{transform:scale(0.95)}
 
   .new-chat-btn{
     background:var(--text);color:var(--bg-sidebar);border:1px solid var(--text);
-    padding:10px 14px;border-radius:var(--radius-md);font-size:13px;font-weight:600;
+    padding:12px 14px;border-radius:var(--radius-md);font-size:14px;font-weight:600;
     display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.15s;width:100%;
+    min-height:44px;touch-action:manipulation;
   }
   .new-chat-btn:hover{background:#fff;transform:translateY(-1px)}
-  .new-chat-btn.secondary{
-    background:var(--bg-input);border:1px solid var(--border);color:var(--text);
-  }
-  .new-chat-btn.secondary:hover{background:var(--bg-input-hover);border-color:var(--border-light)}
-  .sidebar-section{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+  .new-chat-btn:active{transform:translateY(0) scale(0.98)}
+  .sidebar-section{margin-top:8px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
   .sidebar-label{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.6px;padding:8px 6px 4px}
   .sidebar-item{
-    padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-secondary);
+    padding:10px 10px;border-radius:10px;font-size:13px;color:var(--text-secondary);
     display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.15s;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:40px;
+    touch-action:manipulation;
   }
   .sidebar-item:hover{background:var(--bg-input);color:var(--text)}
-  .sidebar-item .item-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
-  .sidebar-history{flex:1;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:2px}
+  .sidebar-item:active{background:var(--bg-card-hover);transform:scale(0.98)}
+  .sidebar-item .item-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+  .sidebar-history{flex:1;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:2px;min-height:0;-webkit-overflow-scrolling:touch}
   .sidebar-history::-webkit-scrollbar{width:4px}
   .sidebar-history::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
   .history-item{
-    padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text-secondary);
-    cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:all 0.15s;
+    padding:10px 10px;border-radius:10px;font-size:13px;color:var(--text-secondary);
+    cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:all 0.15s;min-height:44px;
+    touch-action:manipulation;
   }
   .history-item:hover{background:var(--bg-input);color:var(--text)}
   .history-item.active{background:var(--bg-input);color:var(--text);border:1px solid var(--border)}
-  .history-item .h-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-  .history-item .h-delete{opacity:0;background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:12px}
+  .history-item:active{transform:scale(0.98)}
+  .history-item .h-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;line-height:1.3}
+  .history-item .h-delete{opacity:0;background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;padding:6px;border-radius:6px;font-size:14px;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .history-item:hover .h-delete{opacity:1}
-  .history-item .h-delete:hover{color:var(--red);background:rgba(248,81,73,0.1)}
-  .sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+  .history-item .h-delete:hover{color:var(--red);background:rgba(248,81,73,0.15)}
+  .sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;flex-shrink:0;padding-bottom:calc(6px + var(--safe-bottom))}
   .free-badge{
-    background:#1a1a1a;border:1px solid var(--border);padding:8px 10px;border-radius:12px;
+    background:#1a1a1a;border:1px solid var(--border);padding:10px 10px;border-radius:12px;
     font-size:11px;display:flex;flex-direction:column;gap:6px;color:var(--text-secondary);margin-top:8px;
   }
-  .free-badge .badge-row{display:flex;align-items:center;gap:6px}
-  .free-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 6px var(--green)}
+  .free-badge .badge-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .free-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 6px var(--green);flex-shrink:0}
   .model-badge{
     background:linear-gradient(135deg,#ff6a0020,#ff9a0020);border:1px solid #ff6a0030;
-    padding:6px 10px;border-radius:20px;font-size:11px;font-weight:600;
-    display:flex;align-items:center;gap:6px;color:#ffb26e;
+    padding:8px 10px;border-radius:20px;font-size:11px;font-weight:600;
+    display:flex;align-items:center;gap:6px;color:#ffb26e;line-height:1.3;
   }
 
   /* MAIN */
-  #main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg-main);position:relative}
+  #main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg-main);position:relative;overflow:hidden}
   #topBar{
-    height:44px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;
-    font-size:12px;color:var(--text-secondary);flex-shrink:0;
+    height:48px;min-height:48px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;
+    font-size:12px;color:var(--text-secondary);flex-shrink:0;gap:8px;
+    border-bottom:1px solid transparent;
   }
-  #topBar .top-left{display:flex;align-items:center;gap:12px}
-  #topBar .top-right{display:flex;align-items:center;gap:12px}
-  .top-link{color:var(--text-secondary);text-decoration:none;cursor:pointer;transition:color 0.15s;font-weight:500}
-  .top-link:hover{color:var(--text)}
+  #topBar .top-left{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+  #topBar .top-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .top-link{color:var(--text-secondary);text-decoration:none;cursor:pointer;transition:color 0.15s;font-weight:500;padding:6px 6px;border-radius:6px;min-height:32px;display:flex;align-items:center;touch-action:manipulation}
+  .top-link:hover{color:var(--text);background:var(--bg-card)}
   .top-link.upgrade{color:var(--accent-blue);font-weight:600}
   .mobile-menu-btn{
-    display:none;background:transparent;border:1px solid var(--border);color:var(--text);
-    width:32px;height:32px;border-radius:8px;align-items:center;justify-content:center;cursor:pointer;
+    display:none;background:var(--bg-card);border:1px solid var(--border);color:var(--text);
+    width:40px;height:40px;min-width:40px;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;
+    font-size:18px;touch-action:manipulation;flex-shrink:0;
   }
+  .mobile-menu-btn:active{transform:scale(0.95);background:var(--bg-card-hover)}
 
   #chatContainer{
-    flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;
-    scroll-behavior:smooth;position:relative;
+    flex:1;overflow-y:auto;padding:0 12px;display:flex;flex-direction:column;
+    scroll-behavior:smooth;position:relative;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
   }
-  #chatContainer::-webkit-scrollbar{width:6px}
+  #chatContainer::-webkit-scrollbar{width:4px}
   #chatContainer::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
   /* EMPTY STATE */
   .empty-state{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    max-width:720px;width:100%;margin:0 auto;padding:40px 20px 20px;gap:0;
+    max-width:720px;width:100%;margin:0 auto;padding:24px 16px 16px;gap:0;
   }
   .empty-logo{
-    width:72px;height:72px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:22px;display:flex;align-items:center;justify-content:center;
-    font-weight:900;font-size:36px;color:white;margin-bottom:16px;
-    box-shadow:0 8px 24px rgba(255,106,0,0.3);
+    width:64px;height:64px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
+    border-radius:20px;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:32px;color:white;margin-bottom:14px;
+    box-shadow:0 8px 24px rgba(255,106,0,0.3);flex-shrink:0;
   }
-  .empty-title{font-size:26px;font-weight:800;letter-spacing:-0.6px;margin-bottom:8px;text-align:center}
+  .empty-title{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px;text-align:center;line-height:1.2}
   .empty-subtitle{
-    font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:28px;
+    font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:20px;
     display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;line-height:1.5;
+    max-width:90%;
   }
-  .empty-subtitle .shield{color:var(--green);font-size:16px}
+  .empty-subtitle .shield{color:var(--green);font-size:15px}
   .empty-subtitle b{color:var(--text);font-weight:600}
 
   .input-card{
     background:var(--bg-input);border:1px solid var(--border);
-    border-radius:var(--radius-xl);padding:12px 14px;
+    border-radius:var(--radius-xl);padding:10px 12px;
     width:100%;max-width:720px;box-shadow:var(--shadow);
     transition:all 0.2s ease;
   }
   .input-card:focus-within{border-color:var(--border-light);box-shadow:0 8px 40px rgba(0,0,0,0.5)}
   .input-card textarea{
     width:100%;background:transparent;border:none;outline:none;
-    color:var(--text);font-size:15px;line-height:1.5;resize:none;
-    min-height:24px;max-height:160px;font-family:inherit;
+    color:var(--text);font-size:16px;line-height:1.5;resize:none;
+    min-height:24px;max-height:140px;font-family:inherit;
   }
-  .input-card textarea::placeholder{color:var(--text-tertiary)}
+  .input-card textarea::placeholder{color:var(--text-tertiary);font-size:15px}
   .input-bottom{
     display:flex;align-items:center;justify-content:space-between;
-    margin-top:10px;gap:8px;
+    margin-top:8px;gap:8px;flex-wrap:wrap;
   }
-  .input-tools{display:flex;align-items:center;gap:6px}
+  .input-tools{display:flex;align-items:center;gap:4px}
   .tool-btn{
     background:transparent;border:1px solid transparent;color:var(--text-secondary);
-    width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;font-size:16px;
+    width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 0.15s;font-size:16px;touch-action:manipulation;
   }
   .tool-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border)}
-  .input-right{display:flex;align-items:center;gap:8px}
+  .tool-btn:active{transform:scale(0.92)}
+  .input-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
   .model-chip{
     background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
-    padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;
-    display:flex;align-items:center;gap:6px;
+    padding:6px 10px;border-radius:20px;font-size:11px;font-weight:600;
+    display:flex;align-items:center;gap:6px;white-space:nowrap;
   }
-  .model-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+  .model-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);flex-shrink:0}
   .send-btn{
     background:var(--text);color:var(--bg-main);border:none;
-    width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;flex-shrink:0;
+    width:36px;height:36px;min-width:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 0.15s;flex-shrink:0;touch-action:manipulation;
   }
   .send-btn:hover{background:#fff;transform:scale(1.05)}
+  .send-btn:active{transform:scale(0.92)}
   .send-btn:disabled{background:var(--border);color:var(--text-tertiary);cursor:not-allowed;transform:none}
   .send-btn.stop{background:var(--red);color:white}
 
   .suggestions{
-    display:grid;grid-template-columns:1fr 1fr;gap:10px;
-    max-width:720px;width:100%;margin-top:16px;
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    max-width:720px;width:100%;margin-top:14px;
   }
   .suggestion-card{
     background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
-    padding:12px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;
+    padding:12px 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;
     transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:8px;
+    min-height:44px;line-height:1.3;touch-action:manipulation;
   }
   .suggestion-card:hover{background:var(--bg-card-hover);border-color:var(--border-light);color:var(--text);transform:translateY(-1px)}
+  .suggestion-card:active{transform:translateY(0) scale(0.98)}
   .suggestion-card .s-icon{font-size:16px;flex-shrink:0}
 
   .privacy-card{
     background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
-    padding:12px 14px;display:flex;align-items:center;gap:12px;
-    max-width:720px;width:100%;margin-top:20px;font-size:12.5px;color:var(--text-secondary);
+    padding:10px 12px;display:flex;align-items:flex-start;gap:10px;
+    max-width:720px;width:100%;margin-top:16px;font-size:12px;color:var(--text-secondary);line-height:1.4;
   }
   .privacy-card .p-icon{
-    width:36px;height:36px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+    width:32px;height:32px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
+    border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;
   }
   .privacy-card b{color:var(--text)}
-  .privacy-card a{color:var(--accent-blue);text-decoration:none;font-weight:600}
   .disclaimer{
-    font-size:11px;color:var(--text-tertiary);text-align:center;
-    max-width:720px;width:100%;margin-top:16px;padding:0 10px;line-height:1.4;
+    font-size:10px;color:var(--text-tertiary);text-align:center;
+    max-width:720px;width:100%;margin-top:12px;padding:0 8px;line-height:1.4;
   }
 
   /* MESSAGES */
   .messages-wrapper{
     max-width:760px;width:100%;margin:0 auto;
-    display:flex;flex-direction:column;gap:28px;
-    padding:24px 0 20px;
+    display:flex;flex-direction:column;gap:20px;
+    padding:16px 0 20px;
   }
-  .message-group{display:flex;flex-direction:column;gap:12px}
+  .message-group{display:flex;flex-direction:column;gap:10px}
   .message{
-    line-height:1.6;font-size:14.5px;word-wrap:break-word;white-space:pre-wrap;
-    position:relative;animation:fadeIn 0.2s ease;
+    line-height:1.6;font-size:15px;word-wrap:break-word;white-space:pre-wrap;
+    position:relative;animation:fadeIn 0.25s ease;
   }
   @keyframes fadeIn{from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)}}
   .message.user{
     align-self:flex-end;background:var(--bg-message-user);
-    padding:12px 16px;border-radius:20px 20px 4px 20px;
-    max-width:75%;color:var(--text);
+    padding:10px 14px;border-radius:20px 20px 4px 20px;
+    max-width:78%;color:var(--text);font-size:15px;
   }
   .message.ai{
-    align-self:flex-start;max-width:100%;display:flex;gap:12px;
+    align-self:flex-start;max-width:100%;display:flex;gap:10px;
   }
   .message.ai .ai-avatar{
     width:28px;height:28px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
     border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-weight:800;font-size:13px;color:white;flex-shrink:0;margin-top:2px;
   }
-  .message.ai .ai-content{flex:1;min-width:0}
-  .message.ai .ai-text{color:var(--text);line-height:1.65}
-  .message.ai details{
-    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
-    padding:10px 12px;margin-bottom:12px;font-size:13px;
-  }
-  .message.ai details summary{
-    font-weight:600;color:var(--text);cursor:pointer;list-style:none;
-    display:flex;align-items:center;gap:6px;font-size:13px;
-  }
-  .message.ai details summary::-webkit-details-marker{display:none}
-  .message.ai details summary::before{content:"▶";font-size:10px;transition:transform 0.2s}
-  .message.ai details[open] summary::before{transform:rotate(90deg)}
-  .message.ai details .thinking-content{
-    margin-top:10px;padding:10px;background:var(--bg-main);border:1px solid var(--border);
-    border-radius:8px;white-space:pre-wrap;line-height:1.6;color:var(--text-secondary);font-size:13px;
-  }
-  .message-actions{display:flex;gap:6px;margin-top:8px;opacity:0;transition:opacity 0.2s}
-  .message.ai:hover .message-actions{opacity:1}
+  .message.ai .ai-content{flex:1;min-width:0;overflow:hidden}
+  .message.ai .ai-text{color:var(--text);line-height:1.65;font-size:15px;overflow-wrap:break-word;word-break:break-word}
+  .message-actions{display:flex;gap:6px;margin-top:8px;opacity:0;transition:opacity 0.2s;flex-wrap:wrap}
+  .message.ai:hover .message-actions,.message-group:focus-within .message-actions{opacity:1}
   .action-btn{
     background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
-    padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;transition:all 0.15s;
+    padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;min-height:32px;touch-action:manipulation;
   }
   .action-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
+  .action-btn:active{transform:scale(0.95)}
   .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block}
   @keyframes spin{to{transform:rotate(360deg)}}
 
   #inputWrapper{
-    padding:12px 16px 16px;background:linear-gradient(transparent, var(--bg-main) 20%);
+    padding:10px 12px calc(10px + var(--safe-bottom));
+    background:linear-gradient(transparent, var(--bg-main) 30%);
     flex-shrink:0;display:flex;justify-content:center;
   }
-  #inputWrapper .input-card{max-width:760px}
+  #inputWrapper .input-card{max-width:760px;width:100%}
 
   #statusBar{
-    position:absolute;top:50px;left:50%;transform:translateX(-50%);
-    background:var(--bg-input);border:1px solid var(--border);padding:6px 12px;
+    position:absolute;top:52px;left:50%;transform:translateX(-50%);
+    background:var(--bg-input);border:1px solid var(--border);padding:8px 14px;
     border-radius:20px;font-size:11px;color:var(--text-secondary);
-    display:flex;align-items:center;gap:8px;z-index:10;box-shadow:var(--shadow);
+    display:flex;align-items:center;gap:8px;z-index:20;box-shadow:var(--shadow);
     max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    min-height:32px;
   }
   #statusBar.hidden{display:none}
 
-  @media (max-width:768px){
-    #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;box-shadow:var(--shadow)}
-    #sidebar.collapsed{transform:translateX(-100%)}
+  /* MOBILE FRIENDLY - Duck.ai style responsive */
+  @media (max-width: 768px){
+    #sidebar{
+      position:fixed;left:0;top:0;bottom:0;
+      width:300px;max-width:85vw;
+      transform:translateX(-100%);
+      z-index:40;
+      box-shadow:0 0 0 transparent;
+    }
+    #sidebar.open{
+      transform:translateX(0);
+      box-shadow:0 0 40px rgba(0,0,0,0.6);
+    }
+    #sidebar.collapsed{transform:translateX(-100%);width:300px;max-width:85vw;padding:12px;border-right:1px solid var(--border)}
     .mobile-menu-btn{display:flex}
-    .empty-state{padding:20px 16px}
-    .suggestions{grid-template-columns:1fr}
-    .message.user{max-width:85%}
-    #topBar{padding:0 12px}
+    #topBar{height:52px;min-height:52px;padding:0 12px}
+    #topBar .top-left{gap:8px}
+    #topBar .top-right{gap:4px}
+    #topBar .top-right .top-link{padding:6px 8px;font-size:11px}
+    #topBar #topMemoryInfo{display:none} /* hide memory on mobile top to save space */
+    #chatContainer{padding:0 10px}
+    .empty-state{padding:16px 12px;justify-content:flex-start;padding-top:24px}
+    .empty-logo{width:56px;height:56px;font-size:28px;border-radius:16px;margin-bottom:12px}
+    .empty-title{font-size:20px}
+    .empty-subtitle{font-size:12.5px;margin-bottom:16px}
+    .input-card{border-radius:20px;padding:10px 12px}
+    .input-card textarea{font-size:16px} /* Prevent iOS zoom */
+    .suggestions{grid-template-columns:1fr;gap:8px;margin-top:12px}
+    .suggestion-card{padding:12px;font-size:13.5px;min-height:48px}
+    .privacy-card{padding:10px 12px;font-size:11.5px;margin-top:12px}
+    .messages-wrapper{gap:18px;padding:12px 0 16px}
+    .message{font-size:15px}
+    .message.user{max-width:88%;padding:10px 14px;font-size:15px;border-radius:18px 18px 4px 18px}
+    .message.ai .ai-text{font-size:15px}
+    .message-actions{opacity:1} /* Always show on mobile */
+    #inputWrapper{padding:8px 10px calc(8px + var(--safe-bottom))}
+    #statusBar{top:56px;font-size:10.5px;padding:6px 12px;max-width:92%}
+    .model-chip span:not(.dot){display:none} /* hide text on very small? Keep but show short */
+    .model-chip{padding:6px 8px}
+    .tool-btn{width:40px;height:40px} /* bigger touch target */
+    .send-btn{width:40px;height:40px;min-width:40px}
   }
 
-  .ai-text code{background:var(--bg-card);border:1px solid var(--border);padding:2px 5px;border-radius:5px;font-family:ui-monospace,monospace;font-size:13px}
-  .ai-text pre{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;margin:10px 0}
-  .ai-text pre code{background:transparent;border:none;padding:0}
+  @media (max-width: 480px){
+    #sidebar{width:100vw;max-width:100vw}
+    .empty-title{font-size:18px}
+    .empty-subtitle{font-size:12px}
+    .input-card{border-radius:18px}
+    .suggestions{gap:6px}
+    .suggestion-card{font-size:13px;padding:10px 12px;min-height:44px}
+    .message.user{max-width:92%}
+    #topBar{padding:0 8px}
+    #topBar .top-left span{font-size:12px}
+    .model-chip{display:none} /* hide model chip on tiny screens to save space */
+    .privacy-card .p-icon{width:28px;height:28px;font-size:14px}
+  }
+
+  /* Large screens */
+  @media (min-width: 1200px){
+    .messages-wrapper{max-width:800px}
+    .empty-state{max-width:760px}
+    .input-card{max-width:760px}
+  }
+
+  /* Code */
+  .ai-text code{background:var(--bg-card);border:1px solid var(--border);padding:2px 5px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;word-break:break-all}
+  .ai-text pre{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;margin:10px 0;-webkit-overflow-scrolling:touch}
+  .ai-text pre code{background:transparent;border:none;padding:0;word-break:normal;white-space:pre-wrap}
   .ai-text strong{color:#fff;font-weight:600}
   .ai-text ul{margin:8px 0 8px 18px}
   .ai-text li{margin:4px 0}
@@ -304,11 +374,13 @@
 </head>
 <body>
 
+<div id="sidebarBackdrop" onclick="toggleSidebar(true)"></div>
+
 <div class="app">
-  <aside id="sidebar">
+  <aside id="sidebar" class="collapsed">
     <div class="sidebar-top">
       <div class="logo"><div class="logo-icon">B</div>BitBot AI</div>
-      <button class="collapse-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
+      <button class="collapse-btn" onclick="toggleSidebar(true)" title="Close">✕</button>
     </div>
 
     <button class="new-chat-btn" onclick="createNewChat()">
@@ -319,14 +391,15 @@
       <div class="sidebar-label">Current Model</div>
       <div class="model-badge"><span>🧠</span> BitBot v1 • Powerful & Efficient</div>
       <div style="font-size:11px;color:var(--text-tertiary);padding:4px 6px;line-height:1.4">
-        More powerful than TinyLlama & SmolLM. Uses less RAM. Single mode for simplicity.
+        Single model — more powerful, less RAM. Optimized for mobile & 4GB laptop.
       </div>
     </div>
 
     <div class="sidebar-section">
       <div class="sidebar-label">Tools</div>
-      <div class="sidebar-item" onclick="clearCurrentChat()"><span class="item-icon">🗑️</span> Clear Current Chat</div>
+      <div class="sidebar-item" onclick="clearCurrentChat(); toggleSidebar(true)"><span class="item-icon">🗑️</span> Clear Current Chat</div>
       <div class="sidebar-item" onclick="showModelInfo()"><span class="item-icon">ℹ️</span> About BitBot v1</div>
+      <div class="sidebar-item" onclick="toggleSidebar(true); document.getElementById('heroInput')?.focus() || document.getElementById('userInput')?.focus()"><span class="item-icon">⌨️</span> Focus Input</div>
     </div>
 
     <div class="sidebar-label" style="margin-top:12px">Recent Chats</div>
@@ -336,10 +409,10 @@
 
     <div class="sidebar-bottom">
       <div class="sidebar-item" onclick="window.open('https://github.com/bittuhere/ai','_blank')"><span class="item-icon">💬</span> Share Feedback</div>
-      <div class="sidebar-item" style="color:var(--green)"><span class="item-icon">🛡️</span> Private • On-device</div>
+      <div class="sidebar-item" style="color:var(--green)"><span class="item-icon">🛡️</span> Private • On-device • Mobile Ready</div>
       <div class="free-badge">
         <div class="badge-row"><div class="dot"></div><span id="connectionStatus">Connecting...</span><span style="margin-left:auto" id="modelStatus">BitBot v1</span></div>
-        <div class="badge-row" style="font-size:10px"><span>💾</span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~800MB RAM</span></div>
+        <div class="badge-row" style="font-size:10px"><span>💾</span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~800MB RAM • Mobile ✓</span></div>
       </div>
       <div style="font-size:10px;color:var(--text-tertiary);padding:6px 4px;display:flex;justify-content:space-between">
         <span>BitBot AI</span><span>by Anurag • Gemma 3</span>
@@ -350,14 +423,14 @@
   <main id="main">
     <div id="topBar">
       <div class="top-left">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <span style="font-weight:700">BitBot v1</span>
-        <span style="color:var(--text-tertiary)">|</span>
-        <span id="topMemoryInfo" style="font-size:11px">No memory</span>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+        <span style="font-weight:700;white-space:nowrap">BitBot v1</span>
+        <span style="color:var(--text-tertiary);display:none" class="hide-mobile">|</span>
+        <span id="topMemoryInfo" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">No memory</span>
       </div>
       <div class="top-right">
-        <span id="topStatus">Syncing...</span>
-        <a class="top-link" onclick="fetchConfig()">↻ Sync</a>
+        <span id="topStatus" style="display:none" class="hide-mobile">Syncing...</span>
+        <a class="top-link" onclick="fetchConfig()" title="Sync">↻</a>
         <a class="top-link upgrade" href="https://github.com/bittuhere/ai" target="_blank">GitHub</a>
       </div>
     </div>
@@ -372,20 +445,20 @@
         <div class="empty-logo">B</div>
         <div class="empty-title">BitBot AI — BitBot v1</div>
         <div class="empty-subtitle">
-          <span class="shield">🛡️</span> All chats are <b>private</b> • Powered by <b>BitBot v1</b> — more powerful, less RAM than TinyLlama
+          <span class="shield">🛡️</span> Private • Mobile Friendly • <b>BitBot v1</b> — powerful & efficient
         </div>
 
         <div class="input-card" id="heroInputCard">
-          <textarea id="heroInput" placeholder="Ask anything privately with BitBot v1..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)"></textarea>
+          <textarea id="heroInput" placeholder="Ask anything privately..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
           <div class="input-bottom">
             <div class="input-tools">
-              <button class="tool-btn" title="Attach (coming soon)" onclick="showToast('Attachments coming soon!')">📎</button>
-              <button class="tool-btn" title="Search (coming soon)" onclick="showToast('Search tool coming soon!')">🌐</button>
-              <button class="tool-btn" title="BitBot v1 Info" onclick="showModelInfo()">🧠</button>
+              <button class="tool-btn" title="Attach" onclick="showToast('📎 Attachments coming soon!')">📎</button>
+              <button class="tool-btn" title="Search" onclick="showToast('🌐 Search coming soon!')">🌐</button>
+              <button class="tool-btn" title="Info" onclick="showModelInfo()">🧠</button>
             </div>
             <div class="input-right">
-              <div class="model-chip"><div class="dot"></div>BitBot v1</div>
-              <button class="send-btn" id="heroSendBtn" onclick="sendFromHero()">
+              <div class="model-chip"><div class="dot"></div><span class="hide-mobile-text">BitBot v1</span><span class="show-mobile-only" style="display:none">Gemma</span></div>
+              <button class="send-btn" id="heroSendBtn" onclick="sendFromHero()" aria-label="Send">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
               </button>
             </div>
@@ -394,20 +467,20 @@
 
         <div class="suggestions">
           <div class="suggestion-card" onclick="useSuggestion('My name is Bittu, remember it!')"><span class="s-icon">👤</span> Remember my name is Bittu</div>
-          <div class="suggestion-card" onclick="useSuggestion('What is my name?')"><span class="s-icon">🧠</span> What is my name? (test memory)</div>
-          <div class="suggestion-card" onclick="useSuggestion('Explain BitBot v1 vs TinyLlama differences')"><span class="s-icon">⚖️</span> Why BitBot v1 is better?</div>
-          <div class="suggestion-card" onclick="useSuggestion('Write a Python function to reverse a string with explanation')"><span class="s-icon">🐍</span> Python reverse string</div>
+          <div class="suggestion-card" onclick="useSuggestion('What is my name?')"><span class="s-icon">🧠</span> What is my name?</div>
+          <div class="suggestion-card" onclick="useSuggestion('Explain BitBot v1 vs TinyLlama')"><span class="s-icon">⚖️</span> Why BitBot v1 better?</div>
+          <div class="suggestion-card" onclick="useSuggestion('Write Python to reverse a string')"><span class="s-icon">🐍</span> Python reverse string</div>
         </div>
 
         <div class="privacy-card">
-          <div class="p-icon">✨</div>
+          <div class="p-icon">📱</div>
           <div>
-            <b>New: BitBot v1 single mode</b> — No more Fast/Thinking confusion. One powerful model, less RAM (~800MB vs 1.5GB before), better reasoning, better memory. Trained by Google, optimized for efficiency.
+            <b>Mobile Friendly + BitBot v1</b> — Works on phone! Sidebar drawer, bigger tap targets, safe-area support, no zoom on input. One powerful model, less RAM.
           </div>
         </div>
 
         <div class="disclaimer">
-          BitBot now runs <b>BitBot v1</b> — Google's most efficient 1B model. Uses ~800MB RAM (vs TinyLlama 637MB + SmolLM 92MB but better quality). Single mode for simplicity. AI may be inaccurate. Chats stored locally.
+          BitBot v1 • ~800MB RAM • Mobile optimized • Chats stored locally • AI may be inaccurate
         </div>
       </div>
 
@@ -416,19 +489,19 @@
 
     <div id="inputWrapper" style="display:none">
       <div class="input-card">
-        <textarea id="userInput" placeholder="Ask BitBot v1 anything..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)"></textarea>
+        <textarea id="userInput" placeholder="Ask BitBot v1..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
         <div class="input-bottom">
           <div class="input-tools">
-            <button class="tool-btn" onclick="showToast('Attachments coming soon!')">📎</button>
-            <button class="tool-btn" onclick="showToast('Search coming soon!')">🌐</button>
+            <button class="tool-btn" onclick="showToast('📎 Coming soon!')">📎</button>
+            <button class="tool-btn" onclick="showToast('🌐 Coming soon!')">🌐</button>
             <button class="tool-btn" onclick="showModelInfo()">🧠</button>
           </div>
           <div class="input-right">
             <div class="model-chip"><div class="dot"></div>BitBot v1</div>
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Send">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
-            <button class="send-btn stop" id="stopBtn" onclick="stopGeneration()" style="display:none">
+            <button class="send-btn stop" id="stopBtn" onclick="stopGeneration()" style="display:none" aria-label="Stop">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>
             </button>
           </div>
@@ -439,17 +512,14 @@
 </div>
 
 <script>
-// ==================== CONFIG - BitBot v1 SINGLE MODE ====================
+// ==================== CONFIG - BitBot v1 SINGLE MODE - MOBILE FRIENDLY ====================
 const CONFIG_URL = "https://raw.githubusercontent.com/bittuhere/ai/main/config.json";
-// Single model - BitBot v1 (more powerful, less RAM than TinyLlama+SmolLM combo)
 const MODEL = {
   primary: "gemma3:1b",
   fallbacks: ["gemma3:1b", "gemma3", "gemma2:2b", "gemma:2b", "gemma3:4b"],
   label: "BitBot v1",
   ram: "~800MB"
 };
-
-// Optimized prompt for BitBot v1 - short, effective, memory-aware
 const SYSTEM_PROMPT = `You are BitBot AI, created by Anurag. You are powered by BitBot v1, Google's efficient model.
 
 Rules:
@@ -466,7 +536,7 @@ let isGenerating = false;
 let abortController = null;
 let conversations = [];
 let currentConversationId = null;
-const MAX_HISTORY = 24; // Gemma can handle more context
+const MAX_HISTORY = 24;
 
 // DOM
 const chatContainer = document.getElementById('chatContainer');
@@ -485,47 +555,110 @@ const topMemoryInfo = document.getElementById('topMemoryInfo');
 const sendBtn = document.getElementById('sendBtn');
 const stopBtn = document.getElementById('stopBtn');
 const heroSendBtn = document.getElementById('heroSendBtn');
+const sidebar = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+// ==================== MOBILE FRIENDLY SIDEBAR ====================
+function isMobile(){ return window.innerWidth <= 768; }
+
+function toggleSidebar(forceClose=false){
+  const isOpen = sidebar.classList.contains('open');
+  const shouldClose = forceClose===true || isOpen;
+
+  if (shouldClose){
+    sidebar.classList.remove('open');
+    sidebar.classList.add('collapsed');
+    sidebarBackdrop.classList.remove('open');
+    document.body.style.overflow='';
+    // On desktop, collapsed means hidden but we want it visible by default on desktop
+    if (!isMobile()){
+      // On desktop, toggle between open and collapsed
+      if (forceClose!==true){
+        // Actually on desktop, collapsed hides it, so we need to handle
+        // If it was open and we close, keep collapsed
+        // If it was collapsed and we toggle, open it
+        if (sidebar.classList.contains('collapsed') && !isOpen){
+          sidebar.classList.remove('collapsed');
+          sidebar.classList.add('open');
+          sidebarBackdrop.classList.remove('open');
+        }
+      }
+    }
+  } else {
+    // Open
+    sidebar.classList.remove('collapsed');
+    sidebar.classList.add('open');
+    if (isMobile()){
+      sidebarBackdrop.classList.add('open');
+      document.body.style.overflow='hidden';
+    }
+  }
+}
+
+// Auto-collapse on mobile on load
+function initMobileSidebar(){
+  if (isMobile()){
+    sidebar.classList.add('collapsed');
+    sidebar.classList.remove('open');
+    sidebarBackdrop.classList.remove('open');
+  } else {
+    sidebar.classList.remove('collapsed');
+    sidebar.classList.add('open');
+  }
+}
+window.addEventListener('resize', ()=>{
+  // Debounce
+  clearTimeout(window._resizeTimer);
+  window._resizeTimer = setTimeout(()=>{
+    if (isMobile()){
+      if (sidebar.classList.contains('open') && !sidebarBackdrop.classList.contains('open')){
+        // If resizing to mobile and sidebar open, show backdrop
+        sidebarBackdrop.classList.add('open');
+        document.body.style.overflow='hidden';
+      }
+    } else {
+      sidebarBackdrop.classList.remove('open');
+      document.body.style.overflow='';
+      sidebar.classList.remove('collapsed');
+      sidebar.classList.add('open');
+    }
+  }, 150);
+});
 
 // ==================== CONVERSATIONS ====================
-function loadConversations() {
-  try {
+function loadConversations(){
+  try{
     conversations = JSON.parse(localStorage.getItem('bitbot_conversations_gemma') || '[]');
-    // Migrate from old v3 if exists
-    if (conversations.length===0) {
+    if (conversations.length===0){
       const old = localStorage.getItem('bitbot_conversations_v3');
-      if (old) {
-        try { conversations = JSON.parse(old).map(c=>({...c, model: 'gemma3:1b'})); } catch {}
-      }
+      if (old){ try{ conversations=JSON.parse(old).map(c=>({...c, model:'gemma3:1b'})); }catch{} }
     }
     currentConversationId = localStorage.getItem('bitbot_current_id_gemma') || localStorage.getItem('bitbot_current_id');
     if (conversations.length===0) createNewChat(false);
-    else if (!currentConversationId || !conversations.find(c=>c.id===currentConversationId)) {
-      currentConversationId = conversations[0].id;
+    else if (!currentConversationId || !conversations.find(c=>c.id===currentConversationId)){
+      currentConversationId=conversations[0].id;
     }
-    renderHistory();
-    loadCurrentConversation();
-  } catch(e) {
-    conversations=[]; createNewChat(false);
-  }
+    renderHistory(); loadCurrentConversation();
+  }catch(e){ conversations=[]; createNewChat(false); }
 }
-function saveConversations() {
-  try {
+function saveConversations(){
+  try{
     localStorage.setItem('bitbot_conversations_gemma', JSON.stringify(conversations));
     if (currentConversationId) localStorage.setItem('bitbot_current_id_gemma', currentConversationId);
     renderHistory(); updateMemoryInfo();
-  } catch(e){}
+  }catch(e){}
 }
 function getCurrentConversation(){ return conversations.find(c=>c.id===currentConversationId); }
 function createNewChat(render=true){
-  const id = Date.now().toString();
-  const conv = { id, title:"New Chat", messages:[], created:Date.now(), model:MODEL.primary };
+  const id=Date.now().toString();
+  const conv={id, title:"New Chat", messages:[], created:Date.now(), model:MODEL.primary};
   conversations.unshift(conv);
   currentConversationId=id;
   saveConversations();
-  if (render){ clearChatDOM(); showEmptyState(); heroInput.focus(); }
+  if (render){ clearChatDOM(); showEmptyState(); setTimeout(()=>heroInput.focus(),100); if (isMobile()) toggleSidebar(true); }
 }
 function loadCurrentConversation(){
-  const conv = getCurrentConversation();
+  const conv=getCurrentConversation();
   if (!conv) return;
   clearChatDOM();
   if (conv.messages.length===0) showEmptyState();
@@ -539,26 +672,26 @@ function loadCurrentConversation(){
 }
 function clearChatDOM(){ messagesWrapper.innerHTML=''; }
 function showEmptyState(){ emptyState.style.display='flex'; messagesWrapper.style.display='none'; inputWrapper.style.display='none'; }
-function showChatState(){ emptyState.style.display='none'; messagesWrapper.style.display='flex'; inputWrapper.style.display='flex'; chatContainer.scrollTop=chatContainer.scrollHeight; }
+function showChatState(){ emptyState.style.display='none'; messagesWrapper.style.display='flex'; inputWrapper.style.display='flex'; setTimeout(scrollToBottom,50); }
 function renderHistory(){
   if (conversations.length===0){
     historyList.innerHTML='<div style="padding:12px 10px;font-size:12px;color:var(--text-tertiary)">No chats yet. Start a new chat!</div>'; return;
   }
   historyList.innerHTML = conversations.map(conv=>{
-    const active = conv.id===currentConversationId ? 'active' : '';
-    const title = escapeHtml(conv.title||"New Chat");
-    return `<div class="history-item ${active}" onclick="switchConversation('${conv.id}')" title="${title}"><span class="h-title">${title}</span><button class="h-delete" onclick="event.stopPropagation(); deleteConversation('${conv.id}')">✕</button></div>`;
+    const active=conv.id===currentConversationId ? 'active' : '';
+    const title=escapeHtml(conv.title||"New Chat");
+    return `<div class="history-item ${active}" onclick="switchConversation('${conv.id}')" title="${title}"><span class="h-title">${title}</span><button class="h-delete" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" aria-label="Delete">✕</button></div>`;
   }).join('');
 }
 function switchConversation(id){
   currentConversationId=id;
   localStorage.setItem('bitbot_current_id_gemma', id);
   loadCurrentConversation(); renderHistory();
-  if (window.innerWidth<=768) toggleSidebar(true);
+  if (isMobile()) toggleSidebar(true);
 }
 function deleteConversation(id){
   if (!confirm("Delete this chat?")) return;
-  conversations = conversations.filter(c=>c.id!==id);
+  conversations=conversations.filter(c=>c.id!==id);
   if (currentConversationId===id){
     if (conversations.length>0) currentConversationId=conversations[0].id;
     else createNewChat(false);
@@ -572,33 +705,36 @@ function clearCurrentChat(){
   conv.messages=[]; conv.title="New Chat"; saveConversations(); clearChatDOM(); showEmptyState();
 }
 function updateConversationTitleIfNeeded(conv, firstMsg){
-  if (conv.title==="New Chat" && firstMsg) conv.title = firstMsg.slice(0,40)+(firstMsg.length>40?'...':'');
+  if (conv.title==="New Chat" && firstMsg) conv.title=firstMsg.slice(0,40)+(firstMsg.length>40?'...':'');
 }
 function updateMemoryInfo(){
   const conv=getCurrentConversation();
-  const count = conv ? conv.messages.length : 0;
-  const total = conversations.reduce((s,c)=>s+c.messages.length,0);
+  const count=conv ? conv.messages.length : 0;
+  const total=conversations.reduce((s,c)=>s+c.messages.length,0);
   memoryStatus.textContent = count>0 ? `${count} msgs` : 'No memory';
-  topMemoryInfo.textContent = count>0 ? `${count} msgs • ${total} total • ${MODEL.label}` : `${MODEL.label} • No memory`;
+  topMemoryInfo.textContent = count>0 ? `${count} msgs • ${MODEL.label}` : `${MODEL.label}`;
+  if (isMobile()){
+    topMemoryInfo.textContent = count>0 ? `${count} msgs` : MODEL.label;
+  }
 }
 
 // ==================== CONFIG FETCH ====================
 async function fetchConfig(){
   try{
-    showStatus("Syncing with BitBot v1 server...");
-    const res = await fetch(`${CONFIG_URL}?t=${Date.now()}`, {cache:'no-store'});
+    showStatus("Syncing with BitBot v1...");
+    const res=await fetch(`${CONFIG_URL}?t=${Date.now()}`, {cache:'no-store'});
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data=await res.json();
     if (!data.tunnel_url || !data.tunnel_url.trim()) throw new Error("Tunnel URL empty");
     if (data.tunnel_url.includes("api.trycloudflare.com")) throw new Error("Invalid URL");
-    tunnel_url = data.tunnel_url;
-    lastConfigFetch = Date.now();
-    connectionStatus.innerHTML = `<span style="color:var(--green)">●</span> Connected`;
-    topStatus.textContent = `● Connected • ${MODEL.label} • ${new Date().toLocaleTimeString()}`;
+    tunnel_url=data.tunnel_url;
+    lastConfigFetch=Date.now();
+    connectionStatus.innerHTML=`<span style="color:var(--green)">●</span> Connected`;
+    topStatus.textContent=`● Connected`;
     hideStatus(); return tunnel_url;
   }catch(e){
-    connectionStatus.innerHTML = `<span style="color:var(--red)">●</span> Offline`;
-    topStatus.textContent = `Offline: ${e.message}`;
+    connectionStatus.innerHTML=`<span style="color:var(--red)">●</span> Offline`;
+    topStatus.textContent=`Offline`;
     showStatus(`Could not connect to BitBot AI server. Please check your internet connection. ${e.message}`, true);
     return null;
   }
@@ -606,26 +742,31 @@ async function fetchConfig(){
 function showStatus(msg, isError=false){
   statusText.textContent=msg;
   statusBar.classList.remove('hidden');
-  statusBar.style.borderColor = isError ? 'var(--red)' : 'var(--border)';
+  statusBar.style.borderColor=isError ? 'var(--red)' : 'var(--border)';
 }
-function hideStatus(){ setTimeout(()=>statusBar.classList.add('hidden'),2000); }
+function hideStatus(){ setTimeout(()=>statusBar.classList.add('hidden'),2500); }
 fetchConfig();
 setInterval(()=>{ if(!isGenerating) fetchConfig(); }, 120000);
 
 // ==================== HELPERS ====================
 function escapeHtml(text){ const div=document.createElement('div'); div.textContent=text; return div.innerHTML; }
 function formatTextWithMarkdown(text){
-  let escaped = escapeHtml(text);
-  escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
-  escaped = escaped.replace(/\n/g, '<br>');
+  let escaped=escapeHtml(text);
+  escaped=escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  escaped=escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+  escaped=escaped.replace(/\n/g, '<br>');
   return escaped;
 }
-function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,160)+'px'; }
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,160)+'px';
+  // On mobile, ensure chat scrolls to bottom when input grows
+  if (isMobile()) setTimeout(scrollToBottom, 50);
+}
 function showToast(msg){ showStatus(msg); setTimeout(hideStatus,3000); }
 function scrollToBottom(){ chatContainer.scrollTop=chatContainer.scrollHeight; }
 function sanitizeResponse(text){
-  const leakMarkers = ["1. IDENTITY","2. DEVELOPER","PROHIBITION:","PERSONALITY:","ANSWER FORMAT:"];
+  const leakMarkers=["1. IDENTITY","2. DEVELOPER","PROHIBITION:","PERSONALITY:","ANSWER FORMAT:"];
   const lower=text.toLowerCase();
   let isLeak=leakMarkers.some(m=>lower.includes(m.toLowerCase()));
   if (text.includes("Your name is BitBot AI") && text.includes("Your developer is Anurag") && text.length>300) isLeak=true;
@@ -677,7 +818,7 @@ function copyMessage(id){
   const group=document.getElementById(id);
   if (!group) return;
   const text=group.querySelector('.ai-text')?.innerText || group.innerText;
-  navigator.clipboard.writeText(text).then(()=>showToast("Copied!"));
+  navigator.clipboard.writeText(text).then(()=>showToast("✅ Copied!")).catch(()=>showToast("Copy failed"));
 }
 
 // ==================== SUGGESTIONS ====================
@@ -685,66 +826,62 @@ function useSuggestion(text){ heroInput.value=text; autoResize(heroInput); sendF
 function handleHeroKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFromHero(); } }
 function handleInputKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } }
 function showModelInfo(){
-  alert(`🧠 BitBot AI - BitBot v1
+  alert(`📱 BitBot AI - Mobile Friendly + BitBot v1
 
 • Model: BitBot v1 by Google
-• Size: ~1B params, ~800MB RAM (vs TinyLlama 637MB + SmolLM 92MB but much smarter)
-• Why better than TinyLlama/SmolLM?
-  - More powerful reasoning (DeepSeek recommended)
-  - Better instruction following (no system prompt leaks)
-  - Uses less RAM than running 2 models
-  - Better memory & context (24 messages vs 20)
-  - Trained on more data, better code & math
+• Size: ~1B params, ~800MB RAM
+• Why better?
+  - More powerful than TinyLlama/SmolLM
+  - Uses less RAM than 2 models
+  - Better memory & code
 
-• Single mode now - no more Fast/Thinking confusion
-• All chats private, stored locally in browser
-• Runs on Anurag's laptop via Cloudflare Tunnel
+• Mobile Features:
+  - Sidebar drawer with backdrop
+  - Bigger tap targets (44px)
+  - No zoom on input (16px font)
+  - Safe-area support for iPhone notch
+  - 1-column suggestions on mobile
+  - Always show Copy button on mobile
+  - Auto-collapse sidebar on mobile
+  - Swipe backdrop to close
 
-To update model on laptop:
+• Single mode - no Fast/Thinking confusion
+• All chats private, stored locally
+
+To update on laptop:
   ollama pull gemma3:1b
-  ollama rm tinyllama smollm smollm:135m (to save space)
+  ollama rm tinyllama smollm
 `);
 }
 
-// ==================== CHAT LOGIC - BitBot v1 ====================
+// ==================== CHAT LOGIC ====================
 async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMessage, onChunk, signal){
-  const messages = [
-    { role:"system", content: systemPrompt },
+  const messages=[
+    {role:"system", content: systemPrompt},
     ...history,
-    { role:"user", content: newUserMessage }
+    {role:"user", content: newUserMessage}
   ];
-  const modelsToTry = [modelInfo.primary, ...modelInfo.fallbacks];
+  const modelsToTry=[modelInfo.primary, ...modelInfo.fallbacks];
   let lastError=null;
-
   for (let modelName of modelsToTry){
     try{
-      const response = await fetch(`${tunnelUrl}/api/chat`, {
+      const response=await fetch(`${tunnelUrl}/api/chat`, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           model: modelName,
           messages: messages,
           stream: true,
-          options: {
-            temperature: 0.7,
-            repeat_penalty: 1.15,
-            num_predict: 800,
-            top_p: 0.9,
-            top_k: 40
-          }
+          options: { temperature:0.7, repeat_penalty:1.15, num_predict:800, top_p:0.9, top_k:40 }
         }),
         signal: signal
       });
-
       if (!response.ok){
-        const errText = await response.text().catch(()=> '');
-        if (response.status===404 && errText.includes("not found")){
-          lastError=new Error(`Model ${modelName} not found`); continue;
-        }
+        const errText=await response.text().catch(()=> '');
+        if (response.status===404 && errText.includes("not found")){ lastError=new Error(`Model ${modelName} not found`); continue; }
         throw new Error(`Server ${response.status}: ${errText.slice(0,200)}`);
       }
       if (!response.body) throw new Error("No streaming body");
-
       const reader=response.body.getReader();
       const decoder=new TextDecoder();
       let fullText=""; let buffer="";
@@ -757,9 +894,7 @@ async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMe
           if (!line.trim()) continue;
           try{
             const data=JSON.parse(line.trim());
-            if (data.message && data.message.content){
-              fullText+=data.message.content; onChunk(fullText);
-            }
+            if (data.message && data.message.content){ fullText+=data.message.content; onChunk(fullText); }
           }catch{}
         }
       }
@@ -775,8 +910,8 @@ async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMe
 }
 
 async function sendMessageInternal(text, isHero=false){
-  const inputEl = isHero ? heroInput : userInput;
-  const trimmed = text.trim();
+  const inputEl=isHero ? heroInput : userInput;
+  const trimmed=text.trim();
   if (!trimmed || isGenerating) return;
 
   if (!tunnel_url || Date.now()-lastConfigFetch>120000){
@@ -798,7 +933,7 @@ async function sendMessageInternal(text, isHero=false){
   abortController=new AbortController();
 
   const conv=getCurrentConversation();
-  const history = conv ? conv.messages.slice(-MAX_HISTORY) : [];
+  const history=conv ? conv.messages.slice(-MAX_HISTORY) : [];
 
   try{
     let finalText="";
@@ -823,8 +958,8 @@ async function sendMessageInternal(text, isHero=false){
     } else {
       let msg=err.message;
       if (msg.includes('Failed to fetch')) msg="Network error - tunnel rotating. Wait 10s.";
-      if (msg.includes('not found')) msg=`Model ${MODEL.primary} not found on laptop. Run: ollama pull gemma3:1b`;
-      updateAIBubble(aiId, `Error: ${msg}\n\nTip: Make sure laptop has gemma3:1b: ollama list should show gemma3:1b. Pull it: ollama pull gemma3:1b`, true, true);
+      if (msg.includes('not found')) msg=`Model ${MODEL.primary} not found. Run: ollama pull gemma3:1b`;
+      updateAIBubble(aiId, `Error: ${msg}\n\nTip: ollama list should show gemma3:1b. Pull it: ollama pull gemma3:1b`, true, true);
     }
   }finally{
     isGenerating=false;
@@ -832,6 +967,8 @@ async function sendMessageInternal(text, isHero=false){
     heroSendBtn.disabled=false; userInput.disabled=false; heroInput.disabled=false;
     abortController=null;
     (isHero ? heroInput : userInput).focus();
+    // On mobile, scroll to bottom after sending to keep input visible above keyboard
+    if (isMobile()) setTimeout(scrollToBottom, 300);
   }
 }
 
@@ -839,18 +976,24 @@ function sendMessage(){ sendMessageInternal(userInput.value, false); }
 function sendFromHero(){ sendMessageInternal(heroInput.value, true); }
 function stopGeneration(){ if (abortController) abortController.abort(); }
 
-// ==================== SIDEBAR ====================
-function toggleSidebar(forceClose=false){
-  const sidebar=document.getElementById('sidebar');
-  if (forceClose===true){ sidebar.classList.add('collapsed'); return; }
-  sidebar.classList.toggle('collapsed');
-}
-
 // ==================== INIT ====================
 window.addEventListener('load', ()=>{
+  initMobileSidebar();
   loadConversations();
-  heroInput.focus();
+  setTimeout(()=>heroInput.focus(), 300);
+  // Prevent zoom on double tap for buttons
+  document.addEventListener('touchstart', function(){}, {passive:true});
 });
+
+// Handle visual viewport for mobile keyboard
+if (window.visualViewport){
+  window.visualViewport.addEventListener('resize', ()=>{
+    // Keep chat scrolled to bottom when keyboard appears
+    if (isGenerating || document.activeElement===userInput || document.activeElement===heroInput){
+      setTimeout(scrollToBottom, 100);
+    }
+  });
+}
 </script>
 
 </body>

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BitBot AI - Fast & Thinking Assistant</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#0d1117;
+    color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    overflow:hidden;
+  }
+  header {
+    background:#161b22;
+    border-bottom:1px solid #30363d;
+    padding:14px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .logo {
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-0.5px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .logo-icon {
+    width:32px;height:32px;
+    background:linear-gradient(135deg,#1f6feb,#8957e5);
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;
+    color:white;
+  }
+  .badge {
+    background:#21262d;
+    border:1px solid #30363d;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .badge-dot {
+    width:8px;height:8px;
+    border-radius:50%;
+    background:#3fb950;
+    box-shadow:0 0 6px #3fb950;
+  }
+  .badge.fast { color:#58a6ff; border-color:#1f6feb; }
+  .badge.thinking { color:#d2a8ff; border-color:#8957e5; }
+
+  .mode-selector {
+    background:#0d1117;
+    padding:16px 20px;
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    border-bottom:1px solid #21262d;
+  }
+  .mode-btn {
+    flex:1;
+    max-width:200px;
+    padding:14px 20px;
+    border-radius:12px;
+    border:1px solid #30363d;
+    background:#161b22;
+    color:#8b949e;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:all 0.2s ease;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .mode-btn:hover {
+    border-color:#8b949e;
+    background:#1c2128;
+  }
+  .mode-btn.active {
+    background:#1f6feb;
+    border-color:#1f6feb;
+    color:white;
+    box-shadow:0 4px 12px rgba(31,111,235,0.3);
+  }
+  .mode-btn.active.thinking-active {
+    background:#8957e5;
+    border-color:#8957e5;
+    box-shadow:0 4px 12px rgba(137,87,229,0.3);
+  }
+  .mode-btn small {
+    font-size:11px;
+    opacity:0.8;
+    font-weight:400;
+  }
+
+  #statusBar {
+    background:#161b22;
+    padding:8px 20px;
+    font-size:12px;
+    color:#8b949e;
+    border-bottom:1px solid #21262d;
+    min-height:32px;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  #chatContainer {
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    max-width:900px;
+    width:100%;
+    margin:0 auto;
+    scroll-behavior:smooth;
+  }
+  #chatContainer::-webkit-scrollbar { width:6px; }
+  #chatContainer::-webkit-scrollbar-thumb { background:#30363d; border-radius:3px; }
+  #chatContainer::-webkit-scrollbar-track { background:transparent; }
+
+  .message {
+    max-width:85%;
+    padding:14px 18px;
+    border-radius:18px;
+    line-height:1.5;
+    font-size:14.5px;
+    word-wrap:break-word;
+    white-space:pre-wrap;
+    position:relative;
+    animation:fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  .message.user {
+    align-self:flex-end;
+    background:#1f6feb;
+    color:white;
+    border-radius:18px 18px 4px 18px;
+    box-shadow:0 2px 8px rgba(31,111,235,0.2);
+  }
+  .message.ai {
+    align-self:flex-start;
+    background:#161b22;
+    color:#e6edf3;
+    border:1px solid #30363d;
+    border-radius:18px 18px 18px 4px;
+    max-width:80%;
+  }
+  .message.ai.error {
+    background:#2a1215;
+    border-color:#f85149;
+    color:#ff9aa2;
+  }
+  .message.ai .thinking-box {
+    margin-bottom:12px;
+  }
+  .message.ai details {
+    background:#21262d;
+    border:1px solid #30363d;
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:13px;
+    color:#8b949e;
+    margin-bottom:10px;
+  }
+  .message.ai details summary {
+    cursor:pointer;
+    font-weight:600;
+    color:#e6edf3;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .message.ai details summary::-webkit-details-marker { display:none; }
+  .message.ai details summary::before {
+    content:"▶";
+    font-size:10px;
+    transition:transform 0.2s;
+    display:inline-block;
+  }
+  .message.ai details[open] summary::before {
+    transform:rotate(90deg);
+  }
+  .message.ai details .thinking-content {
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid #30363d;
+    white-space:pre-wrap;
+    line-height:1.6;
+    color:#b1bac4;
+  }
+  .message.ai .answer-content {
+    color:#e6edf3;
+  }
+
+  .spinner {
+    width:20px;height:20px;
+    border:2px solid #30363d;
+    border-top-color:#1f6feb;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    display:inline-block;
+    vertical-align:middle;
+    margin-right:8px;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .typing-indicator {
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:4px 0;
+  }
+  .typing-dot {
+    width:6px;height:6px;
+    background:#8b949e;
+    border-radius:50%;
+    animation:typing 1.4s infinite;
+  }
+  .typing-dot:nth-child(2){ animation-delay:0.2s }
+  .typing-dot:nth-child(3){ animation-delay:0.4s }
+  @keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:0.5} 30%{transform:translateY(-4px);opacity:1} }
+
+  #inputBar {
+    background:#0d1117;
+    border-top:1px solid #30363d;
+    padding:14px 20px;
+    display:flex;
+    gap:12px;
+    align-items:flex-end;
+    max-width:900px;
+    width:100%;
+    margin:0 auto;
+  }
+  #userInput {
+    flex:1;
+    background:#161b22;
+    border:1px solid #30363d;
+    color:#e6edf3;
+    padding:12px 16px;
+    border-radius:24px;
+    font-size:14.5px;
+    resize:none;
+    outline:none;
+    max-height:120px;
+    min-height:48px;
+    line-height:1.5;
+    font-family:inherit;
+  }
+  #userInput:focus { border-color:#1f6feb; box-shadow:0 0 0 3px rgba(31,111,235,0.1); }
+  #userInput::placeholder { color:#6e7681; }
+  #sendBtn {
+    background:#1f6feb;
+    color:white;
+    border:none;
+    width:48px;height:48px;
+    border-radius:50%;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.2s;
+    flex-shrink:0;
+  }
+  #sendBtn:hover { background:#388bfd; transform:scale(1.05); }
+  #sendBtn:disabled { background:#21262d; color:#6e7681; cursor:not-allowed; transform:none; }
+  #sendBtn svg { width:20px;height:20px; }
+
+  .welcome {
+    text-align:center;
+    padding:40px 20px;
+    color:#8b949e;
+  }
+  .welcome h2 { color:#e6edf3; margin-bottom:8px; font-size:22px; }
+  .welcome p { font-size:14px; line-height:1.6; max-width:500px; margin:0 auto; }
+  .welcome .features {
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-top:20px;
+    flex-wrap:wrap;
+  }
+  .feature-pill {
+    background:#161b22;
+    border:1px solid #30363d;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:12px;
+  }
+
+  @media (max-width:600px){
+    #chatContainer { padding:12px; }
+    .message { max-width:90%; font-size:14px; }
+    .mode-selector { padding:12px; }
+    #inputBar { padding:10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    BitBot AI
+  </div>
+  <div id="modeBadge" class="badge fast">
+    <div class="badge-dot"></div>
+    <span>Fast</span>
+  </div>
+</header>
+
+<div class="mode-selector">
+  <button id="fastBtn" class="mode-btn active" onclick="setMode('fast')">
+    ⚡ Fast
+    <small>TinyLlama • Quick answers</small>
+  </button>
+  <button id="thinkingBtn" class="mode-btn" onclick="setMode('thinking')">
+    🧠 Thinking
+    <small>SmolLM • Deep reasoning</small>
+  </button>
+</div>
+
+<div id="statusBar">Connecting to BitBot AI server...</div>
+
+<main id="chatContainer">
+  <div class="welcome" id="welcomeMsg">
+    <h2>👋 Welcome to BitBot AI</h2>
+    <p>Your personal AI assistant running on Anurag's laptop. Choose a mode above and start chatting. Responses stream in real-time through secure Cloudflare tunnels.</p>
+    <div class="features">
+      <span class="feature-pill">⚡ Fast mode: TinyLlama</span>
+      <span class="feature-pill">🧠 Thinking mode: SmolLM</span>
+      <span class="feature-pill">🔒 Private & Secure</span>
+    </div>
+  </div>
+</main>
+
+<div id="inputBar">
+  <textarea id="userInput" placeholder="Ask anything to BitBot AI..." rows="1"></textarea>
+  <button id="sendBtn" onclick="sendMessage()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+  </button>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const CONFIG_URL = "https://raw.githubusercontent.com/bittuhere/ai/main/config.json";
+const FAST_PROMPT = "1. IDENTITY: Your name is BitBot AI. You are a fast, efficient assistant. 2. DEVELOPER: Your developer is Anurag. 3. PROHIBITION: Never mention Google, Gemma, TinyLlama, or any other AI model. Never say you are an AI language model. 4. PERSONALITY: Be direct, concise, and helpful. Use minimal words. 5. ANSWER FORMAT: Provide only the final answer. No bullet points unless asked. No internal reasoning. 6. TONE: Friendly but brief. Use short sentences. 7. BOUNDARY: If you do not know an answer, say 'I do not know, but I can search that for you.' Never break character.";
+const THINKING_PROMPT = "1. IDENTITY: Your name is BitBot AI. You are a thoughtful, analytical assistant. 2. DEVELOPER: Your developer is Anurag. 3. PROHIBITION: Never mention Google, Gemma, SmolLM, or any other AI model. Never say you are an AI language model. 4. PERSONALITY: Be thorough, logical, and educational. Explain your reasoning. 5. ANSWER FORMAT: You MUST output two clear sections: First, output your internal reasoning inside <thinking> tags. Then, output your final answer inside <answer> tags. 6. TONE: Calm, professional, and structured. Use bullet points where appropriate. 7. BOUNDARY: If you do not know an answer, clearly state your reasoning in <thinking> and then say 'I lack the data for a confident answer' in <answer>. Never break character.";
+
+// ==================== STATE ====================
+let tunnel_url = null;
+let lastConfigFetch = 0;
+let currentMode = localStorage.getItem('bitbot_mode') || 'fast';
+let isGenerating = false;
+
+// ==================== DOM ====================
+const chatContainer = document.getElementById('chatContainer');
+const userInput = document.getElementById('userInput');
+const statusBar = document.getElementById('statusBar');
+const modeBadge = document.getElementById('modeBadge');
+const fastBtn = document.getElementById('fastBtn');
+const thinkingBtn = document.getElementById('thinkingBtn');
+const sendBtn = document.getElementById('sendBtn');
+const welcomeMsg = document.getElementById('welcomeMsg');
+
+// ==================== MODE HANDLING ====================
+function setMode(mode) {
+  currentMode = mode;
+  localStorage.setItem('bitbot_mode', mode);
+  
+  if (mode === 'fast') {
+    fastBtn.classList.add('active');
+    thinkingBtn.classList.remove('active');
+    thinkingBtn.classList.remove('thinking-active');
+    modeBadge.className = 'badge fast';
+    modeBadge.innerHTML = '<div class="badge-dot"></div><span>Fast</span>';
+  } else {
+    thinkingBtn.classList.add('active');
+    thinkingBtn.classList.add('thinking-active');
+    fastBtn.classList.remove('active');
+    modeBadge.className = 'badge thinking';
+    modeBadge.innerHTML = '<div class="badge-dot" style="background:#d2a8ff;box-shadow:0 0 6px #d2a8ff"></div><span>Thinking</span>';
+  }
+}
+
+// Initialize mode
+setMode(currentMode);
+
+// ==================== CONFIG FETCHING ====================
+async function fetchConfig() {
+  try {
+    statusBar.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:1px;"></span> Syncing with BitBot server...';
+    const response = await fetch(`${CONFIG_URL}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    
+    if (!data.tunnel_url || data.tunnel_url.trim() === "") {
+      throw new Error("Tunnel URL is empty - server may be starting");
+    }
+    if (data.tunnel_url.includes("api.trycloudflare.com")) {
+      throw new Error("Invalid tunnel URL detected");
+    }
+    if (!data.tunnel_url.includes("trycloudflare.com")) {
+      throw new Error("Invalid tunnel URL format");
+    }
+    
+    tunnel_url = data.tunnel_url;
+    lastConfigFetch = Date.now();
+    statusBar.innerHTML = `<span style="color:#3fb950">● Connected</span> <span style="color:#8b949e;font-size:11px;margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;display:inline-block;vertical-align:middle;">${escapeHtml(tunnel_url)}</span> <span style="color:#6e7681;font-size:10px;margin-left:auto;">synced ${new Date().toLocaleTimeString()}</span>`;
+    return tunnel_url;
+  } catch (e) {
+    console.error("Config fetch failed:", e);
+    statusBar.innerHTML = `<span style="color:#f85149">● Could not connect to BitBot AI server. Please check your internet connection.</span> <span style="color:#8b949e;font-size:11px;display:block;margin-top:4px;width:100%;">${escapeHtml(e.message)} - Retrying in 10s. Make sure laptop is online.</span>`;
+    return null;
+  }
+}
+
+// Fetch on load and every 2 minutes
+fetchConfig();
+setInterval(() => {
+  if (!isGenerating) fetchConfig();
+}, 120000);
+
+// ==================== HELPERS ====================
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatText(text) {
+  // Escape HTML but keep line breaks and simple formatting
+  let escaped = escapeHtml(text);
+  // Convert URLs to links? Keep simple, no auto-link to avoid XSS
+  // Preserve line breaks
+  escaped = escaped.replace(/\n/g, '<br>');
+  return escaped;
+}
+
+function scrollToBottom() {
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function addMessage(role, content, isLoading=false) {
+  if (welcomeMsg) welcomeMsg.style.display = 'none';
+  
+  const id = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2,5);
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.id = id;
+  
+  if (role === 'user') {
+    div.innerHTML = formatText(content);
+  } else if (isLoading) {
+    div.innerHTML = `<div class="typing-indicator"><div class="spinner"></div><span>BitBot is thinking...</span></div><div class="stream-content" style="margin-top:8px;"></div>`;
+  } else {
+    div.innerHTML = formatText(content);
+  }
+  
+  chatContainer.appendChild(div);
+  scrollToBottom();
+  return id;
+}
+
+function updateAIBubble(id, fullText, isFinal=false, isError=false) {
+  const bubble = document.getElementById(id);
+  if (!bubble) return;
+  
+  if (isError) {
+    bubble.classList.add('error');
+    bubble.innerHTML = formatText(fullText);
+    scrollToBottom();
+    return;
+  }
+  
+  if (!isFinal) {
+    // Streaming update - show raw text with typing effect
+    const streamEl = bubble.querySelector('.stream-content');
+    if (streamEl) {
+      streamEl.innerHTML = formatText(fullText);
+    } else {
+      // Fallback if no stream-content
+      bubble.innerHTML = `<div class="stream-content">${formatText(fullText)}</div>`;
+    }
+    scrollToBottom();
+  } else {
+    // Final render - parse thinking/answer
+    let thinking = null;
+    let answer = fullText;
+    
+    const thinkingMatch = fullText.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+    const answerMatch = fullText.match(/<answer>([\s\S]*?)<\/answer>/i);
+    
+    if (thinkingMatch || answerMatch) {
+      thinking = thinkingMatch ? thinkingMatch[1].trim() : null;
+      answer = answerMatch ? answerMatch[1].trim() : (thinking ? "I have completed my reasoning." : fullText.trim());
+      
+      // If we have thinking but no answer tags, try to extract answer after </thinking>
+      if (thinking && !answerMatch) {
+        const afterThinking = fullText.split(/<\/thinking>/i)[1];
+        if (afterThinking && afterThinking.trim()) {
+          // Remove <answer> tags if present without closing
+          answer = afterThinking.replace(/<\/?answer>/gi, '').trim();
+        }
+      }
+    }
+    
+    let html = '';
+    if (thinking) {
+      html += `<details><summary>🧠 AI's Reasoning</summary><div class="thinking-content">${formatText(thinking)}</div></details>`;
+    }
+    html += `<div class="answer-content">${formatText(answer)}</div>`;
+    
+    bubble.innerHTML = html;
+    scrollToBottom();
+  }
+}
+
+// ==================== OLLAMA STREAMING ====================
+async function streamOllama(tunnelUrl, model, systemPrompt, userPrompt, onChunk) {
+  const response = await fetch(`${tunnelUrl}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: model,
+      prompt: userPrompt,
+      system: systemPrompt,
+      stream: true,
+      temperature: 0.7
+    })
+  });
+  
+  if (!response.ok) {
+    const errText = await response.text().catch(()=> '');
+    throw new Error(`Server error ${response.status}: ${errText.slice(0,200)}`);
+  }
+  
+  if (!response.body) throw new Error("No response body - streaming not supported");
+  
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = "";
+  let buffer = "";
+  
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // Keep incomplete line in buffer
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const data = JSON.parse(trimmed);
+        if (data.response) {
+          fullText += data.response;
+          onChunk(fullText);
+        }
+        if (data.done && data.done_reason) {
+          // Stream finished
+        }
+      } catch (e) {
+        // If not JSON, maybe it's plain text chunk (fallback)
+        // console.warn("Failed to parse JSON line:", trimmed);
+      }
+    }
+  }
+  
+  // Process any remaining buffer
+  if (buffer.trim()) {
+    try {
+      const data = JSON.parse(buffer.trim());
+      if (data.response) {
+        fullText += data.response;
+        onChunk(fullText);
+      }
+    } catch {}
+  }
+  
+  return fullText;
+}
+
+// ==================== SEND MESSAGE ====================
+async function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text || isGenerating) return;
+  
+  // Check config freshness - fetch before every new message as required
+  if (!tunnel_url || Date.now() - lastConfigFetch > 120000) {
+    statusBar.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:1px;"></span> Syncing with server before sending...';
+    await fetchConfig();
+  }
+  
+  if (!tunnel_url) {
+    addMessage('ai', 'Could not connect to BitBot AI server. Please check your internet connection.\n\nMake sure:\n- Your laptop is online and tunnel_manager.py is running\n- GitHub Pages has updated config.json (wait 30s)\n- You have internet', false);
+    return;
+  }
+  
+  // UI updates
+  addMessage('user', text);
+  userInput.value = "";
+  userInput.style.height = 'auto';
+  const aiId = addMessage('ai', '', true);
+  
+  isGenerating = true;
+  sendBtn.disabled = true;
+  userInput.disabled = true;
+  
+  try {
+    const model = currentMode === 'fast' ? 'tinyllama' : 'smollm';
+    const systemPrompt = currentMode === 'fast' ? FAST_PROMPT : THINKING_PROMPT;
+    
+    let finalText = "";
+    await streamOllama(tunnel_url, model, systemPrompt, text, (chunk) => {
+      finalText = chunk;
+      updateAIBubble(aiId, chunk, false);
+    });
+    
+    // Final render with thinking/answer parsing
+    updateAIBubble(aiId, finalText, true, false);
+    
+  } catch (err) {
+    console.error("Generation error:", err);
+    let errorMsg = err.message;
+    if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
+      errorMsg = "Network error - tunnel may be rotating. Please wait 10 seconds and try again. The laptop might be updating its URL.";
+    }
+    updateAIBubble(aiId, `Error: ${errorMsg}\n\nTip: The tunnel rotates every hour. Wait 10-15 seconds and try again. If persistent, check if tunnel_manager.py is running on your laptop.`, true, true);
+  } finally {
+    isGenerating = false;
+    sendBtn.disabled = false;
+    userInput.disabled = false;
+    userInput.focus();
+  }
+}
+
+// ==================== INPUT HANDLERS ====================
+userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Auto-resize textarea
+userInput.addEventListener('input', () => {
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+});
+
+// Focus input on load
+window.addEventListener('load', () => {
+  userInput.focus();
+});
+
+// ==================== ERROR HANDLING ====================
+window.addEventListener('unhandledrejection', (e) => {
+  console.error("Unhandled promise rejection:", e.reason);
+});
+</script>
+
+</body>
+</html>

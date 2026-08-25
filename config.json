@@ -1,3 +1,9 @@
 {
-  "tunnel_url": "https://gonna-beneficial-instant-correct.trycloudflare.com"
+  "tunnel_url": "https://gonna-beneficial-instant-correct.trycloudflare.com",
+  "updated_at": "2026-08-25T00:00:00Z",
+  "timestamp": 0,
+  "model": "gemma3:1b",
+  "models": ["gemma3:1b", "gemma3", "gemma3:1b-it-qat", "gemma2:2b", "gemma:2b"],
+  "modes": ["fast", "thinking"],
+  "version": 0
 }

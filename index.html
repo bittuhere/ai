@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 <meta name="theme-color" content="#121212">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -584,7 +584,7 @@
         <div class="badge-row" style="font-size:10px"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~815MB RAM • 1B</span></div>
       </div>
       <div style="font-size:10px;color:var(--text-tertiary);padding:6px 4px;display:flex;justify-content:space-between">
-        <span>BitBot AI</span><span>by Anurag • BitBot4</span>
+        <span>BitBot AI</span><span>by Anurag • Gemma 4</span>
       </div>
     </div>
   </aside>
@@ -750,11 +750,12 @@
 </div>
 
 <script>
-// ==================== CONFIG - BitBot4 E2B TWO MODES + SVG ANIMATIONS ====================
+// ==================== CONFIG - GEMMA 4 E2B TWO MODES + SVG ANIMATIONS ====================
+// Order: GitHub Pages FIRST (same origin as https://bittuhere.github.io - NO CORS!), then jsDelivr, then raw as last fallback
 const CONFIG_URLS = [
-  "https://raw.githubusercontent.com/bittuhere/ai/main/config.json",
   "https://bittuhere.github.io/ai/config.json",
-  "https://cdn.jsdelivr.net/gh/bittuhere/ai@main/config.json"
+  "https://cdn.jsdelivr.net/gh/bittuhere/ai@main/config.json",
+  "https://raw.githubusercontent.com/bittuhere/ai/main/config.json"
 ];
 
 // BitBot v1 - Efficient 2B, edge optimized, 5GB RAM, 128K context
@@ -938,20 +939,18 @@ document.addEventListener('click', (e)=>{
   if (!e.target.closest('.model-selector')) modelDropdown.classList.remove('open');
 });
 
-// ==================== CACHE-BUST CONFIG ====================
+// ==================== CACHE-BUST CONFIG - FIXED CORS (NO CUSTOM HEADERS) ====================
+// FIX: Removed Cache-Control/Pragma/Expires headers - they trigger CORS preflight OPTIONS which raw.githubusercontent and jsdelivr block
+// Use only cache: 'no-store' + query busting - no custom headers = no preflight = no CORS error
 async function fetchFromUrl(baseUrl){
   const bust = `${Date.now()}_${Math.random().toString(36).slice(2,9)}_${Math.floor(Math.random()*100000)}`;
-  const url = `${baseUrl}?t=${bust}&cb=${bust}&v=${bust}`;
+  const url = `${baseUrl}?t=${bust}&cb=${bust}&v=${bust}&_=${bust}`;
   const controller = new AbortController();
   const timeout = setTimeout(()=>controller.abort(), 8000);
   try{
     const res = await fetch(url, {
       cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      },
+      // No custom headers - prevents CORS preflight
       signal: controller.signal
     });
     clearTimeout(timeout);
@@ -959,12 +958,18 @@ async function fetchFromUrl(baseUrl){
     return await res.json();
   }catch(e){ clearTimeout(timeout); throw e; }
 }
+
 async function healthCheckUrl(url){
   if (!url) return false;
   try{
+    const bust = Date.now() + '_' + Math.random().toString(36).slice(2,5);
     const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 4000);
-    const res = await fetch(`${url}/api/tags?t=${Date.now()}`, {cache:'no-store', headers:{'Cache-Control':'no-cache'}, signal:controller.signal});
+    const timeout = setTimeout(()=>controller.abort(), 5000);
+    // Simple GET, no custom headers - prevents preflight, Ollama CORS needs OLLAMA_ORIGINS=*
+    const res = await fetch(`${url}/api/tags?t=${bust}`, {
+      cache: 'no-store',
+      signal: controller.signal
+    });
     clearTimeout(timeout);
     return res.ok;
   }catch{ return false; }
@@ -1447,7 +1452,7 @@ All SVG animations, no emojis!
 `);
 }
 
-// ==================== CHAT LOGIC - BitBot4 E2B TWO MODES ====================
+// ==================== CHAT LOGIC - GEMMA 4 E2B TWO MODES ====================
 async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMessage, onChunk, signal){
   const messages=[
     {role:"system", content: systemPrompt},
@@ -1525,8 +1530,37 @@ async function sendMessageInternal(text, isHero=false){
   if (!healthy){
     showStatus(`Tunnel not healthy, fetching fresh URL...`);
     await fetchConfig(true);
-    if (!tunnel_url || !(await healthCheckUrl(tunnel_url))){
-      addMessageDOM('ai', `Tunnel offline (rotated). Wait 15s for GitHub CDN, click Sync and try again.`, false);
+    if (!tunnel_url){
+      addMessageDOM('ai', `Could not get tunnel URL. GitHub CDN may be caching old config. Hard refresh Ctrl+Shift+R, click Sync, wait 60s.`, false);
+      return;
+    }
+    const stillHealthy = await healthCheckUrl(tunnel_url);
+    if (!stillHealthy){
+      addMessageDOM('ai', `Tunnel URL appears offline or blocked by CORS.
+
+URL: ${tunnel_url}
+
+Possible causes:
+1. Tunnel rotated - new URL pushed but GitHub CDN still serves old (wait 60s, hard refresh Ctrl+Shift+R, click Sync)
+2. CORS not configured on laptop - Ollama must allow https://bittuhere.github.io
+
+FIX CORS ON LAPTOP (Linux Mint):
+sudo systemctl edit ollama
+Add:
+[Service]
+Environment="OLLAMA_ORIGINS=*"
+Environment="OLLAMA_HOST=0.0.0.0"
+Save, then:
+sudo systemctl daemon-reload
+sudo systemctl restart ollama
+sudo systemctl status ollama
+
+Then restart tunnel_manager.py:
+pkill -f tunnel_manager.py
+python3 tunnel_manager.py
+
+3. Ollama not running: sudo systemctl start ollama
+4. Cloudflare Tunnel down: check python3 tunnel_manager.py logs`, false);
       return;
     }
   }
@@ -1713,5 +1747,5 @@ if (window.visualViewport){
 }
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a30a17faefe177d3',t:'MTc4NzY1NTYzMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

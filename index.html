@@ -6,7 +6,10 @@
 <meta name="theme-color" content="#121212">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BitBot AI — BitBot v1 • Private</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>BitBot AI — Gemma 4 E2B • Private</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff6a00'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='60' font-weight='900' fill='white'>B</text></svg>">
 <style>
   :root{
@@ -24,6 +27,7 @@
     --text-tertiary:#6a6a6a;
     --accent:#ff6a00;
     --accent-blue:#1f6feb;
+    --accent-purple:#8b5cf6;
     --green:#3fb950;
     --red:#f85149;
     --radius-xl:24px;
@@ -38,18 +42,46 @@
     background:var(--bg-main);
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
-    height:100%;height:100dvh;overflow:hidden;
-    -webkit-font-smoothing:antialiased;
-    overscroll-behavior:none;
-    touch-action:manipulation;
+    height:100%;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;touch-action:manipulation;
   }
   .app{display:flex;height:100%;height:100dvh;width:100vw;overflow:hidden;position:relative}
 
-  /* BACKDROP for mobile sidebar */
+  /* SVG Icon Base */
+  .ico{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ico svg{width:100%;height:100%;stroke-width:1.8}
+  .ico-14{width:14px;height:14px}
+  .ico-16{width:16px;height:16px}
+  .ico-20{width:20px;height:20px}
+  .ico-24{width:24px;height:24px}
+  .ico-28{width:28px;height:28px}
+
+  /* Animations - Replace Emojis */
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.8}}
+  @keyframes pulseDot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,106,0,0.4)}50%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(255,106,0,0)}}
+  @keyframes pulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,0.4)}50%{box-shadow:0 0 0 6px rgba(63,185,80,0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+  @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-4px);opacity:1}}
+  @keyframes zapFlicker{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.8;transform:scale(1.05)}}
+  @keyframes brainPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .anim-float{animation:float 3s ease-in-out infinite}
+  .anim-pulse{animation:pulse 2s ease-in-out infinite}
+  .anim-pulse-dot{animation:pulseDot 2s ease-in-out infinite}
+  .anim-pulse-green{animation:pulseGreen 2s ease-in-out infinite}
+  .anim-spin{animation:spin 0.8s linear infinite}
+  .anim-zap{animation:zapFlicker 1.5s ease-in-out infinite}
+  .anim-brain{animation:brainPulse 2s ease-in-out infinite}
+  .anim-slide{animation:slideIn 0.4s ease-out}
+
+  /* BACKDROP */
   #sidebarBackdrop{
     position:fixed;inset:0;background:rgba(0,0,0,0.6);
-    z-index:35;display:none;opacity:0;transition:opacity 0.25s ease;
-    backdrop-filter:blur(2px);
+    z-index:35;display:none;opacity:0;transition:opacity 0.25s ease;backdrop-filter:blur(2px);
   }
   #sidebarBackdrop.open{display:block;opacity:1}
 
@@ -60,8 +92,7 @@
     display:flex;flex-direction:column;
     padding:12px;gap:8px;flex-shrink:0;
     transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
-    z-index:40;
-    overflow:hidden;
+    z-index:40;overflow:hidden;
   }
   #sidebar.collapsed{transform:translateX(-100%);width:0;min-width:0;padding:0;overflow:hidden;border:none}
   .sidebar-top{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 12px 6px;flex-shrink:0}
@@ -87,30 +118,45 @@
   }
   .new-chat-btn:hover{background:#fff;transform:translateY(-1px)}
   .new-chat-btn:active{transform:translateY(0) scale(0.98)}
+  .new-chat-btn.secondary{
+    background:var(--bg-input);border:1px solid var(--border);color:var(--text);
+  }
+  .new-chat-btn.secondary:hover{background:var(--bg-input-hover);border-color:var(--border-light)}
+
+  .mode-selector{display:flex;gap:8px;margin-top:4px}
+  .mode-btn{
+    flex:1;padding:10px 8px;border-radius:10px;border:1px solid var(--border);
+    background:var(--bg-input);color:var(--text-secondary);font-size:12px;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all 0.2s;
+    min-height:64px;touch-action:manipulation;
+  }
+  .mode-btn:hover{border-color:var(--border-light);background:var(--bg-input-hover);color:var(--text);transform:translateY(-1px)}
+  .mode-btn.active{background:var(--text);color:var(--bg-sidebar);border-color:var(--text);box-shadow:0 2px 12px rgba(255,255,255,0.1)}
+  .mode-btn.active.thinking{background:linear-gradient(135deg,#ff6a00,#ff9a00);color:white;border-color:#ff6a00;box-shadow:0 4px 16px rgba(255,106,0,0.25)}
+  .mode-btn .mode-icon{width:20px;height:20px}
+  .mode-btn small{font-size:10px;opacity:0.8;font-weight:400}
+
   .sidebar-section{margin-top:8px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
   .sidebar-label{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.6px;padding:8px 6px 4px}
   .sidebar-item{
     padding:10px 10px;border-radius:10px;font-size:13px;color:var(--text-secondary);
     display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.15s;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:40px;
-    touch-action:manipulation;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:40px;touch-action:manipulation;
   }
   .sidebar-item:hover{background:var(--bg-input);color:var(--text)}
   .sidebar-item:active{background:var(--bg-card-hover);transform:scale(0.98)}
-  .sidebar-item .item-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
   .sidebar-history{flex:1;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:2px;min-height:0;-webkit-overflow-scrolling:touch}
   .sidebar-history::-webkit-scrollbar{width:4px}
   .sidebar-history::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
   .history-item{
     padding:10px 10px;border-radius:10px;font-size:13px;color:var(--text-secondary);
-    cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:all 0.15s;min-height:44px;
-    touch-action:manipulation;
+    cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:all 0.15s;min-height:44px;touch-action:manipulation;
   }
   .history-item:hover{background:var(--bg-input);color:var(--text)}
   .history-item.active{background:var(--bg-input);color:var(--text);border:1px solid var(--border)}
   .history-item:active{transform:scale(0.98)}
   .history-item .h-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;line-height:1.3}
-  .history-item .h-delete{opacity:0;background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;padding:6px;border-radius:6px;font-size:14px;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .history-item .h-delete{opacity:0;background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;padding:6px;border-radius:6px;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .history-item:hover .h-delete{opacity:1}
   .history-item .h-delete:hover{color:var(--red);background:rgba(248,81,73,0.15)}
   .sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;flex-shrink:0;padding-bottom:calc(6px + var(--safe-bottom))}
@@ -119,7 +165,7 @@
     font-size:11px;display:flex;flex-direction:column;gap:6px;color:var(--text-secondary);margin-top:8px;
   }
   .free-badge .badge-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .free-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 6px var(--green);flex-shrink:0}
+  .free-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;flex-shrink:0}
   .model-badge{
     background:linear-gradient(135deg,#ff6a0020,#ff9a0020);border:1px solid #ff6a0030;
     padding:8px 10px;border-radius:20px;font-size:11px;font-weight:600;
@@ -131,11 +177,10 @@
   #topBar{
     height:48px;min-height:48px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;
     font-size:12px;color:var(--text-secondary);flex-shrink:0;gap:8px;
-    border-bottom:1px solid transparent;
   }
   #topBar .top-left{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
   #topBar .top-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-  .top-link{color:var(--text-secondary);text-decoration:none;cursor:pointer;transition:color 0.15s;font-weight:500;padding:6px 6px;border-radius:6px;min-height:32px;display:flex;align-items:center;touch-action:manipulation}
+  .top-link{color:var(--text-secondary);text-decoration:none;cursor:pointer;transition:all 0.15s;font-weight:500;padding:6px 8px;border-radius:8px;min-height:32px;display:flex;align-items:center;gap:4px;touch-action:manipulation}
   .top-link:hover{color:var(--text);background:var(--bg-card)}
   .top-link.upgrade{color:var(--accent-blue);font-weight:600}
   .mobile-menu-btn{
@@ -143,34 +188,37 @@
     width:40px;height:40px;min-width:40px;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;
     font-size:18px;touch-action:manipulation;flex-shrink:0;
   }
-  .mobile-menu-btn:active{transform:scale(0.95);background:var(--bg-card-hover)}
+  .mobile-menu-btn:active{transform:scale(0.95)}
 
   #chatContainer{
     flex:1;overflow-y:auto;padding:0 12px;display:flex;flex-direction:column;
-    scroll-behavior:smooth;position:relative;-webkit-overflow-scrolling:touch;
-    overscroll-behavior:contain;
+    scroll-behavior:smooth;position:relative;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   }
   #chatContainer::-webkit-scrollbar{width:4px}
   #chatContainer::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-  /* EMPTY STATE */
+  /* EMPTY STATE - Duck.ai style */
   .empty-state{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     max-width:720px;width:100%;margin:0 auto;padding:24px 16px 16px;gap:0;
   }
   .empty-logo{
-    width:64px;height:64px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:20px;display:flex;align-items:center;justify-content:center;
-    font-weight:900;font-size:32px;color:white;margin-bottom:14px;
+    width:72px;height:72px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
+    border-radius:22px;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:36px;color:white;margin-bottom:14px;
     box-shadow:0 8px 24px rgba(255,106,0,0.3);flex-shrink:0;
+    position:relative;overflow:hidden;
   }
-  .empty-title{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px;text-align:center;line-height:1.2}
+  .empty-logo::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+    background-size:200% 100%;animation:shimmer 2.5s infinite;
+  }
+  .empty-title{font-size:24px;font-weight:800;letter-spacing:-0.6px;margin-bottom:6px;text-align:center;line-height:1.2}
   .empty-subtitle{
     font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:20px;
-    display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;line-height:1.5;
-    max-width:90%;
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;line-height:1.5;max-width:90%;
   }
-  .empty-subtitle .shield{color:var(--green);font-size:15px}
   .empty-subtitle b{color:var(--text);font-weight:600}
 
   .input-card{
@@ -186,15 +234,12 @@
     min-height:24px;max-height:140px;font-family:inherit;
   }
   .input-card textarea::placeholder{color:var(--text-tertiary);font-size:15px}
-  .input-bottom{
-    display:flex;align-items:center;justify-content:space-between;
-    margin-top:8px;gap:8px;flex-wrap:wrap;
-  }
+  .input-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap}
   .input-tools{display:flex;align-items:center;gap:4px}
   .tool-btn{
     background:transparent;border:1px solid transparent;color:var(--text-secondary);
     width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;font-size:16px;touch-action:manipulation;
+    cursor:pointer;transition:all 0.15s;touch-action:manipulation;
   }
   .tool-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border)}
   .tool-btn:active{transform:scale(0.92)}
@@ -204,7 +249,9 @@
     padding:6px 10px;border-radius:20px;font-size:11px;font-weight:600;
     display:flex;align-items:center;gap:6px;white-space:nowrap;
   }
-  .model-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);flex-shrink:0}
+  .model-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+  .model-chip.fast .dot{background:var(--accent)}
+  .model-chip.thinking .dot{background:var(--accent-purple)}
   .send-btn{
     background:var(--text);color:var(--bg-main);border:none;
     width:36px;height:36px;min-width:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -215,6 +262,33 @@
   .send-btn:disabled{background:var(--border);color:var(--text-tertiary);cursor:not-allowed;transform:none}
   .send-btn.stop{background:var(--red);color:white}
 
+  /* Model selector dropdown */
+  .model-selector{position:relative}
+  .model-btn{
+    background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
+    padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;
+    display:flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s;min-height:32px;
+  }
+  .model-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
+  .model-btn .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .model-btn.fast .dot{background:var(--accent)}
+  .model-btn.thinking .dot{background:var(--accent-purple)}
+  .model-dropdown{
+    position:absolute;bottom:calc(100% + 8px);right:0;
+    background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:6px;min-width:280px;box-shadow:var(--shadow);display:none;z-index:50;
+  }
+  .model-dropdown.open{display:block;animation:slideIn 0.2s ease}
+  .model-option{
+    padding:12px;border-radius:10px;cursor:pointer;transition:all 0.15s;
+    display:flex;flex-direction:column;gap:3px;border:1px solid transparent;
+  }
+  .model-option:hover{background:var(--bg-card-hover);border-color:var(--border)}
+  .model-option.active{background:var(--bg-card);border-color:var(--border-light)}
+  .model-option .opt-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .model-option .opt-desc{font-size:11px;color:var(--text-secondary);line-height:1.4}
+  .model-option .opt-tag{font-size:10px;background:var(--bg-main);border:1px solid var(--border);padding:3px 8px;border-radius:10px;width:fit-content;margin-top:4px;font-weight:500}
+
   .suggestions{
     display:grid;grid-template-columns:1fr 1fr;gap:8px;
     max-width:720px;width:100%;margin-top:14px;
@@ -222,12 +296,11 @@
   .suggestion-card{
     background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
     padding:12px 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;
-    transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:8px;
+    transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:10px;
     min-height:44px;line-height:1.3;touch-action:manipulation;
   }
   .suggestion-card:hover{background:var(--bg-card-hover);border-color:var(--border-light);color:var(--text);transform:translateY(-1px)}
   .suggestion-card:active{transform:translateY(0) scale(0.98)}
-  .suggestion-card .s-icon{font-size:16px;flex-shrink:0}
 
   .privacy-card{
     background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
@@ -236,7 +309,7 @@
   }
   .privacy-card .p-icon{
     width:32px;height:32px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;
+    border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
   }
   .privacy-card b{color:var(--text)}
   .disclaimer{
@@ -255,7 +328,6 @@
     line-height:1.6;font-size:15px;word-wrap:break-word;white-space:pre-wrap;
     position:relative;animation:fadeIn 0.25s ease;
   }
-  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)}}
   .message.user{
     align-self:flex-end;background:var(--bg-message-user);
     padding:10px 14px;border-radius:20px 20px 4px 20px;
@@ -270,106 +342,179 @@
     font-weight:800;font-size:13px;color:white;flex-shrink:0;margin-top:2px;
   }
   .message.ai .ai-content{flex:1;min-width:0;overflow:hidden}
-  .message.ai .ai-text{color:var(--text);line-height:1.65;font-size:15px;overflow-wrap:break-word;word-break:break-word}
-  .message-actions{display:flex;gap:6px;margin-top:8px;opacity:0;transition:opacity 0.2s;flex-wrap:wrap}
+  .message.ai .ai-text{color:var(--text);line-height:1.7;font-size:14.5px;overflow-wrap:break-word;word-break:break-word}
+  .message.ai .ai-text p{margin:8px 0}
+  .message.ai .ai-text p:first-child{margin-top:0}
+  .message.ai .ai-text p:last-child{margin-bottom:0}
+
+  /* Thinking - Best Look */
+  .thinking-wrapper{
+    background:linear-gradient(135deg,#1e1e1e,#1a1a1a);
+    border:1px solid var(--border);border-radius:12px;
+    overflow:hidden;margin-bottom:12px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.2);
+  }
+  .thinking-header{
+    padding:10px 14px;display:flex;align-items:center;gap:8px;
+    cursor:pointer;user-select:none;transition:background 0.15s;
+    background:rgba(139,92,246,0.08);border-bottom:1px solid transparent;
+  }
+  .thinking-header:hover{background:rgba(139,92,246,0.12)}
+  .thinking-wrapper.open .thinking-header{border-bottom-color:var(--border);background:rgba(139,92,246,0.1)}
+  .thinking-icon{
+    width:20px;height:20px;background:linear-gradient(135deg,var(--accent-purple),#a78bfa);
+    border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .thinking-title{font-size:12px;font-weight:700;color:#c4b5fd;letter-spacing:0.3px}
+  .thinking-chevron{margin-left:auto;transition:transform 0.2s;color:var(--text-tertiary)}
+  .thinking-wrapper.open .thinking-chevron{transform:rotate(90deg)}
+  .thinking-content{
+    padding:14px;background:var(--bg-main);
+    white-space:pre-wrap;line-height:1.6;color:var(--text-secondary);font-size:13px;
+    max-height:300px;overflow-y:auto;display:none;
+  }
+  .thinking-wrapper.open .thinking-content{display:block;animation:slideIn 0.2s ease}
+  .thinking-content::-webkit-scrollbar{width:4px}
+  .thinking-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .thinking-dots{display:flex;gap:3px;align-items:center}
+  .thinking-dots span{
+    width:4px;height:4px;background:var(--accent-purple);border-radius:50%;
+    animation:typing 1.4s infinite;
+  }
+  .thinking-dots span:nth-child(2){animation-delay:0.2s}
+  .thinking-dots span:nth-child(3){animation-delay:0.4s}
+
+  .message-actions{display:flex;gap:6px;margin-top:10px;opacity:0;transition:opacity 0.2s;flex-wrap:wrap}
   .message.ai:hover .message-actions,.message-group:focus-within .message-actions{opacity:1}
   .action-btn{
     background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
-    padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;min-height:32px;touch-action:manipulation;
+    padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;min-height:32px;touch-action:manipulation;display:flex;align-items:center;gap:4px;
   }
   .action-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
   .action-btn:active{transform:scale(0.95)}
   .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
   #inputWrapper{
     padding:10px 12px calc(10px + var(--safe-bottom));
     background:linear-gradient(transparent, var(--bg-main) 30%);
     flex-shrink:0;display:flex;justify-content:center;
   }
   #inputWrapper .input-card{max-width:760px;width:100%}
-
   #statusBar{
     position:absolute;top:52px;left:50%;transform:translateX(-50%);
     background:var(--bg-input);border:1px solid var(--border);padding:8px 14px;
     border-radius:20px;font-size:11px;color:var(--text-secondary);
     display:flex;align-items:center;gap:8px;z-index:20;box-shadow:var(--shadow);
-    max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    min-height:32px;
+    max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:32px;
   }
   #statusBar.hidden{display:none}
 
-  /* MOBILE FRIENDLY - Duck.ai style responsive */
   @media (max-width: 768px){
-    #sidebar{
-      position:fixed;left:0;top:0;bottom:0;
-      width:300px;max-width:85vw;
-      transform:translateX(-100%);
-      z-index:40;
-      box-shadow:0 0 0 transparent;
-    }
-    #sidebar.open{
-      transform:translateX(0);
-      box-shadow:0 0 40px rgba(0,0,0,0.6);
-    }
+    #sidebar{position:fixed;left:0;top:0;bottom:0;width:300px;max-width:85vw;transform:translateX(-100%);z-index:40}
+    #sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,0.6)}
     #sidebar.collapsed{transform:translateX(-100%);width:300px;max-width:85vw;padding:12px;border-right:1px solid var(--border)}
     .mobile-menu-btn{display:flex}
     #topBar{height:52px;min-height:52px;padding:0 12px}
     #topBar .top-left{gap:8px}
     #topBar .top-right{gap:4px}
     #topBar .top-right .top-link{padding:6px 8px;font-size:11px}
-    #topBar #topMemoryInfo{display:none} /* hide memory on mobile top to save space */
+    #topBar #topMemoryInfo{display:none}
     #chatContainer{padding:0 10px}
     .empty-state{padding:16px 12px;justify-content:flex-start;padding-top:24px}
     .empty-logo{width:56px;height:56px;font-size:28px;border-radius:16px;margin-bottom:12px}
     .empty-title{font-size:20px}
     .empty-subtitle{font-size:12.5px;margin-bottom:16px}
     .input-card{border-radius:20px;padding:10px 12px}
-    .input-card textarea{font-size:16px} /* Prevent iOS zoom */
+    .input-card textarea{font-size:16px}
     .suggestions{grid-template-columns:1fr;gap:8px;margin-top:12px}
     .suggestion-card{padding:12px;font-size:13.5px;min-height:48px}
     .privacy-card{padding:10px 12px;font-size:11.5px;margin-top:12px}
     .messages-wrapper{gap:18px;padding:12px 0 16px}
-    .message{font-size:15px}
     .message.user{max-width:88%;padding:10px 14px;font-size:15px;border-radius:18px 18px 4px 18px}
-    .message.ai .ai-text{font-size:15px}
-    .message-actions{opacity:1} /* Always show on mobile */
+    .message-actions{opacity:1}
     #inputWrapper{padding:8px 10px calc(8px + var(--safe-bottom))}
     #statusBar{top:56px;font-size:10.5px;padding:6px 12px;max-width:92%}
-    .model-chip span:not(.dot){display:none} /* hide text on very small? Keep but show short */
-    .model-chip{padding:6px 8px}
-    .tool-btn{width:40px;height:40px} /* bigger touch target */
+    .tool-btn{width:40px;height:40px}
     .send-btn{width:40px;height:40px;min-width:40px}
+    .mode-selector{flex-direction:row}
+    .mode-btn{flex:1;min-height:56px}
   }
-
   @media (max-width: 480px){
     #sidebar{width:100vw;max-width:100vw}
     .empty-title{font-size:18px}
-    .empty-subtitle{font-size:12px}
-    .input-card{border-radius:18px}
     .suggestions{gap:6px}
-    .suggestion-card{font-size:13px;padding:10px 12px;min-height:44px}
     .message.user{max-width:92%}
     #topBar{padding:0 8px}
-    #topBar .top-left span{font-size:12px}
-    .model-chip{display:none} /* hide model chip on tiny screens to save space */
-    .privacy-card .p-icon{width:28px;height:28px;font-size:14px}
   }
-
-  /* Large screens */
-  @media (min-width: 1200px){
-    .messages-wrapper{max-width:800px}
-    .empty-state{max-width:760px}
-    .input-card{max-width:760px}
-  }
-
   /* Code */
-  .ai-text code{background:var(--bg-card);border:1px solid var(--border);padding:2px 5px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;word-break:break-all}
-  .ai-text pre{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;margin:10px 0;-webkit-overflow-scrolling:touch}
-  .ai-text pre code{background:transparent;border:none;padding:0;word-break:normal;white-space:pre-wrap}
-  .ai-text strong{color:#fff;font-weight:600}
-  .ai-text ul{margin:8px 0 8px 18px}
-  .ai-text li{margin:4px 0}
+  .ai-text code{background:var(--bg-card);border:1px solid var(--border);padding:2px 6px;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;word-break:break-word;color:#e6edf3}
+  .ai-text pre{
+    position:relative;background:#0a0a0a;border:1px solid var(--border);border-radius:12px;
+    padding:0;overflow:hidden;margin:12px 0;box-shadow:0 2px 12px rgba(0,0,0,0.3);
+  }
+  .ai-text pre .code-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 12px;background:#1a1a1a;border-bottom:1px solid var(--border);
+    font-size:11px;color:var(--text-secondary);
+  }
+  .ai-text pre .code-lang{
+    font-weight:600;text-transform:uppercase;letter-spacing:0.5px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .ai-text pre .code-lang::before{
+    content:'';width:8px;height:8px;background:var(--accent);border-radius:50%;display:inline-block;
+  }
+  .ai-text pre code{
+    display:block;background:transparent;border:none;padding:14px;
+    font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-x:auto;
+    color:#e6edf3;max-height:400px;overflow-y:auto;
+  }
+  .ai-text pre code::-webkit-scrollbar{height:6px;width:6px}
+  .ai-text pre code::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .code-copy-btn{
+    background:var(--bg-input);border:1px solid var(--border);color:var(--text-secondary);
+    padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;
+    display:flex;align-items:center;gap:4px;transition:all 0.15s;min-height:28px;
+  }
+  .code-copy-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
+  .code-copy-btn:active{transform:scale(0.95)}
+  .ai-text strong{color:#fff;font-weight:700}
+  .ai-text em{color:#d1d5db;font-style:italic}
+  .ai-text del{color:var(--text-tertiary);text-decoration:line-through}
+  .ai-text ul{margin:10px 0 10px 20px;list-style:disc}
+  .ai-text ol{margin:10px 0 10px 20px;list-style:decimal}
+  .ai-text li{margin:6px 0;line-height:1.5}
+  .ai-text li::marker{color:var(--text-tertiary)}
+  .ai-text h1{font-size:22px;font-weight:800;margin:18px 0 10px;line-height:1.3;color:#fff;border-bottom:1px solid var(--border);padding-bottom:6px}
+  .ai-text h2{font-size:19px;font-weight:700;margin:16px 0 8px;line-height:1.3;color:#fff}
+  .ai-text h3{font-size:16px;font-weight:600;margin:14px 0 6px;line-height:1.3;color:#e6edf3}
+  .ai-text h4{font-size:14px;font-weight:600;margin:12px 0 4px;color:#e6edf3;text-transform:uppercase;letter-spacing:0.5px}
+  .ai-text h5{font-size:13px;font-weight:600;margin:10px 0 4px;color:var(--text-secondary)}
+  .ai-text h6{font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-tertiary);text-transform:uppercase}
+  .ai-text blockquote{
+    border-left:3px solid var(--accent);padding:8px 14px;margin:12px 0;
+    background:rgba(255,106,0,0.05);border-radius:0 8px 8px 0;
+    color:var(--text-secondary);font-style:italic;
+  }
+  .ai-text hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+  .ai-text a{color:var(--accent-blue);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:all 0.15s}
+  .ai-text a:hover{color:#58a6ff;border-bottom-color:#58a6ff}
+  .ai-text sub{font-size:0.75em;vertical-align:sub;line-height:0;color:#ffb26e;font-weight:600}
+  .ai-text sup{font-size:0.75em;vertical-align:super;line-height:0;color:#a78bfa;font-weight:600}
+  .ai-text .math-inline{
+    background:linear-gradient(135deg,rgba(255,106,0,0.12),rgba(255,154,0,0.08));
+    border:1px solid rgba(255,106,0,0.2);padding:2px 8px;border-radius:8px;
+    font-family:ui-monospace,monospace;font-size:13px;color:#ffb26e;font-weight:500;
+    display:inline-flex;align-items:center;gap:2px;
+  }
+  .ai-text .math-block{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+    padding:16px;margin:14px 0;text-align:center;
+    font-family:ui-monospace,monospace;font-size:14px;color:var(--text);
+    box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  }
+  .ai-text p{margin:10px 0;line-height:1.65}
+  .ai-text p:first-child{margin-top:0}
+  .ai-text p:last-child{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -380,26 +525,46 @@
   <aside id="sidebar" class="collapsed">
     <div class="sidebar-top">
       <div class="logo"><div class="logo-icon">B</div>BitBot AI</div>
-      <button class="collapse-btn" onclick="toggleSidebar(true)" title="Close">✕</button>
+      <button class="collapse-btn" onclick="toggleSidebar(true)" title="Close">
+        <span class="ico ico-16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12"/></svg></span>
+      </button>
     </div>
 
     <button class="new-chat-btn" onclick="createNewChat()">
-      <span>✏️</span> New Chat
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg></span> New Chat
     </button>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Current Model</div>
-      <div class="model-badge"><span>🧠</span> BitBot v1 • Powerful & Efficient</div>
-      <div style="font-size:11px;color:var(--text-tertiary);padding:4px 6px;line-height:1.4">
-        Single model — more powerful, less RAM. Optimized for mobile & 4GB laptop.
+      <div class="sidebar-label">Model — Gemma 4 E2B</div>
+      <div class="model-badge">
+        <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg></span>
+        Gemma 4 E2B • Efficient 2B • Edge Optimized
+      </div>
+      <div class="mode-selector">
+        <button class="mode-btn active" id="fastModeBtn" onclick="setMode('fast')">
+          <span class="ico mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="anim-zap"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+          <span>Fast</span>
+          <small>Quick answers</small>
+        </button>
+        <button class="mode-btn thinking" id="thinkingModeBtn" onclick="setMode('thinking')">
+          <span class="ico mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="anim-brain"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M14.5 9.5c0-1.5-1-2.5-2.5-2.5"/></svg></span>
+          <span>Thinking</span>
+          <small>Shows reasoning</small>
+        </button>
+      </div>
+      <div style="font-size:10px;color:var(--text-tertiary);padding:4px 6px;line-height:1.4">
+        Fast = direct answer • Thinking = shows <code>&lt;thinking&gt;</code> + <code>&lt;answer&gt;</code> with animation
       </div>
     </div>
 
     <div class="sidebar-section">
       <div class="sidebar-label">Tools</div>
-      <div class="sidebar-item" onclick="clearCurrentChat(); toggleSidebar(true)"><span class="item-icon">🗑️</span> Clear Current Chat</div>
-      <div class="sidebar-item" onclick="showModelInfo()"><span class="item-icon">ℹ️</span> About BitBot v1</div>
-      <div class="sidebar-item" onclick="toggleSidebar(true); document.getElementById('heroInput')?.focus() || document.getElementById('userInput')?.focus()"><span class="item-icon">⌨️</span> Focus Input</div>
+      <div class="sidebar-item" onclick="clearCurrentChat(); toggleSidebar(true)">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg></span> Clear Current Chat
+      </div>
+      <div class="sidebar-item" onclick="showModelInfo()">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span> About Gemma 4 E2B
+      </div>
     </div>
 
     <div class="sidebar-label" style="margin-top:12px">Recent Chats</div>
@@ -408,14 +573,18 @@
     </div>
 
     <div class="sidebar-bottom">
-      <div class="sidebar-item" onclick="window.open('https://github.com/bittuhere/ai','_blank')"><span class="item-icon">💬</span> Share Feedback</div>
-      <div class="sidebar-item" style="color:var(--green)"><span class="item-icon">🛡️</span> Private • On-device • Mobile Ready</div>
+      <div class="sidebar-item" onclick="window.open('https://github.com/bittuhere/ai','_blank')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span> Share Feedback
+      </div>
+      <div class="sidebar-item" style="color:var(--green)">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span> Private • On-device
+      </div>
       <div class="free-badge">
-        <div class="badge-row"><div class="dot"></div><span id="connectionStatus">Connecting...</span><span style="margin-left:auto" id="modelStatus">BitBot v1</span></div>
-        <div class="badge-row" style="font-size:10px"><span>💾</span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~800MB RAM • Mobile ✓</span></div>
+        <div class="badge-row"><div class="dot anim-pulse-green" style="background:var(--green)"></div><span id="connectionStatus">Connecting...</span><span style="margin-left:auto" id="modelStatus">Gemma 4 E2B</span></div>
+        <div class="badge-row" style="font-size:10px"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~5GB RAM • E2B</span></div>
       </div>
       <div style="font-size:10px;color:var(--text-tertiary);padding:6px 4px;display:flex;justify-content:space-between">
-        <span>BitBot AI</span><span>by Anurag • Gemma 3</span>
+        <span>BitBot AI</span><span>by Anurag • Gemma 4</span>
       </div>
     </div>
   </aside>
@@ -423,64 +592,121 @@
   <main id="main">
     <div id="topBar">
       <div class="top-left">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-        <span style="font-weight:700;white-space:nowrap">BitBot v1</span>
-        <span style="color:var(--text-tertiary);display:none" class="hide-mobile">|</span>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span>
+        </button>
+        <span style="font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px">
+          <span class="ico ico-16" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a7.5 7.5 0 0 0-7.5 7.5c0 5.424 7.5 11.5 7.5 11.5S19.5 14.924 19.5 9.5A7.5 7.5 0 0 0 12 2z"/></svg></span>
+          Gemma 4 E2B
+        </span>
+        <span style="color:var(--text-tertiary)">|</span>
         <span id="topMemoryInfo" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">No memory</span>
+        <span id="modeBadge" class="model-chip fast" style="margin-left:4px"><span class="dot"></span><span id="modeBadgeText">Fast</span></span>
       </div>
       <div class="top-right">
-        <span id="topStatus" style="display:none" class="hide-mobile">Syncing...</span>
-        <a class="top-link" onclick="fetchConfig()" title="Sync">↻</a>
+        <span id="topStatus">Syncing...</span>
+        <a class="top-link" onclick="fetchConfig(true)" title="Force Sync - fixes cache">
+          <span class="ico ico-16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
+        </a>
         <a class="top-link upgrade" href="https://github.com/bittuhere/ai" target="_blank">GitHub</a>
       </div>
     </div>
 
     <div id="statusBar" class="hidden">
-      <div class="spinner" style="width:12px;height:12px;border-width:1px"></div>
+      <span class="ico ico-14 anim-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
       <span id="statusText">Connecting...</span>
     </div>
 
     <div id="chatContainer">
       <div class="empty-state" id="emptyState">
-        <div class="empty-logo">B</div>
-        <div class="empty-title">BitBot AI — BitBot v1</div>
+        <div class="empty-logo anim-float">
+          <span style="position:relative;z-index:1">B</span>
+        </div>
+        <div class="empty-title">BitBot AI — Gemma 4 E2B</div>
         <div class="empty-subtitle">
-          <span class="shield">🛡️</span> Private • Mobile Friendly • <b>BitBot v1</b> — powerful & efficient
+          <span class="ico ico-16" style="color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          All chats are <b>private</b> • Powered by <b>Gemma 4 E2B</b> — efficient 2B edge model
         </div>
 
         <div class="input-card" id="heroInputCard">
-          <textarea id="heroInput" placeholder="Ask anything privately..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+          <textarea id="heroInput" placeholder="Ask anything privately with Gemma 4 E2B..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
           <div class="input-bottom">
             <div class="input-tools">
-              <button class="tool-btn" title="Attach" onclick="showToast('📎 Attachments coming soon!')">📎</button>
-              <button class="tool-btn" title="Search" onclick="showToast('🌐 Search coming soon!')">🌐</button>
-              <button class="tool-btn" title="Info" onclick="showModelInfo()">🧠</button>
+              <button class="tool-btn" title="Attach" onclick="showToast('Attachments coming soon')">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
+              </button>
+              <button class="tool-btn" title="Search" onclick="showToast('Search coming soon')">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+              </button>
+              <button class="tool-btn" title="Tools" onclick="toggleModelDropdown()">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+              </button>
             </div>
             <div class="input-right">
-              <div class="model-chip"><div class="dot"></div><span class="hide-mobile-text">BitBot v1</span><span class="show-mobile-only" style="display:none">Gemma</span></div>
+              <div class="model-selector">
+                <button class="model-btn fast" id="modelBtn" onclick="toggleModelDropdown()">
+                  <span class="dot"></span>
+                  <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+                  <span id="modelBtnText">Fast</span>
+                  <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6"/></svg></span>
+                </button>
+                <div class="model-dropdown" id="modelDropdown">
+                  <div class="model-option active" data-mode="fast" onclick="selectModel('fast')">
+                    <div class="opt-title">
+                      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+                      Fast Mode — Gemma 4 E2B
+                      <span style="margin-left:auto;font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px"><span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span> Active</span>
+                    </div>
+                    <div class="opt-desc">Direct, concise answers. Quick, efficient, remembers conversation.</div>
+                    <div class="opt-tag">Gemma 4 E2B • ~5GB RAM • Edge Optimized • No thinking tags</div>
+                  </div>
+                  <div class="model-option" data-mode="thinking" onclick="selectModel('thinking')">
+                    <div class="opt-title">
+                      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></span>
+                      Thinking Mode — Gemma 4 E2B
+                    </div>
+                    <div class="opt-desc">Shows step-by-step reasoning in collapsible box, then final answer. Best for complex tasks.</div>
+                    <div class="opt-tag">Gemma 4 E2B • Same model • &lt;thinking&gt; + &lt;answer&gt; • Animated reasoning</div>
+                  </div>
+                </div>
+              </div>
               <button class="send-btn" id="heroSendBtn" onclick="sendFromHero()" aria-label="Send">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
               </button>
             </div>
           </div>
         </div>
 
         <div class="suggestions">
-          <div class="suggestion-card" onclick="useSuggestion('My name is Bittu, remember it!')"><span class="s-icon">👤</span> Remember my name is Bittu</div>
-          <div class="suggestion-card" onclick="useSuggestion('What is my name?')"><span class="s-icon">🧠</span> What is my name?</div>
-          <div class="suggestion-card" onclick="useSuggestion('Explain BitBot v1 vs TinyLlama')"><span class="s-icon">⚖️</span> Why BitBot v1 better?</div>
-          <div class="suggestion-card" onclick="useSuggestion('Write Python to reverse a string')"><span class="s-icon">🐍</span> Python reverse string</div>
+          <div class="suggestion-card" onclick="useSuggestion('My name is Bittu, remember it!')">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Remember my name is Bittu
+          </div>
+          <div class="suggestion-card" onclick="useSuggestion('What is my name? Test your memory')">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span>
+            What is my name?
+          </div>
+          <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple words with bullet points')">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            Explain quantum computing
+          </div>
+          <div class="suggestion-card" onclick="useSuggestion('Write a Python function to reverse a string with explanation')">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+            Python reverse string
+          </div>
         </div>
 
         <div class="privacy-card">
-          <div class="p-icon">📱</div>
+          <div class="p-icon">
+            <span class="ico ico-20"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          </div>
           <div>
-            <b>Mobile Friendly + BitBot v1</b> — Works on phone! Sidebar drawer, bigger tap targets, safe-area support, no zoom on input. One powerful model, less RAM.
+            <b>Gemma 4 E2B + Two Modes + SVG Animations</b> — Fast = direct answer, Thinking = shows animated reasoning box with <code>&lt;thinking&gt;</code> then <code>&lt;answer&gt;</code>. All emojis replaced with SVG animations. Mobile friendly.
           </div>
         </div>
 
         <div class="disclaimer">
-          BitBot v1 • ~800MB RAM • Mobile optimized • Chats stored locally • AI may be inaccurate
+          Gemma 4 E2B • Efficient 2B • ~5GB RAM • Edge Optimized • Fast & Thinking modes • SVG Animations • Mobile Ready • Private
         </div>
       </div>
 
@@ -489,20 +715,32 @@
 
     <div id="inputWrapper" style="display:none">
       <div class="input-card">
-        <textarea id="userInput" placeholder="Ask BitBot v1..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+        <textarea id="userInput" placeholder="Ask Gemma 4 E2B anything..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
         <div class="input-bottom">
           <div class="input-tools">
-            <button class="tool-btn" onclick="showToast('📎 Coming soon!')">📎</button>
-            <button class="tool-btn" onclick="showToast('🌐 Coming soon!')">🌐</button>
-            <button class="tool-btn" onclick="showModelInfo()">🧠</button>
+            <button class="tool-btn" onclick="showToast('Attachments coming soon')">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
+            </button>
+            <button class="tool-btn" onclick="showToast('Search coming soon')">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+            </button>
+            <button class="tool-btn" onclick="toggleModelDropdown(true)">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+            </button>
           </div>
           <div class="input-right">
-            <div class="model-chip"><div class="dot"></div>BitBot v1</div>
+            <div class="model-selector">
+              <button class="model-btn fast" id="modelBtn2" onclick="toggleModelDropdown(true)">
+                <span class="dot"></span>
+                <span id="modelBtnText2">Fast</span>
+                <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+            </div>
             <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Send">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
             </button>
             <button class="send-btn stop" id="stopBtn" onclick="stopGeneration()" style="display:none" aria-label="Stop">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>
+              <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></span>
             </button>
           </div>
         </div>
@@ -512,26 +750,65 @@
 </div>
 
 <script>
-// ==================== CONFIG - BitBot v1 SINGLE MODE - MOBILE FRIENDLY ====================
-const CONFIG_URL = "https://raw.githubusercontent.com/bittuhere/ai/main/config.json";
-const MODEL = {
-  primary: "gemma3:1b",
-  fallbacks: ["gemma3:1b", "gemma3", "gemma2:2b", "gemma:2b", "gemma3:4b"],
-  label: "BitBot v1",
-  ram: "~800MB"
+// ==================== CONFIG - GEMMA 4 E2B TWO MODES + SVG ANIMATIONS ====================
+const CONFIG_URLS = [
+  "https://raw.githubusercontent.com/bittuhere/ai/main/config.json",
+  "https://bittuhere.github.io/ai/config.json",
+  "https://cdn.jsdelivr.net/gh/bittuhere/ai@main/config.json"
+];
+
+// Gemma 4 E2B - Efficient 2B, edge optimized, 5GB RAM, 128K context
+// Both modes use same model but different prompts & UI
+const MODEL_MAP = {
+  fast: {
+    primary: "gemma4:e2b",
+    fallbacks: ["gemma4:e2b", "gemma4:e4b", "gemma3:1b", "gemma2:2b"],
+    label: "Fast • Gemma 4 E2B",
+    short: "Fast",
+    ram: "~5GB",
+    icon: "zap"
+  },
+  thinking: {
+    primary: "gemma4:e2b",
+    fallbacks: ["gemma4:e2b", "gemma4:e4b", "gemma3:1b", "gemma2:2b"],
+    label: "Thinking • Gemma 4 E2B",
+    short: "Thinking",
+    ram: "~5GB",
+    icon: "brain"
+  }
 };
-const SYSTEM_PROMPT = `You are BitBot AI, created by Anurag. You are powered by BitBot v1, Google's efficient model.
+
+// System prompts optimized for Gemma 4 E2B
+const FAST_PROMPT = `You are BitBot AI, created by Anurag. You are powered by Gemma 4 E2B (Efficient 2B edge model).
 
 Rules:
-- Be friendly, concise, accurate. Remember user's name and conversation history.
+- Be fast, friendly, concise, direct. Remember user's name and conversation history.
 - Never mention Google, Gemma, or say you are an AI language model. Always stay as BitBot AI.
 - If you don't know, say "I don't know, but I can help search that for you."
-- Keep answers helpful and to the point. Use bullet points when helpful.
-- Remember details like user's name (e.g., Bittu) across messages.`;
+- Keep answers short and helpful. Use bullet points only if asked.
+- Remember details like user's name (e.g., Bittu) across messages.
+- Provide only final answer, no internal reasoning.`;
+
+const THINKING_PROMPT = `You are BitBot AI, created by Anurag. You are powered by Gemma 4 E2B, Google's efficient edge model. You are thoughtful and analytical. Remember conversation history including user's name.
+
+You MUST format every response EXACTLY like this with two sections:
+<thinking>
+Your step-by-step reasoning here. Think about:
+- What user asked before and their name/details
+- How to approach the question
+- What information you need
+- Plan your answer structure
+</thinking>
+<answer>
+Your final thorough answer here. Be educational, structured, use bullet points where helpful.
+</answer>
+
+Rules: Never mention other AI models. Always stay as BitBot AI. If you lack data, explain in <thinking> and say "I lack the data for a confident answer" in <answer>.`;
 
 // ==================== STATE ====================
 let tunnel_url = null;
 let lastConfigFetch = 0;
+let currentMode = localStorage.getItem('bitbot_mode_gemma4') || 'fast';
 let isGenerating = false;
 let abortController = null;
 let conversations = [];
@@ -557,35 +834,27 @@ const stopBtn = document.getElementById('stopBtn');
 const heroSendBtn = document.getElementById('heroSendBtn');
 const sidebar = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const modelBtn = document.getElementById('modelBtn');
+const modelBtn2 = document.getElementById('modelBtn2');
+const modelBtnText = document.getElementById('modelBtnText');
+const modelBtnText2 = document.getElementById('modelBtnText2');
+const modelDropdown = document.getElementById('modelDropdown');
+const modeBadge = document.getElementById('modeBadge');
+const modeBadgeText = document.getElementById('modeBadgeText');
+const fastModeBtn = document.getElementById('fastModeBtn');
+const thinkingModeBtn = document.getElementById('thinkingModeBtn');
 
-// ==================== MOBILE FRIENDLY SIDEBAR ====================
+// ==================== MOBILE SIDEBAR ====================
 function isMobile(){ return window.innerWidth <= 768; }
-
 function toggleSidebar(forceClose=false){
   const isOpen = sidebar.classList.contains('open');
   const shouldClose = forceClose===true || isOpen;
-
   if (shouldClose){
     sidebar.classList.remove('open');
     sidebar.classList.add('collapsed');
     sidebarBackdrop.classList.remove('open');
     document.body.style.overflow='';
-    // On desktop, collapsed means hidden but we want it visible by default on desktop
-    if (!isMobile()){
-      // On desktop, toggle between open and collapsed
-      if (forceClose!==true){
-        // Actually on desktop, collapsed hides it, so we need to handle
-        // If it was open and we close, keep collapsed
-        // If it was collapsed and we toggle, open it
-        if (sidebar.classList.contains('collapsed') && !isOpen){
-          sidebar.classList.remove('collapsed');
-          sidebar.classList.add('open');
-          sidebarBackdrop.classList.remove('open');
-        }
-      }
-    }
   } else {
-    // Open
     sidebar.classList.remove('collapsed');
     sidebar.classList.add('open');
     if (isMobile()){
@@ -594,175 +863,389 @@ function toggleSidebar(forceClose=false){
     }
   }
 }
-
-// Auto-collapse on mobile on load
 function initMobileSidebar(){
   if (isMobile()){
     sidebar.classList.add('collapsed');
     sidebar.classList.remove('open');
-    sidebarBackdrop.classList.remove('open');
   } else {
     sidebar.classList.remove('collapsed');
     sidebar.classList.add('open');
   }
 }
 window.addEventListener('resize', ()=>{
-  // Debounce
   clearTimeout(window._resizeTimer);
   window._resizeTimer = setTimeout(()=>{
     if (isMobile()){
-      if (sidebar.classList.contains('open') && !sidebarBackdrop.classList.contains('open')){
-        // If resizing to mobile and sidebar open, show backdrop
-        sidebarBackdrop.classList.add('open');
-        document.body.style.overflow='hidden';
-      }
+      if (sidebar.classList.contains('open')) sidebarBackdrop.classList.add('open');
     } else {
       sidebarBackdrop.classList.remove('open');
       document.body.style.overflow='';
       sidebar.classList.remove('collapsed');
       sidebar.classList.add('open');
     }
-  }, 150);
+  },150);
 });
 
-// ==================== CONVERSATIONS ====================
-function loadConversations(){
-  try{
-    conversations = JSON.parse(localStorage.getItem('bitbot_conversations_gemma') || '[]');
-    if (conversations.length===0){
-      const old = localStorage.getItem('bitbot_conversations_v3');
-      if (old){ try{ conversations=JSON.parse(old).map(c=>({...c, model:'gemma3:1b'})); }catch{} }
-    }
-    currentConversationId = localStorage.getItem('bitbot_current_id_gemma') || localStorage.getItem('bitbot_current_id');
-    if (conversations.length===0) createNewChat(false);
-    else if (!currentConversationId || !conversations.find(c=>c.id===currentConversationId)){
-      currentConversationId=conversations[0].id;
-    }
-    renderHistory(); loadCurrentConversation();
-  }catch(e){ conversations=[]; createNewChat(false); }
-}
-function saveConversations(){
-  try{
-    localStorage.setItem('bitbot_conversations_gemma', JSON.stringify(conversations));
-    if (currentConversationId) localStorage.setItem('bitbot_current_id_gemma', currentConversationId);
-    renderHistory(); updateMemoryInfo();
-  }catch(e){}
-}
-function getCurrentConversation(){ return conversations.find(c=>c.id===currentConversationId); }
-function createNewChat(render=true){
-  const id=Date.now().toString();
-  const conv={id, title:"New Chat", messages:[], created:Date.now(), model:MODEL.primary};
-  conversations.unshift(conv);
-  currentConversationId=id;
-  saveConversations();
-  if (render){ clearChatDOM(); showEmptyState(); setTimeout(()=>heroInput.focus(),100); if (isMobile()) toggleSidebar(true); }
-}
-function loadCurrentConversation(){
-  const conv=getCurrentConversation();
-  if (!conv) return;
-  clearChatDOM();
-  if (conv.messages.length===0) showEmptyState();
-  else {
-    showChatState();
-    conv.messages.forEach(msg=>{
-      if (msg.role==='user') addMessageDOM('user', msg.content, false);
-      else addMessageDOM('ai', msg.content, false);
-    });
-  }
-}
-function clearChatDOM(){ messagesWrapper.innerHTML=''; }
-function showEmptyState(){ emptyState.style.display='flex'; messagesWrapper.style.display='none'; inputWrapper.style.display='none'; }
-function showChatState(){ emptyState.style.display='none'; messagesWrapper.style.display='flex'; inputWrapper.style.display='flex'; setTimeout(scrollToBottom,50); }
-function renderHistory(){
-  if (conversations.length===0){
-    historyList.innerHTML='<div style="padding:12px 10px;font-size:12px;color:var(--text-tertiary)">No chats yet. Start a new chat!</div>'; return;
-  }
-  historyList.innerHTML = conversations.map(conv=>{
-    const active=conv.id===currentConversationId ? 'active' : '';
-    const title=escapeHtml(conv.title||"New Chat");
-    return `<div class="history-item ${active}" onclick="switchConversation('${conv.id}')" title="${title}"><span class="h-title">${title}</span><button class="h-delete" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" aria-label="Delete">✕</button></div>`;
-  }).join('');
-}
-function switchConversation(id){
-  currentConversationId=id;
-  localStorage.setItem('bitbot_current_id_gemma', id);
-  loadCurrentConversation(); renderHistory();
-  if (isMobile()) toggleSidebar(true);
-}
-function deleteConversation(id){
-  if (!confirm("Delete this chat?")) return;
-  conversations=conversations.filter(c=>c.id!==id);
-  if (currentConversationId===id){
-    if (conversations.length>0) currentConversationId=conversations[0].id;
-    else createNewChat(false);
-  }
-  saveConversations(); loadCurrentConversation();
-}
-function clearCurrentChat(){
-  const conv=getCurrentConversation();
-  if (!conv || conv.messages.length===0) return;
-  if (!confirm(`Clear ${conv.messages.length} messages?`)) return;
-  conv.messages=[]; conv.title="New Chat"; saveConversations(); clearChatDOM(); showEmptyState();
-}
-function updateConversationTitleIfNeeded(conv, firstMsg){
-  if (conv.title==="New Chat" && firstMsg) conv.title=firstMsg.slice(0,40)+(firstMsg.length>40?'...':'');
-}
-function updateMemoryInfo(){
-  const conv=getCurrentConversation();
-  const count=conv ? conv.messages.length : 0;
-  const total=conversations.reduce((s,c)=>s+c.messages.length,0);
-  memoryStatus.textContent = count>0 ? `${count} msgs` : 'No memory';
-  topMemoryInfo.textContent = count>0 ? `${count} msgs • ${MODEL.label}` : `${MODEL.label}`;
-  if (isMobile()){
-    topMemoryInfo.textContent = count>0 ? `${count} msgs` : MODEL.label;
-  }
-}
+// ==================== MODE HANDLING - TWO MODES FAST & THINKING ====================
+function setMode(mode, save=true){
+  currentMode = mode;
+  localStorage.setItem('bitbot_mode_gemma4', mode);
+  const info = MODEL_MAP[mode];
+  const isFast = mode==='fast';
 
-// ==================== CONFIG FETCH ====================
-async function fetchConfig(){
-  try{
-    showStatus("Syncing with BitBot v1...");
-    const res=await fetch(`${CONFIG_URL}?t=${Date.now()}`, {cache:'no-store'});
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data=await res.json();
-    if (!data.tunnel_url || !data.tunnel_url.trim()) throw new Error("Tunnel URL empty");
-    if (data.tunnel_url.includes("api.trycloudflare.com")) throw new Error("Invalid URL");
-    tunnel_url=data.tunnel_url;
-    lastConfigFetch=Date.now();
-    connectionStatus.innerHTML=`<span style="color:var(--green)">●</span> Connected`;
-    topStatus.textContent=`● Connected`;
-    hideStatus(); return tunnel_url;
-  }catch(e){
-    connectionStatus.innerHTML=`<span style="color:var(--red)">●</span> Offline`;
-    topStatus.textContent=`Offline`;
-    showStatus(`Could not connect to BitBot AI server. Please check your internet connection. ${e.message}`, true);
-    return null;
+  // Update all model buttons
+  document.querySelectorAll('.model-btn').forEach(btn=>{
+    btn.className = `model-btn ${mode}`;
+  });
+  if (modelBtnText) modelBtnText.textContent = info.short;
+  if (modelBtnText2) modelBtnText2.textContent = info.short;
+  if (modeBadge){
+    modeBadge.className = `model-chip ${mode}`;
+    if (modeBadgeText) modeBadgeText.textContent = info.short;
   }
+
+  // Update sidebar mode buttons
+  if (fastModeBtn && thinkingModeBtn){
+    fastModeBtn.classList.toggle('active', isFast);
+    thinkingModeBtn.classList.toggle('active', !isFast);
+  }
+
+  // Update dropdown
+  document.querySelectorAll('.model-option').forEach(opt=>{
+    opt.classList.toggle('active', opt.dataset.mode===mode);
+  });
+
+  const conv = getCurrentConversation();
+  if (conv && save){
+    conv.mode = mode;
+    saveConversations();
+  }
+  updateMemoryInfo();
+}
+function toggleModelDropdown(){
+  modelDropdown.classList.toggle('open');
+}
+function selectModel(mode){
+  setMode(mode);
+  modelDropdown.classList.remove('open');
+  showToast(`Switched to ${MODEL_MAP[mode].label}`);
+}
+document.addEventListener('click', (e)=>{
+  if (!e.target.closest('.model-selector')) modelDropdown.classList.remove('open');
+});
+
+// ==================== CACHE-BUST CONFIG ====================
+async function fetchFromUrl(baseUrl){
+  const bust = `${Date.now()}_${Math.random().toString(36).slice(2,9)}_${Math.floor(Math.random()*100000)}`;
+  const url = `${baseUrl}?t=${bust}&cb=${bust}&v=${bust}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(()=>controller.abort(), 8000);
+  try{
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }catch(e){ clearTimeout(timeout); throw e; }
+}
+async function healthCheckUrl(url){
+  if (!url) return false;
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 4000);
+    const res = await fetch(`${url}/api/tags?t=${Date.now()}`, {cache:'no-store', headers:{'Cache-Control':'no-cache'}, signal:controller.signal});
+    clearTimeout(timeout);
+    return res.ok;
+  }catch{ return false; }
+}
+async function fetchConfig(forceHealthCheck=true){
+  for (let baseUrl of CONFIG_URLS){
+    try{
+      showStatus(`Syncing...`);
+      const data = await fetchFromUrl(baseUrl);
+      if (!data.tunnel_url || !data.tunnel_url.trim()) throw new Error("Tunnel URL empty");
+      if (data.tunnel_url.includes("api.trycloudflare.com")) throw new Error("Invalid URL");
+      if (!data.tunnel_url.includes("trycloudflare.com")) throw new Error("Invalid format");
+      if (forceHealthCheck){
+        const healthy = await healthCheckUrl(data.tunnel_url);
+        if (!healthy) throw new Error(`URL not healthy, trying next CDN`);
+      }
+      tunnel_url = data.tunnel_url;
+      lastConfigFetch = Date.now();
+      connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
+      topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
+      hideStatus();
+      try{
+        sessionStorage.setItem('bitbot_last_good_url', tunnel_url);
+        sessionStorage.setItem('bitbot_last_good_time', Date.now().toString());
+      }catch{}
+      return tunnel_url;
+    }catch(e){ console.warn(`Config fetch failed ${baseUrl}:`, e.message); continue; }
+  }
+  try{
+    const lastGood = sessionStorage.getItem('bitbot_last_good_url');
+    const lastTime = parseInt(sessionStorage.getItem('bitbot_last_good_time')||'0');
+    const ageMin = Math.floor((Date.now()-lastTime)/60000);
+    if (lastGood && ageMin<30){
+      const healthy = await healthCheckUrl(lastGood);
+      if (healthy){
+        tunnel_url=lastGood; lastConfigFetch=Date.now();
+        connectionStatus.innerHTML=`<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected (cached)`;
+        topStatus.textContent=`Connected (cached ${ageMin}m)`;
+        showStatus(`Using cached URL (age ${ageMin}m), retrying...`);
+        setTimeout(()=>fetchConfig(true),5000);
+        return tunnel_url;
+      }
+    }
+  }catch{}
+  connectionStatus.innerHTML=`<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
+  topStatus.textContent=`Offline`;
+  showStatus(`Could not get fresh URL. Try hard refresh Ctrl+Shift+R or Sync button.`, true);
+  return null;
 }
 function showStatus(msg, isError=false){
   statusText.textContent=msg;
   statusBar.classList.remove('hidden');
   statusBar.style.borderColor=isError ? 'var(--red)' : 'var(--border)';
+  statusBar.style.background=isError ? 'rgba(248,81,73,0.1)' : 'var(--bg-input)';
 }
-function hideStatus(){ setTimeout(()=>statusBar.classList.add('hidden'),2500); }
-fetchConfig();
-setInterval(()=>{ if(!isGenerating) fetchConfig(); }, 120000);
+function hideStatus(){ setTimeout(()=>statusBar.classList.add('hidden'), isMobile()?4000:2500); }
+fetchConfig(true);
+setInterval(()=>{ if(!isGenerating) fetchConfig(true); }, 30000);
+document.addEventListener('visibilitychange', ()=>{
+  if (!document.hidden && !isGenerating && Date.now()-lastConfigFetch>15000) fetchConfig(true);
+});
 
 // ==================== HELPERS ====================
 function escapeHtml(text){ const div=document.createElement('div'); div.textContent=text; return div.innerHTML; }
+
+// ==================== BEST MARKDOWN DECODER - FIXES AI OUTPUT DIFFERENTLY ISSUE ====================
+function renderMarkdown(md){
+  if (!md) return "";
+
+  // Store code blocks to protect them
+  let codeBlocks = [];
+  // Triple backtick code blocks ```lang\ncode\n```
+  md = md.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code)=>{
+    const id = `__CODEBLOCK_${codeBlocks.length}__`;
+    codeBlocks.push({lang: (lang||'').trim(), code: code.trim()});
+    return id;
+  });
+  // Double backtick malformed blocks ``lang\ncode\n`` (from your example)
+  md = md.replace(/``(\w+)?\n?([\s\S]*?)``/g, (match, lang, code)=>{
+    const id = `__CODEBLOCK_${codeBlocks.length}__`;
+    codeBlocks.push({lang: (lang||'').trim(), code: code.trim()});
+    return id;
+  });
+
+  // Store inline code `code` to protect
+  let inlineCodes = [];
+  md = md.replace(/`([^`\n]+)`/g, (match, code)=>{
+    const id = `__INLINECODE_${inlineCodes.length}__`;
+    inlineCodes.push(code);
+    return id;
+  });
+
+  // Escape HTML (but we will unescape allowed tags later)
+  md = escapeHtml(md);
+
+  // Unescape allowed simple tags that AI might output directly
+  md = md.replace(/&lt;sub&gt;/g, '<sub>').replace(/&lt;\/sub&gt;/g, '</sub>');
+  md = md.replace(/&lt;sup&gt;/g, '<sup>').replace(/&lt;\/sup&gt;/g, '</sup>');
+  md = md.replace(/&lt;br&gt;/g, '<br>').replace(/&lt;br\/&gt;/g, '<br>');
+
+  // Math blocks $$...$$ -> math-block
+  md = md.replace(/\$\$([\s\S]*?)\$\$/g, (match, math)=>{
+    const cleaned = math.trim();
+    // Inside math, convert ^ and _ to sup/sub for display
+    let rendered = escapeHtml(cleaned)
+      .replace(/\^([0-9]+)/g, '<sup>$1</sup>')
+      .replace(/_([0-9]+)/g, '<sub>$1</sub>')
+      .replace(/\\le/g, '≤').replace(/\\ge/g, '≥').replace(/\\lt/g, '<').replace(/\\gt/g, '>');
+    return `<div class="math-block">${rendered}</div>`;
+  });
+
+  // Inline math $...$ -> math-inline (avoid matching $$)
+  md = md.replace(/\$([^$\n]+?)\$/g, (match, math)=>{
+    let rendered = math.trim()
+      .replace(/\^([0-9]+)/g, '<sup>$1</sup>')
+      .replace(/_([0-9]+)/g, '<sub>$1</sub>')
+      .replace(/\\le/g, '≤').replace(/\\ge/g, '≥');
+    // Also handle x^3 style inside math without $ already handled
+    rendered = rendered.replace(/([a-zA-Z0-9])\^([0-9]+)/g, '$1<sup>$2</sup>');
+    rendered = rendered.replace(/([a-zA-Z0-9])_([0-9]+)/g, '$1<sub>$2</sub>');
+    return `<span class="math-inline">${rendered}</span>`;
+  });
+
+  // Headings # H1 to ###### H6
+  md = md.replace(/^######\s+(.*)$/gm, '<h6>$1</h6>');
+  md = md.replace(/^#####\s+(.*)$/gm, '<h5>$1</h5>');
+  md = md.replace(/^####\s+(.*)$/gm, '<h4>$1</h4>');
+  md = md.replace(/^###\s+(.*)$/gm, '<h3>$1</h3>');
+  md = md.replace(/^##\s+(.*)$/gm, '<h2>$1</h2>');
+  md = md.replace(/^#\s+(.*)$/gm, '<h1>$1</h1>');
+
+  // Bold: **text** and __text__
+  md = md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  md = md.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+  // Italic: *text* and _text_ (avoid **)
+  md = md.replace(/(?<!\*)\*(?!\*)(.*?)\*(?!\*)/g, '<em>$1</em>');
+  // Italic with _ is tricky because _ used in sub, so only when surrounded by spaces or punctuation
+  md = md.replace(/(^|[^a-zA-Z0-9])_([^_\n]+)_([^a-zA-Z0-9]|$)/g, '$1<em>$2</em>$3');
+
+  // Strikethrough: ~~text~~
+  md = md.replace(/~~(.*?)~~/g, '<del>$1</del>');
+
+  // Subscript: ~text~ for single word without spaces (H~2~O) and H2O style?
+  // Support ~2~ inside text like H~2~O -> H<sub>2</sub>O
+  md = md.replace(/~([^\s~]+)~/g, '<sub>$1</sub>');
+  // Superscript: ^text^
+  md = md.replace(/\^([^\s^]+)\^/g, '<sup>$1</sup>');
+
+  // Links: [text](url)
+  md = md.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  // Blockquotes: > text
+  md = md.replace(/^>\s?(.*)$/gm, '<blockquote>$1</blockquote>');
+
+  // Horizontal rule
+  md = md.replace(/^---$/gm, '<hr>');
+  md = md.replace(/^\*\*\*$/gm, '<hr>');
+
+  // Lists - process line by line for better handling
+  let lines = md.split('\n');
+  let inUL = false;
+  let inOL = false;
+  let output = [];
+
+  for (let i=0;i<lines.length;i++){
+    let line = lines[i];
+    const trimmed = line.trim();
+
+    // Skip if it's already HTML block or placeholder
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<hr') || trimmed.startsWith('<div class="math') || trimmed.startsWith('__CODEBLOCK_') || trimmed.startsWith('__INLINECODE_') || trimmed.startsWith('<pre>')){
+      if (inUL){ output.push('</ul>'); inUL=false; }
+      if (inOL){ output.push('</ol>'); inOL=false; }
+      output.push(line);
+      continue;
+    }
+
+    // Bullet list: - or * or • at start
+    const ulMatch = line.match(/^(\s*)[-*•]\s+(.*)$/);
+    if (ulMatch){
+      if (!inUL){ output.push('<ul>'); inUL=true; }
+      if (inOL){ output.push('</ol>'); inOL=false; }
+      output.push(`<li>${ulMatch[2]}</li>`);
+      continue;
+    }
+
+    // Numbered list: 1. or 1)
+    const olMatch = line.match(/^(\s*)\d+[\.\)]\s+(.*)$/);
+    if (olMatch){
+      if (!inOL){ output.push('<ol>'); inOL=true; }
+      if (inUL){ output.push('</ul>'); inUL=false; }
+      output.push(`<li>${olMatch[2]}</li>`);
+      continue;
+    }
+
+    // Not a list item, close lists if open
+    if (inUL && trimmed===''){ /* keep list open on empty line? close */ }
+    if (inUL && !ulMatch){ output.push('</ul>'); inUL=false; }
+    if (inOL && !olMatch){ output.push('</ol>'); inOL=false; }
+
+    // Paragraph handling: if line empty, add break, else wrap in <p> if not already HTML and not placeholder
+    if (trimmed===''){
+      output.push('');
+    } else {
+      // If line is already placeholder or HTML, keep as is, else add as is (we will handle <br> later)
+      output.push(line);
+    }
+  }
+  if (inUL) output.push('</ul>');
+  if (inOL) output.push('</ol>');
+
+  md = output.join('\n');
+
+  // Restore inline codes
+  inlineCodes.forEach((code, idx)=>{
+    const placeholder = `__INLINECODE_${idx}__`;
+    const escaped = escapeHtml(code);
+    md = md.replace(placeholder, `<code>${escaped}</code>`);
+  });
+
+  // Restore code blocks with best UI
+  codeBlocks.forEach((block, idx)=>{
+    const placeholder = `__CODEBLOCK_${idx}__`;
+    const escapedCode = escapeHtml(block.code);
+    const lang = block.lang ? escapeHtml(block.lang) : '';
+    const langLabel = lang ? `<span class="code-lang">${lang}</span>` : '<span class="code-lang">code</span>';
+    const html = `<pre><div class="code-header">${langLabel}<button class="code-copy-btn" onclick="copyCode(this)"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></span> Copy</button></div><code class="language-${lang}">${escapedCode}</code></pre>`;
+    md = md.replace(placeholder, html);
+  });
+
+  // Convert remaining single newlines to <br> but not inside <pre>, <ul>, <ol>, <h1> etc.
+  // Split by HTML blocks and only add <br> to text parts
+  // For simplicity, replace \n\n with </p><p> and \n with <br>, then wrap
+  // We will wrap loose text in <p> if not already in HTML tag
+
+  // Replace double newline with paragraph break
+  md = md.replace(/\n\n/g, '</p><p>');
+  // Single newline to <br> except when next char is < (HTML)
+  md = md.replace(/\n/g, (match, offset, string)=>{
+    const nextChar = string[offset+1];
+    const prevChar = string[offset-1];
+    // Don't add <br> if surrounded by HTML tags
+    if (nextChar === '<' || prevChar === '>') return '';
+    return '<br>';
+  });
+
+  // Wrap in <p> if not starting with HTML block
+  if (!md.trim().startsWith('<h') && !md.trim().startsWith('<ul') && !md.trim().startsWith('<ol') && !md.trim().startsWith('<pre') && !md.trim().startsWith('<blockquote') && !md.trim().startsWith('<div') && !md.trim().startsWith('<p>')){
+    md = `<p>${md}</p>`;
+  }
+  // Fix empty <p></p>
+  md = md.replace(/<p>\s*<\/p>/g, '');
+  md = md.replace(/<p><\/p>/g, '');
+  // Fix <p> inside <li>, <blockquote> etc
+  md = md.replace(/<li><p>/g, '<li>').replace(/<\/p><\/li>/g, '</li>');
+  md = md.replace(/<blockquote><p>/g, '<blockquote>').replace(/<\/p><\/blockquote>/g, '</blockquote>');
+
+  return md;
+}
+
 function formatTextWithMarkdown(text){
-  let escaped=escapeHtml(text);
-  escaped=escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  escaped=escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
-  escaped=escaped.replace(/\n/g, '<br>');
-  return escaped;
+  // For user messages - keep simple but also support basic markdown
+  return renderMarkdown(text);
 }
-function autoResize(el){
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,160)+'px';
-  // On mobile, ensure chat scrolls to bottom when input grows
-  if (isMobile()) setTimeout(scrollToBottom, 50);
+
+function copyCode(btn){
+  const pre = btn.closest('pre');
+  const code = pre ? pre.querySelector('code') : null;
+  if (!code) return;
+  const text = code.innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L6 18M6 6l12 12"/></svg></span> Copied!`;
+    setTimeout(()=>{ btn.innerHTML = orig; }, 1500);
+  }).catch(()=>{
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
 }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,160)+'px'; if (isMobile()) setTimeout(scrollToBottom,50); }
 function showToast(msg){ showStatus(msg); setTimeout(hideStatus,3000); }
 function scrollToBottom(){ chatContainer.scrollTop=chatContainer.scrollHeight; }
 function sanitizeResponse(text){
@@ -771,54 +1254,161 @@ function sanitizeResponse(text){
   let isLeak=leakMarkers.some(m=>lower.includes(m.toLowerCase()));
   if (text.includes("Your name is BitBot AI") && text.includes("Your developer is Anurag") && text.length>300) isLeak=true;
   if (isLeak){
+    const ansMatch=text.match(/<answer>([\s\S]*?)<\/answer>/i);
+    if (ansMatch && ansMatch[1].trim().length>5) return ansMatch[1].trim();
     const parts=text.split(/Never break character\.?/i);
     if (parts.length>1){
       const after=parts[parts.length-1].trim();
       const cleaned=after.split('\n').filter(line=>!leakMarkers.some(mm=>line.toLowerCase().includes(mm.toLowerCase()))).join('\n').trim();
       if (cleaned.length>10) return cleaned;
     }
-    return "I'm BitBot AI, created by Anurag and powered by BitBot v1. How can I help you today?";
+    return "I'm BitBot AI, created by Anurag and powered by Gemma 4 E2B. How can I help you today?";
   }
   return text;
 }
+function parseThinkingAnswer(text){
+  const thinkingMatch=text.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+  const answerMatch=text.match(/<answer>([\s\S]*?)<\/answer>/i);
+  let thinking=thinkingMatch ? thinkingMatch[1].trim() : null;
+  let answer=text;
+  if (thinkingMatch || answerMatch){
+    if (answerMatch) answer=answerMatch[1].trim();
+    else if (thinkingMatch){
+      const after=text.split(/<\/thinking>/i)[1];
+      if (after) answer=after.replace(/<\/?answer>/gi,'').trim() || "I've completed my reasoning.";
+    }
+  }
+  return {thinking, answer, raw:text};
+}
 
-// ==================== MESSAGE DOM ====================
-function addMessageDOM(role, content, isLoading=false){
+// ==================== MESSAGE DOM - BEST LOOK FOR THINKING ====================
+function addMessageDOM(role, content, isLoading=false, preThinking=null, preAnswer=null){
   if (role==='user' && emptyState.style.display!=='none') showChatState();
   const id='msg-'+Date.now()+'-'+Math.random().toString(36).substr(2,5);
   const group=document.createElement('div');
   group.className='message-group'; group.id=id;
+
   if (role==='user'){
     group.innerHTML=`<div class="message user">${formatTextWithMarkdown(content)}</div>`;
   } else if (isLoading){
-    group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)"><div class="spinner"></div><span>BitBot v1 is thinking...</span></div><div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div></div></div>`;
+    const isThinkingMode = currentMode==='thinking';
+    if (isThinkingMode){
+      group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content">
+        <div class="thinking-wrapper open">
+          <div class="thinking-header">
+            <div class="thinking-icon"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span></div>
+            <span class="thinking-title">Thinking...</span>
+            <div class="thinking-dots"><span></span><span></span><span></span></div>
+            <span class="ico thinking-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg></span>
+          </div>
+          <div class="thinking-content"><div class="stream-thinking" style="color:var(--text-secondary)"></div></div>
+        </div>
+        <div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div>
+      </div></div>`;
+    } else {
+      group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)"><span class="ico anim-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span><span>Gemma 4 E2B is thinking...</span></div><div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div></div></div>`;
+    }
   } else {
-    const sanitized=sanitizeResponse(content);
-    group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div class="ai-text">${formatTextWithMarkdown(sanitized)}</div><div class="message-actions"><button class="action-btn" onclick="copyMessage('${id}')">📋 Copy</button></div></div></div>`;
+    let thinking=preThinking;
+    let answer=preAnswer;
+    if (!preThinking && !preAnswer){
+      const parsed=parseThinkingAnswer(content);
+      thinking=parsed.thinking;
+      answer=parsed.answer;
+    }
+    const sanitizedAnswer=sanitizeResponse(answer||content);
+    const sanitizedThinking=thinking ? sanitizeResponse(thinking) : null;
+
+    let html=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content">`;
+    if (sanitizedThinking){
+      html+=`<div class="thinking-wrapper" id="tw-${id}">
+        <div class="thinking-header" onclick="toggleThinking('tw-${id}')">
+          <div class="thinking-icon"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span></div>
+          <span class="thinking-title">AI's Reasoning</span>
+          <span style="font-size:10px;color:var(--text-tertiary);margin-left:6px">Click to ${sanitizedThinking.length>200?'expand':'toggle'}</span>
+          <span class="ico thinking-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+        <div class="thinking-content">${formatTextWithMarkdown(sanitizedThinking)}</div>
+      </div>`;
+    }
+    html+=`<div class="ai-text">${formatTextWithMarkdown(sanitizedAnswer)}</div>`;
+    html+=`<div class="message-actions"><button class="action-btn" onclick="copyMessage('${id}')"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></span> Copy</button></div>`;
+    html+=`</div></div>`;
+    group.innerHTML=html;
   }
+
   messagesWrapper.appendChild(group); scrollToBottom(); return id;
 }
+
+function toggleThinking(id){
+  const wrapper=document.getElementById(id);
+  if (wrapper) wrapper.classList.toggle('open');
+}
+
 function updateAIBubble(id, fullText, isFinal=false, isError=false){
   const group=document.getElementById(id);
   if (!group) return;
+
   if (isError){
     group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div class="ai-text" style="color:var(--red)">${formatTextWithMarkdown(fullText)}</div></div></div>`; return;
   }
+
   if (!isFinal){
-    const streamEl=group.querySelector('.stream-content');
-    if (streamEl) streamEl.innerHTML=formatTextWithMarkdown(fullText.slice(0,2000));
+    const isThinkingMode = currentMode==='thinking';
+    // For streaming, use simple escape + br to avoid breaking markdown mid-stream
+    const simpleRender = (txt)=> escapeHtml(txt).replace(/\n/g,'<br>');
+    if (isThinkingMode){
+      const thinkingMatch=fullText.match(/<thinking>([\s\S]*?)(?:<\/thinking>|$)/i);
+      const afterThinking = fullText.split(/<\/thinking>/i)[1] || "";
+      const streamThinking = group.querySelector('.stream-thinking');
+      const streamContent = group.querySelector('.stream-content');
+      if (thinkingMatch && streamThinking){
+        let thContent = thinkingMatch[1];
+        if (!fullText.toLowerCase().includes('</thinking>')){
+          streamThinking.innerHTML=simpleRender(thContent.slice(-800));
+        } else {
+          streamThinking.innerHTML=simpleRender(thContent.slice(0,1000));
+          if (streamContent) streamContent.innerHTML=simpleRender(afterThinking.slice(0,1000));
+        }
+      } else if (streamContent){
+        streamContent.innerHTML=simpleRender(fullText.slice(0,1500));
+      }
+    } else {
+      const streamEl=group.querySelector('.stream-content');
+      if (streamEl) streamEl.innerHTML=simpleRender(fullText.slice(0,2000));
+    }
     scrollToBottom();
   } else {
     const sanitized=sanitizeResponse(fullText);
-    group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div class="ai-text">${formatTextWithMarkdown(sanitized)}</div><div class="message-actions"><button class="action-btn" onclick="copyMessage('${id}')">📋 Copy</button></div></div></div>`;
+    const parsed=parseThinkingAnswer(sanitized);
+    let th=parsed.thinking ? sanitizeResponse(parsed.thinking) : null;
+    let ans=sanitizeResponse(parsed.answer);
+
+    let html=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content">`;
+    if (th){
+      html+=`<div class="thinking-wrapper" id="tw-${id}">
+        <div class="thinking-header" onclick="toggleThinking('tw-${id}')">
+          <div class="thinking-icon"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span></div>
+          <span class="thinking-title">AI's Reasoning</span>
+          <span style="font-size:10px;color:var(--text-tertiary);margin-left:6px">${th.length} chars • Click to expand</span>
+          <span class="ico thinking-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+        <div class="thinking-content">${formatTextWithMarkdown(th)}</div>
+      </div>`;
+    }
+    html+=`<div class="ai-text">${formatTextWithMarkdown(ans)}</div>`;
+    html+=`<div class="message-actions"><button class="action-btn" onclick="copyMessage('${id}')"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></span> Copy</button></div>`;
+    html+=`</div></div>`;
+    group.innerHTML=html;
     scrollToBottom();
   }
 }
+
 function copyMessage(id){
   const group=document.getElementById(id);
   if (!group) return;
   const text=group.querySelector('.ai-text')?.innerText || group.innerText;
-  navigator.clipboard.writeText(text).then(()=>showToast("✅ Copied!")).catch(()=>showToast("Copy failed"));
+  navigator.clipboard.writeText(text).then(()=>showToast("Copied to clipboard")).catch(()=>showToast("Copy failed"));
 }
 
 // ==================== SUGGESTIONS ====================
@@ -826,35 +1416,34 @@ function useSuggestion(text){ heroInput.value=text; autoResize(heroInput); sendF
 function handleHeroKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFromHero(); } }
 function handleInputKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } }
 function showModelInfo(){
-  alert(`📱 BitBot AI - Mobile Friendly + BitBot v1
+  alert(`BitBot AI — Gemma 4 E2B
 
-• Model: BitBot v1 by Google
-• Size: ~1B params, ~800MB RAM
-• Why better?
-  - More powerful than TinyLlama/SmolLM
-  - Uses less RAM than 2 models
-  - Better memory & code
+Model: Gemma 4 E2B (Efficient 2B)
+- Effective 2B params, edge-optimized
+- ~5GB RAM at Q4, 128K context
+- Text, Image, Audio modalities
+- Dense + PLE architecture
 
-• Mobile Features:
-  - Sidebar drawer with backdrop
-  - Bigger tap targets (44px)
-  - No zoom on input (16px font)
-  - Safe-area support for iPhone notch
-  - 1-column suggestions on mobile
-  - Always show Copy button on mobile
-  - Auto-collapse sidebar on mobile
-  - Swipe backdrop to close
+Two Modes (both use same Gemma 4 E2B model):
+Fast: Direct concise answers, no thinking tags, fastest
+Thinking: Shows <thinking> reasoning in animated collapsible box, then <answer>
 
-• Single mode - no Fast/Thinking confusion
-• All chats private, stored locally
+Why Gemma 4 E2B?
+- Edge-optimized for 4GB-8GB RAM laptops
+- Better than Gemma 3 1B and TinyLlama
+- Handles code, reasoning, memory well
+- Recommended for mobile/edge devices
 
-To update on laptop:
-  ollama pull gemma3:1b
-  ollama rm tinyllama smollm
+Ollama commands:
+  ollama pull gemma4:e2b
+  ollama pull gemma4:e4b (needs 8GB RAM)
+  ollama rm tinyllama smollm (save space)
+
+All SVG animations, no emojis!
 `);
 }
 
-// ==================== CHAT LOGIC ====================
+// ==================== CHAT LOGIC - GEMMA 4 E2B TWO MODES ====================
 async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMessage, onChunk, signal){
   const messages=[
     {role:"system", content: systemPrompt},
@@ -872,7 +1461,13 @@ async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMe
           model: modelName,
           messages: messages,
           stream: true,
-          options: { temperature:0.7, repeat_penalty:1.15, num_predict:800, top_p:0.9, top_k:40 }
+          options: {
+            temperature: currentMode==='fast' ? 0.7 : 0.8,
+            repeat_penalty: 1.15,
+            num_predict: currentMode==='fast' ? 600 : 900,
+            top_p: 0.9,
+            top_k: 40
+          }
         }),
         signal: signal
       });
@@ -914,13 +1509,22 @@ async function sendMessageInternal(text, isHero=false){
   const trimmed=text.trim();
   if (!trimmed || isGenerating) return;
 
-  if (!tunnel_url || Date.now()-lastConfigFetch>120000){
-    showStatus("Syncing with BitBot v1...");
-    await fetchConfig();
-  }
+  showStatus(`Getting fresh tunnel URL...`);
+  await fetchConfig(true);
+
   if (!tunnel_url){
-    addMessageDOM('ai', 'Could not connect to BitBot AI server. Please check your internet connection.\n\n• Laptop online?\n• tunnel_manager.py running?\n• Model gemma3:1b pulled? Run: ollama pull gemma3:1b', false);
+    addMessageDOM('ai', 'Could not connect to BitBot AI server. Check internet, tunnel_manager.py running, model gemma4:e2b pulled: ollama pull gemma4:e2b', false);
     return;
+  }
+
+  const healthy = await healthCheckUrl(tunnel_url);
+  if (!healthy){
+    showStatus(`Tunnel not healthy, fetching fresh URL...`);
+    await fetchConfig(true);
+    if (!tunnel_url || !(await healthCheckUrl(tunnel_url))){
+      addMessageDOM('ai', `Tunnel offline (rotated). Wait 15s for GitHub CDN, click Sync and try again.`, false);
+      return;
+    }
   }
 
   addMessageDOM('user', trimmed, false);
@@ -935,40 +1539,55 @@ async function sendMessageInternal(text, isHero=false){
   const conv=getCurrentConversation();
   const history=conv ? conv.messages.slice(-MAX_HISTORY) : [];
 
-  try{
-    let finalText="";
-    await streamChat(tunnel_url, MODEL, SYSTEM_PROMPT, history, trimmed, (chunk)=>{
-      finalText=chunk; updateAIBubble(aiId, chunk, false);
-    }, abortController.signal);
+  let retryCount=0;
+  const maxRetries=1;
 
-    finalText=sanitizeResponse(finalText);
-    updateAIBubble(aiId, finalText, true, false);
+  async function attemptSend(){
+    try{
+      const modelInfo = MODEL_MAP[currentMode];
+      const systemPrompt = currentMode==='fast' ? FAST_PROMPT : THINKING_PROMPT;
+      let finalText="";
+      await streamChat(tunnel_url, modelInfo, systemPrompt, history, trimmed, (chunk)=>{
+        finalText=chunk; updateAIBubble(aiId, chunk, false);
+      }, abortController.signal);
 
-    if (conv){
-      updateConversationTitleIfNeeded(conv, trimmed);
-      conv.messages.push({role:"user", content:trimmed});
-      conv.messages.push({role:"assistant", content:finalText});
-      if (conv.messages.length > MAX_HISTORY*2) conv.messages=conv.messages.slice(-MAX_HISTORY*2);
-      saveConversations();
-    }
+      finalText=sanitizeResponse(finalText);
+      updateAIBubble(aiId, finalText, true, false);
 
-  }catch(err){
-    if (err.name==='AbortError'){
-      updateAIBubble(aiId, "Generation stopped.", true, false);
-    } else {
+      if (conv){
+        updateConversationTitleIfNeeded(conv, trimmed);
+        const parsed=parseThinkingAnswer(finalText);
+        const answerForHistory=parsed.answer || finalText;
+        conv.messages.push({role:"user", content:trimmed});
+        conv.messages.push({role:"assistant", content:answerForHistory});
+        if (conv.messages.length > MAX_HISTORY*2) conv.messages=conv.messages.slice(-MAX_HISTORY*2);
+        saveConversations();
+      }
+
+    }catch(err){
+      if (err.name==='AbortError'){ updateAIBubble(aiId, "Generation stopped.", true, false); return; }
+      const isNetworkError = err.message.includes('Failed to fetch') || err.message.includes('NetworkError');
+      if (isNetworkError && retryCount < maxRetries){
+        retryCount++;
+        showStatus(`Network error, fetching fresh URL (retry ${retryCount}/${maxRetries})...`);
+        const newUrl=await fetchConfig(true);
+        if (newUrl){ tunnel_url=newUrl; await attemptSend(); return; }
+      }
       let msg=err.message;
-      if (msg.includes('Failed to fetch')) msg="Network error - tunnel rotating. Wait 10s.";
-      if (msg.includes('not found')) msg=`Model ${MODEL.primary} not found. Run: ollama pull gemma3:1b`;
-      updateAIBubble(aiId, `Error: ${msg}\n\nTip: ollama list should show gemma3:1b. Pull it: ollama pull gemma3:1b`, true, true);
+      if (msg.includes('Failed to fetch')) msg=`Network error - tunnel may be stale cached. Hard refresh Ctrl+Shift+R, click Sync, wait 60s.`;
+      if (msg.includes('not found')) msg=`Model ${MODEL_MAP[currentMode].primary} not found. Run: ollama pull gemma4:e2b`;
+      updateAIBubble(aiId, `Error: ${msg}`, true, true);
     }
-  }finally{
+  }
+
+  try{ await attemptSend(); }
+  finally{
     isGenerating=false;
     sendBtn.style.display='flex'; stopBtn.style.display='none';
     heroSendBtn.disabled=false; userInput.disabled=false; heroInput.disabled=false;
     abortController=null;
     (isHero ? heroInput : userInput).focus();
-    // On mobile, scroll to bottom after sending to keep input visible above keyboard
-    if (isMobile()) setTimeout(scrollToBottom, 300);
+    if (isMobile()) setTimeout(scrollToBottom,300);
   }
 }
 
@@ -976,19 +1595,113 @@ function sendMessage(){ sendMessageInternal(userInput.value, false); }
 function sendFromHero(){ sendMessageInternal(heroInput.value, true); }
 function stopGeneration(){ if (abortController) abortController.abort(); }
 
+// ==================== CONVERSATIONS ====================
+function loadConversations(){
+  try{
+    conversations = JSON.parse(localStorage.getItem('bitbot_conversations_gemma4') || '[]');
+    if (conversations.length===0){
+      const old = localStorage.getItem('bitbot_conversations_gemma');
+      if (old){ try{ conversations=JSON.parse(old); }catch{} }
+    }
+    currentConversationId = localStorage.getItem('bitbot_current_id_gemma4');
+    if (conversations.length===0) createNewChat(false);
+    else if (!currentConversationId || !conversations.find(c=>c.id===currentConversationId)){
+      currentConversationId=conversations[0].id;
+    }
+    renderHistory(); loadCurrentConversation();
+  }catch(e){ conversations=[]; createNewChat(false); }
+}
+function saveConversations(){
+  try{
+    localStorage.setItem('bitbot_conversations_gemma4', JSON.stringify(conversations));
+    if (currentConversationId) localStorage.setItem('bitbot_current_id_gemma4', currentConversationId);
+    renderHistory(); updateMemoryInfo();
+  }catch(e){}
+}
+function getCurrentConversation(){ return conversations.find(c=>c.id===currentConversationId); }
+function createNewChat(render=true){
+  const id=Date.now().toString();
+  const conv={id, title:"New Chat", messages:[], created:Date.now(), model:MODEL_MAP[currentMode].primary, mode:currentMode};
+  conversations.unshift(conv);
+  currentConversationId=id;
+  saveConversations();
+  if (render){ clearChatDOM(); showEmptyState(); setTimeout(()=>heroInput.focus(),100); if (isMobile()) toggleSidebar(true); }
+}
+function loadCurrentConversation(){
+  const conv=getCurrentConversation();
+  if (!conv) return;
+  clearChatDOM();
+  if (conv.messages.length===0) showEmptyState();
+  else {
+    showChatState();
+    conv.messages.forEach(msg=>{
+      if (msg.role==='user') addMessageDOM('user', msg.content, false);
+      else {
+        const parsed=parseThinkingAnswer(msg.content);
+        addMessageDOM('ai', msg.content, false, parsed.thinking, parsed.answer);
+      }
+    });
+    if (conv.mode) setMode(conv.mode, false);
+  }
+}
+function clearChatDOM(){ messagesWrapper.innerHTML=''; }
+function showEmptyState(){ emptyState.style.display='flex'; messagesWrapper.style.display='none'; inputWrapper.style.display='none'; }
+function showChatState(){ emptyState.style.display='none'; messagesWrapper.style.display='flex'; inputWrapper.style.display='flex'; setTimeout(scrollToBottom,50); }
+function renderHistory(){
+  if (conversations.length===0){
+    historyList.innerHTML='<div style="padding:12px 10px;font-size:12px;color:var(--text-tertiary)">No chats yet. Start a new chat!</div>'; return;
+  }
+  historyList.innerHTML = conversations.map(conv=>{
+    const active=conv.id===currentConversationId ? 'active' : '';
+    const title=escapeHtml(conv.title||"New Chat");
+    const modeIcon = conv.mode==='thinking' ? 'brain' : 'zap';
+    return `<div class="history-item ${active}" onclick="switchConversation('${conv.id}')" title="${title}"><span class="h-title">${title}</span><button class="h-delete" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" aria-label="Delete"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg></span></button></div>`;
+  }).join('');
+}
+function switchConversation(id){
+  currentConversationId=id;
+  localStorage.setItem('bitbot_current_id_gemma4', id);
+  loadCurrentConversation(); renderHistory();
+  if (isMobile()) toggleSidebar(true);
+}
+function deleteConversation(id){
+  if (!confirm("Delete this chat?")) return;
+  conversations=conversations.filter(c=>c.id!==id);
+  if (currentConversationId===id){
+    if (conversations.length>0) currentConversationId=conversations[0].id;
+    else createNewChat(false);
+  }
+  saveConversations(); loadCurrentConversation();
+}
+function clearCurrentChat(){
+  const conv=getCurrentConversation();
+  if (!conv || conv.messages.length===0) return;
+  if (!confirm(`Clear ${conv.messages.length} messages?`)) return;
+  conv.messages=[]; conv.title="New Chat"; saveConversations(); clearChatDOM(); showEmptyState();
+}
+function updateConversationTitleIfNeeded(conv, firstMsg){
+  if (conv.title==="New Chat" && firstMsg) conv.title=firstMsg.slice(0,40)+(firstMsg.length>40?'...':'');
+}
+function updateMemoryInfo(){
+  const conv=getCurrentConversation();
+  const count=conv ? conv.messages.length : 0;
+  const total=conversations.reduce((s,c)=>s+c.messages.length,0);
+  const memEl=document.getElementById('memoryStatus');
+  const topMem=document.getElementById('topMemoryInfo');
+  if (memEl) memEl.textContent = count>0 ? `${count} msgs` : 'No memory';
+  if (topMem) topMem.textContent = count>0 ? `${count} msgs • ${MODEL_MAP[currentMode].short}` : MODEL_MAP[currentMode].short;
+}
+
 // ==================== INIT ====================
 window.addEventListener('load', ()=>{
   initMobileSidebar();
   loadConversations();
+  setMode(currentMode, false);
   setTimeout(()=>heroInput.focus(), 300);
-  // Prevent zoom on double tap for buttons
   document.addEventListener('touchstart', function(){}, {passive:true});
 });
-
-// Handle visual viewport for mobile keyboard
 if (window.visualViewport){
   window.visualViewport.addEventListener('resize', ()=>{
-    // Keep chat scrolled to bottom when keyboard appears
     if (isGenerating || document.activeElement===userInput || document.activeElement===heroInput){
       setTimeout(scrollToBottom, 100);
     }

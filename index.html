@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>BitBot AI — Gemma 4 E2B • Private</title>
+<title>BitBot AI — BitBot v1 • Private</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff6a00'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='60' font-weight='900' fill='white'>B</text></svg>">
 <style>
   :root{
@@ -535,10 +535,10 @@
     </button>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Model — Gemma 4 E2B</div>
+      <div class="sidebar-label">Model — BitBot v1</div>
       <div class="model-badge">
         <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg></span>
-        Gemma 4 E2B • Efficient 2B • Edge Optimized
+        BitBot v1 • 1B • 815MB • 32K Context
       </div>
       <div class="mode-selector">
         <button class="mode-btn active" id="fastModeBtn" onclick="setMode('fast')">
@@ -563,7 +563,7 @@
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg></span> Clear Current Chat
       </div>
       <div class="sidebar-item" onclick="showModelInfo()">
-        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span> About Gemma 4 E2B
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span> About BitBot v1
       </div>
     </div>
 
@@ -580,11 +580,11 @@
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span> Private • On-device
       </div>
       <div class="free-badge">
-        <div class="badge-row"><div class="dot anim-pulse-green" style="background:var(--green)"></div><span id="connectionStatus">Connecting...</span><span style="margin-left:auto" id="modelStatus">Gemma 4 E2B</span></div>
-        <div class="badge-row" style="font-size:10px"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~5GB RAM • E2B</span></div>
+        <div class="badge-row"><div class="dot anim-pulse-green" style="background:var(--green)"></div><span id="connectionStatus">Connecting...</span><span style="margin-left:auto" id="modelStatus">BitBot v1</span></div>
+        <div class="badge-row" style="font-size:10px"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~815MB RAM • 1B</span></div>
       </div>
       <div style="font-size:10px;color:var(--text-tertiary);padding:6px 4px;display:flex;justify-content:space-between">
-        <span>BitBot AI</span><span>by Anurag • Gemma 4</span>
+        <span>BitBot AI</span><span>by Anurag • BitBot4</span>
       </div>
     </div>
   </aside>
@@ -597,7 +597,7 @@
         </button>
         <span style="font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px">
           <span class="ico ico-16" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a7.5 7.5 0 0 0-7.5 7.5c0 5.424 7.5 11.5 7.5 11.5S19.5 14.924 19.5 9.5A7.5 7.5 0 0 0 12 2z"/></svg></span>
-          Gemma 4 E2B
+          BitBot v1
         </span>
         <span style="color:var(--text-tertiary)">|</span>
         <span id="topMemoryInfo" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">No memory</span>
@@ -622,14 +622,14 @@
         <div class="empty-logo anim-float">
           <span style="position:relative;z-index:1">B</span>
         </div>
-        <div class="empty-title">BitBot AI — Gemma 4 E2B</div>
+        <div class="empty-title">BitBot AI — BitBot v1</div>
         <div class="empty-subtitle">
           <span class="ico ico-16" style="color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
-          All chats are <b>private</b> • Powered by <b>Gemma 4 E2B</b> — efficient 2B edge model
+          All chats are <b>private</b> • Powered by <b>BitBot v1</b> — efficient 2B edge model
         </div>
 
         <div class="input-card" id="heroInputCard">
-          <textarea id="heroInput" placeholder="Ask anything privately with Gemma 4 E2B..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+          <textarea id="heroInput" placeholder="Ask anything privately with BitBot v1..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
           <div class="input-bottom">
             <div class="input-tools">
               <button class="tool-btn" title="Attach" onclick="showToast('Attachments coming soon')">
@@ -654,19 +654,19 @@
                   <div class="model-option active" data-mode="fast" onclick="selectModel('fast')">
                     <div class="opt-title">
                       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-                      Fast Mode — Gemma 4 E2B
+                      Fast Mode — BitBot v1
                       <span style="margin-left:auto;font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px"><span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span> Active</span>
                     </div>
                     <div class="opt-desc">Direct, concise answers. Quick, efficient, remembers conversation.</div>
-                    <div class="opt-tag">Gemma 4 E2B • ~5GB RAM • Edge Optimized • No thinking tags</div>
+                    <div class="opt-tag">BitBot v1 • ~815MB RAM • Edge Optimized • No thinking tags</div>
                   </div>
                   <div class="model-option" data-mode="thinking" onclick="selectModel('thinking')">
                     <div class="opt-title">
                       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></span>
-                      Thinking Mode — Gemma 4 E2B
+                      Thinking Mode — BitBot v1
                     </div>
                     <div class="opt-desc">Shows step-by-step reasoning in collapsible box, then final answer. Best for complex tasks.</div>
-                    <div class="opt-tag">Gemma 4 E2B • Same model • &lt;thinking&gt; + &lt;answer&gt; • Animated reasoning</div>
+                    <div class="opt-tag">BitBot v1 • Same model • &lt;thinking&gt; + &lt;answer&gt; • Animated reasoning</div>
                   </div>
                 </div>
               </div>
@@ -701,12 +701,12 @@
             <span class="ico ico-20"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
           </div>
           <div>
-            <b>Gemma 4 E2B + Two Modes + SVG Animations</b> — Fast = direct answer, Thinking = shows animated reasoning box with <code>&lt;thinking&gt;</code> then <code>&lt;answer&gt;</code>. All emojis replaced with SVG animations. Mobile friendly.
+            <b>BitBot v1 + Two Modes + SVG Animations</b> — Fast = quick direct, Thinking = shows reasoning with <code>&lt;thinking&gt;</code> then <code>&lt;answer&gt;</code>. All emojis replaced with SVG animations. Mobile friendly.
           </div>
         </div>
 
         <div class="disclaimer">
-          Gemma 4 E2B • Efficient 2B • ~5GB RAM • Edge Optimized • Fast & Thinking modes • SVG Animations • Mobile Ready • Private
+          BitBot v1 • 1B • 815MB • 32K • Fast & Efficient • Fast & Thinking modes • SVG Animations • Mobile Ready • Private
         </div>
       </div>
 
@@ -715,7 +715,7 @@
 
     <div id="inputWrapper" style="display:none">
       <div class="input-card">
-        <textarea id="userInput" placeholder="Ask Gemma 4 E2B anything..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+        <textarea id="userInput" placeholder="Ask BitBot v1 anything..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
         <div class="input-bottom">
           <div class="input-tools">
             <button class="tool-btn" onclick="showToast('Attachments coming soon')">
@@ -750,34 +750,40 @@
 </div>
 
 <script>
-// ==================== CONFIG - GEMMA 4 E2B TWO MODES + SVG ANIMATIONS ====================
+// ==================== CONFIG - BitBot4 E2B TWO MODES + SVG ANIMATIONS ====================
 const CONFIG_URLS = [
-  "https://api.github.com/repos/bittuhere/ai/contents/config.json"
+  "https://raw.githubusercontent.com/bittuhere/ai/main/config.json",
+  "https://bittuhere.github.io/ai/config.json",
+  "https://cdn.jsdelivr.net/gh/bittuhere/ai@main/config.json"
 ];
 
-// Gemma 4 E2B - Efficient 2B, edge optimized, 5GB RAM, 128K context
+// BitBot v1 - Efficient 2B, edge optimized, 5GB RAM, 128K context
 // Both modes use same model but different prompts & UI
+// BitBot v1 - Shifted back as you requested (old that you wanted)
+// 1B params, 815MB, 32K context, Q4_K_M, fits 4GB RAM easily, no swap needed
+// Both modes use same BitBot v1 model but different prompts - thinking shows reasoning
 const MODEL_MAP = {
   fast: {
-    primary: "gemma4:e2b",
-    fallbacks: ["gemma4:e2b", "gemma4:e4b", "gemma3:1b", "gemma2:2b"],
-    label: "Fast • Gemma 4 E2B",
+    primary: "gemma3:1b",
+    fallbacks: ["gemma3:1b", "gemma3", "gemma3:1b-it-qat", "gemma2:2b", "gemma:2b"],
+    label: "Fast • BitBot v1",
     short: "Fast",
-    ram: "~5GB",
+    ram: "~815MB",
     icon: "zap"
   },
   thinking: {
-    primary: "gemma4:e2b",
-    fallbacks: ["gemma4:e2b", "gemma4:e4b", "gemma3:1b", "gemma2:2b"],
-    label: "Thinking • Gemma 4 E2B",
+    primary: "gemma3:1b",
+    fallbacks: ["gemma3:1b", "gemma3", "gemma3:1b-it-qat", "gemma2:2b", "gemma:2b"],
+    label: "Thinking • BitBot v1",
     short: "Thinking",
-    ram: "~5GB",
+    ram: "~815MB",
     icon: "brain"
   }
 };
 
-// System prompts optimized for Gemma 4 E2B
-const FAST_PROMPT = `You are BitBot AI, created by Anurag. You are powered by Gemma 4 E2B (Efficient 2B edge model).
+// System prompts optimized for BitBot v1 - YES thinking mode is possible with BitBot v1!
+// BitBot v1 follows instructions better than TinyLlama/SmolLM, so <thinking> works well
+const FAST_PROMPT = `You are BitBot AI, created by Anurag. You are powered by BitBot v1.
 
 Rules:
 - Be fast, friendly, concise, direct. Remember user's name and conversation history.
@@ -787,21 +793,21 @@ Rules:
 - Remember details like user's name (e.g., Bittu) across messages.
 - Provide only final answer, no internal reasoning.`;
 
-const THINKING_PROMPT = `You are BitBot AI, created by Anurag. You are powered by Gemma 4 E2B, Google's efficient edge model. You are thoughtful and analytical. Remember conversation history including user's name.
+const THINKING_PROMPT = `You are BitBot AI, created by Anurag. You are powered by BitBot v1, Google's efficient 1B model. You are thoughtful and analytical. Remember conversation history including user's name.
 
 You MUST format every response EXACTLY like this with two sections:
 <thinking>
 Your step-by-step reasoning here. Think about:
 - What user asked before and their name/details
-- How to approach the question
+- How to approach the question logically
 - What information you need
-- Plan your answer structure
+- Plan your answer structure with bullet points
 </thinking>
 <answer>
-Your final thorough answer here. Be educational, structured, use bullet points where helpful.
+Your final thorough answer here. Be educational, structured, use bullet points where helpful. Explain clearly.
 </answer>
 
-Rules: Never mention other AI models. Always stay as BitBot AI. If you lack data, explain in <thinking> and say "I lack the data for a confident answer" in <answer>.`;
+Rules: Never mention Google, Gemma, or other AI models. Always stay as BitBot AI. If you lack data, explain in <thinking> and say "I lack the data for a confident answer" in <answer>.`;
 
 // ==================== STATE ====================
 let tunnel_url = null;
@@ -963,53 +969,50 @@ async function healthCheckUrl(url){
     return res.ok;
   }catch{ return false; }
 }
-  async function fetchConfigWithRetry(retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fetchConfig();
-    } catch (e) {
-      console.warn(`Attempt ${i+1} failed, retrying...`);
-      await new Promise(r => setTimeout(r, 2000 * (i + 1)));
-    }
-  }
-  throw new Error("All config fetch attempts failed.");
-}
-// ==================== CONFIG FETCH WITH RETRY ====================
-// ==================== CONFIG FETCH WITH RETRY ====================
-async function fetchConfigWithRetry(retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const url = await fetchConfig();
-      if (url && url.includes('trycloudflare.com')) {
-        tunnel_url = url;                      // ✅ Store globally
-        lastConfigFetch = Date.now();
-        connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
-        topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
-        hideStatus();
-        return url;
+async function fetchConfig(forceHealthCheck=true){
+  for (let baseUrl of CONFIG_URLS){
+    try{
+      showStatus(`Syncing...`);
+      const data = await fetchFromUrl(baseUrl);
+      if (!data.tunnel_url || !data.tunnel_url.trim()) throw new Error("Tunnel URL empty");
+      if (data.tunnel_url.includes("api.trycloudflare.com")) throw new Error("Invalid URL");
+      if (!data.tunnel_url.includes("trycloudflare.com")) throw new Error("Invalid format");
+      if (forceHealthCheck){
+        const healthy = await healthCheckUrl(data.tunnel_url);
+        if (!healthy) throw new Error(`URL not healthy, trying next CDN`);
       }
-    } catch (e) {
-      console.warn(`Attempt ${i+1} failed:`, e.message);
+      tunnel_url = data.tunnel_url;
+      lastConfigFetch = Date.now();
+      connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
+      topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
+      hideStatus();
+      try{
+        sessionStorage.setItem('bitbot_last_good_url', tunnel_url);
+        sessionStorage.setItem('bitbot_last_good_time', Date.now().toString());
+      }catch{}
+      return tunnel_url;
+    }catch(e){ console.warn(`Config fetch failed ${baseUrl}:`, e.message); continue; }
+  }
+  try{
+    const lastGood = sessionStorage.getItem('bitbot_last_good_url');
+    const lastTime = parseInt(sessionStorage.getItem('bitbot_last_good_time')||'0');
+    const ageMin = Math.floor((Date.now()-lastTime)/60000);
+    if (lastGood && ageMin<30){
+      const healthy = await healthCheckUrl(lastGood);
+      if (healthy){
+        tunnel_url=lastGood; lastConfigFetch=Date.now();
+        connectionStatus.innerHTML=`<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected (cached)`;
+        topStatus.textContent=`Connected (cached ${ageMin}m)`;
+        showStatus(`Using cached URL (age ${ageMin}m), retrying...`);
+        setTimeout(()=>fetchConfig(true),5000);
+        return tunnel_url;
+      }
     }
-    await new Promise(r => setTimeout(r, 2000 * (i + 1)));
-  }
-  // All attempts failed
-  connectionStatus.innerHTML = `<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
-  topStatus.textContent = `Offline`;
-  showStatus('Could not fetch tunnel URL. Check GitHub API status.', true);
-  throw new Error("All config fetch attempts failed.");
-}
-
-async function fetchConfig() {
-  const res = await fetch(CONFIG_URLS[0] + '?t=' + Date.now());
-  if (!res.ok) throw new Error('GitHub API returned ' + res.status);
-  const data = await res.json();
-  const jsonString = atob(data.content);   // Decode Base64
-  const config = JSON.parse(jsonString);
-  if (!config.tunnel_url || !config.tunnel_url.includes('trycloudflare.com')) {
-    throw new Error('Invalid tunnel URL in config');
-  }
-  return config.tunnel_url;
+  }catch{}
+  connectionStatus.innerHTML=`<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
+  topStatus.textContent=`Offline`;
+  showStatus(`Could not get fresh URL. Try hard refresh Ctrl+Shift+R or Sync button.`, true);
+  return null;
 }
 function showStatus(msg, isError=false){
   statusText.textContent=msg;
@@ -1263,7 +1266,7 @@ function sanitizeResponse(text){
       const cleaned=after.split('\n').filter(line=>!leakMarkers.some(mm=>line.toLowerCase().includes(mm.toLowerCase()))).join('\n').trim();
       if (cleaned.length>10) return cleaned;
     }
-    return "I'm BitBot AI, created by Anurag and powered by Gemma 4 E2B. How can I help you today?";
+    return "I'm BitBot AI, created by Anurag and powered by BitBot v1. How can I help you today?";
   }
   return text;
 }
@@ -1307,7 +1310,7 @@ function addMessageDOM(role, content, isLoading=false, preThinking=null, preAnsw
         <div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div>
       </div></div>`;
     } else {
-      group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)"><span class="ico anim-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span><span>Gemma 4 E2B is thinking...</span></div><div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div></div></div>`;
+      group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)"><span class="ico anim-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span><span>BitBot v1 is thinking...</span></div><div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div></div></div>`;
     }
   } else {
     let thinking=preThinking;
@@ -1417,26 +1420,26 @@ function useSuggestion(text){ heroInput.value=text; autoResize(heroInput); sendF
 function handleHeroKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFromHero(); } }
 function handleInputKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } }
 function showModelInfo(){
-  alert(`BitBot AI — Gemma 4 E2B
+  alert(`BitBot AI — BitBot v1
 
-Model: Gemma 4 E2B (Efficient 2B)
+Model: BitBot v1 (Efficient 2B)
 - Effective 2B params, edge-optimized
-- ~5GB RAM at Q4, 128K context
+- ~815MB RAM at Q4, 128K context
 - Text, Image, Audio modalities
 - Dense + PLE architecture
 
-Two Modes (both use same Gemma 4 E2B model):
+Two Modes (both use same BitBot v1 model):
 Fast: Direct concise answers, no thinking tags, fastest
 Thinking: Shows <thinking> reasoning in animated collapsible box, then <answer>
 
-Why Gemma 4 E2B?
+Why BitBot v1?
 - Edge-optimized for 4GB-8GB RAM laptops
-- Better than Gemma 3 1B and TinyLlama
+- Better than BitBot v1 and TinyLlama
 - Handles code, reasoning, memory well
 - Recommended for mobile/edge devices
 
 Ollama commands:
-  ollama pull gemma4:e2b
+  ollama pull gemma3:1b
   ollama pull gemma4:e4b (needs 8GB RAM)
   ollama rm tinyllama smollm (save space)
 
@@ -1444,7 +1447,7 @@ All SVG animations, no emojis!
 `);
 }
 
-// ==================== CHAT LOGIC - GEMMA 4 E2B TWO MODES ====================
+// ==================== CHAT LOGIC - BitBot4 E2B TWO MODES ====================
 async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMessage, onChunk, signal){
   const messages=[
     {role:"system", content: systemPrompt},
@@ -1510,15 +1513,11 @@ async function sendMessageInternal(text, isHero=false){
   const trimmed=text.trim();
   if (!trimmed || isGenerating) return;
 
-showStatus(`Getting fresh tunnel URL...`);
-try {
-  await fetchConfigWithRetry();
-} catch (e) {
-  addMessageDOM('ai', 'Could not connect to BitBot AI server. Please check your internet connection.', false);
-  return;
-}
+  showStatus(`Getting fresh tunnel URL...`);
+  await fetchConfig(true);
+
   if (!tunnel_url){
-    addMessageDOM('ai', 'Could not connect to BitBot AI server. Check internet, tunnel_manager.py running, model gemma4:e2b pulled: ollama pull gemma4:e2b', false);
+    addMessageDOM('ai', 'Could not connect to BitBot AI server. Check internet, tunnel_manager.py running, model gemma3:1b pulled: ollama pull gemma3:1b', false);
     return;
   }
 
@@ -1580,7 +1579,7 @@ try {
       }
       let msg=err.message;
       if (msg.includes('Failed to fetch')) msg=`Network error - tunnel may be stale cached. Hard refresh Ctrl+Shift+R, click Sync, wait 60s.`;
-      if (msg.includes('not found')) msg=`Model ${MODEL_MAP[currentMode].primary} not found. Run: ollama pull gemma4:e2b`;
+      if (msg.includes('not found')) msg=`Model ${MODEL_MAP[currentMode].primary} not found. Run: ollama pull gemma3:1b`;
       updateAIBubble(aiId, `Error: ${msg}`, true, true);
     }
   }
@@ -1714,5 +1713,5 @@ if (window.visualViewport){
 }
 </script>
 
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a30a17faefe177d3',t:'MTc4NzY1NTYzMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

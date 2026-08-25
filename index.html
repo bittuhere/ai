@@ -752,9 +752,7 @@
 <script>
 // ==================== CONFIG - GEMMA 4 E2B TWO MODES + SVG ANIMATIONS ====================
 const CONFIG_URLS = [
-  "https://raw.githubusercontent.com/bittuhere/ai/main/config.json",
-  "https://bittuhere.github.io/ai/config.json",
-  "https://cdn.jsdelivr.net/gh/bittuhere/ai@main/config.json"
+  "https://api.github.com/repos/bittuhere/ai/contents/config.json"
 ];
 
 // Gemma 4 E2B - Efficient 2B, edge optimized, 5GB RAM, 128K context
@@ -965,50 +963,52 @@ async function healthCheckUrl(url){
     return res.ok;
   }catch{ return false; }
 }
-async function fetchConfig(forceHealthCheck=true){
-  for (let baseUrl of CONFIG_URLS){
-    try{
-      showStatus(`Syncing...`);
-      const data = await fetchFromUrl(baseUrl);
-      if (!data.tunnel_url || !data.tunnel_url.trim()) throw new Error("Tunnel URL empty");
-      if (data.tunnel_url.includes("api.trycloudflare.com")) throw new Error("Invalid URL");
-      if (!data.tunnel_url.includes("trycloudflare.com")) throw new Error("Invalid format");
-      if (forceHealthCheck){
-        const healthy = await healthCheckUrl(data.tunnel_url);
-        if (!healthy) throw new Error(`URL not healthy, trying next CDN`);
-      }
-      tunnel_url = data.tunnel_url;
-      lastConfigFetch = Date.now();
-      connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
-      topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
-      hideStatus();
-      try{
-        sessionStorage.setItem('bitbot_last_good_url', tunnel_url);
-        sessionStorage.setItem('bitbot_last_good_time', Date.now().toString());
-      }catch{}
-      return tunnel_url;
-    }catch(e){ console.warn(`Config fetch failed ${baseUrl}:`, e.message); continue; }
-  }
-  try{
-    const lastGood = sessionStorage.getItem('bitbot_last_good_url');
-    const lastTime = parseInt(sessionStorage.getItem('bitbot_last_good_time')||'0');
-    const ageMin = Math.floor((Date.now()-lastTime)/60000);
-    if (lastGood && ageMin<30){
-      const healthy = await healthCheckUrl(lastGood);
-      if (healthy){
-        tunnel_url=lastGood; lastConfigFetch=Date.now();
-        connectionStatus.innerHTML=`<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected (cached)`;
-        topStatus.textContent=`Connected (cached ${ageMin}m)`;
-        showStatus(`Using cached URL (age ${ageMin}m), retrying...`);
-        setTimeout(()=>fetchConfig(true),5000);
-        return tunnel_url;
-      }
+  async function fetchConfigWithRetry(retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fetchConfig();
+    } catch (e) {
+      console.warn(`Attempt ${i+1} failed, retrying...`);
+      await new Promise(r => setTimeout(r, 2000 * (i + 1)));
     }
-  }catch{}
-  connectionStatus.innerHTML=`<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
-  topStatus.textContent=`Offline`;
-  showStatus(`Could not get fresh URL. Try hard refresh Ctrl+Shift+R or Sync button.`, true);
-  return null;
+  }
+  throw new Error("All config fetch attempts failed.");
+}
+// ==================== CONFIG FETCH WITH RETRY ====================
+async function fetchConfigWithRetry(retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const url = await fetchConfig();
+      if (url && url.includes('trycloudflare.com')) {
+        tunnel_url = url;                      // ✅ Store it globally
+        lastConfigFetch = Date.now();
+        connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
+        topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
+        hideStatus();
+        return url;
+      }
+    } catch (e) {
+      console.warn(`Attempt ${i+1} failed:`, e.message);
+    }
+    await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+  }
+  // If all attempts fail, show error and fall back to cached URL
+  connectionStatus.innerHTML = `<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
+  topStatus.textContent = `Offline`;
+  showStatus('Could not fetch tunnel URL. Check GitHub API status.', true);
+  throw new Error("All config fetch attempts failed.");
+}
+
+async function fetchConfig() {
+  const res = await fetch(CONFIG_URLS[0] + '?t=' + Date.now());
+  if (!res.ok) throw new Error('GitHub API returned ' + res.status);
+  const data = await res.json();
+  const jsonString = atob(data.content);   // decode Base64
+  const config = JSON.parse(jsonString);
+  if (!config.tunnel_url || !config.tunnel_url.includes('trycloudflare.com')) {
+    throw new Error('Invalid tunnel URL in config');
+  }
+  return config.tunnel_url;
 }
 function showStatus(msg, isError=false){
   statusText.textContent=msg;

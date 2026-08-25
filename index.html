@@ -975,12 +975,13 @@ async function healthCheckUrl(url){
   throw new Error("All config fetch attempts failed.");
 }
 // ==================== CONFIG FETCH WITH RETRY ====================
+// ==================== CONFIG FETCH WITH RETRY ====================
 async function fetchConfigWithRetry(retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       const url = await fetchConfig();
       if (url && url.includes('trycloudflare.com')) {
-        tunnel_url = url;                      // ✅ Store it globally
+        tunnel_url = url;                      // ✅ Store globally
         lastConfigFetch = Date.now();
         connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
         topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
@@ -992,7 +993,7 @@ async function fetchConfigWithRetry(retries = 3) {
     }
     await new Promise(r => setTimeout(r, 2000 * (i + 1)));
   }
-  // If all attempts fail, show error and fall back to cached URL
+  // All attempts failed
   connectionStatus.innerHTML = `<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
   topStatus.textContent = `Offline`;
   showStatus('Could not fetch tunnel URL. Check GitHub API status.', true);
@@ -1003,7 +1004,7 @@ async function fetchConfig() {
   const res = await fetch(CONFIG_URLS[0] + '?t=' + Date.now());
   if (!res.ok) throw new Error('GitHub API returned ' + res.status);
   const data = await res.json();
-  const jsonString = atob(data.content);   // decode Base64
+  const jsonString = atob(data.content);   // Decode Base64
   const config = JSON.parse(jsonString);
   if (!config.tunnel_url || !config.tunnel_url.includes('trycloudflare.com')) {
     throw new Error('Invalid tunnel URL in config');
@@ -1509,9 +1510,13 @@ async function sendMessageInternal(text, isHero=false){
   const trimmed=text.trim();
   if (!trimmed || isGenerating) return;
 
-  showStatus(`Getting fresh tunnel URL...`);
-  await fetchConfig(true);
-
+showStatus(`Getting fresh tunnel URL...`);
+try {
+  await fetchConfigWithRetry();
+} catch (e) {
+  addMessageDOM('ai', 'Could not connect to BitBot AI server. Please check your internet connection.', false);
+  return;
+}
   if (!tunnel_url){
     addMessageDOM('ai', 'Could not connect to BitBot AI server. Check internet, tunnel_manager.py running, model gemma4:e2b pulled: ollama pull gemma4:e2b', false);
     return;

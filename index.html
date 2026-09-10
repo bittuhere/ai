@@ -2,1750 +2,966 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-<meta name="theme-color" content="#121212">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>BitBot AI — BitBot v1 • Private</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff6a00'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='60' font-weight='900' fill='white'>B</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d0b22">
+<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>BitBot — Arcade Hub AI Assistant (beta)</title>
 <style>
-  :root{
-    --bg-main:#121212;
-    --bg-sidebar:#0a0a0a;
-    --bg-input:#1e1e1e;
-    --bg-input-hover:#252525;
-    --bg-message-user:#2a2a2a;
-    --bg-card:#1e1e1e;
-    --bg-card-hover:#252525;
-    --border:#2a2a2a;
-    --border-light:#3a3a3a;
-    --text:#ececec;
-    --text-secondary:#9a9a9a;
-    --text-tertiary:#6a6a6a;
-    --accent:#ff6a00;
-    --accent-blue:#1f6feb;
-    --accent-purple:#8b5cf6;
-    --green:#3fb950;
-    --red:#f85149;
-    --radius-xl:24px;
-    --radius-lg:16px;
-    --radius-md:12px;
-    --shadow:0 8px 32px rgba(0,0,0,0.4);
-    --safe-bottom:env(safe-area-inset-bottom, 0px);
-  }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html{height:100%;height:100dvh}
-  body{
-    background:var(--bg-main);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
-    height:100%;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased;
-    overscroll-behavior:none;touch-action:manipulation;
-  }
-  .app{display:flex;height:100%;height:100dvh;width:100vw;overflow:hidden;position:relative}
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: radial-gradient(1200px 700px at 70% -10%, #1b1440 0%, #0d0b22 55%, #070510 100%);
+        color: #e8ecf4; display: flex; flex-direction: column; overflow: hidden;
+    }
+    header {
+        flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+        background: rgba(20, 25, 36, .8); border-bottom: 1px solid rgba(255,255,255,.09); backdrop-filter: blur(8px);
+    }
+    .ava {
+        width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+        background: conic-gradient(from 210deg, #00f3ff, #818cf8, #ff00ff, #00f3ff);
+        display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+        box-shadow: 0 0 22px rgba(0,243,255,.45); animation: spin 9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ava > span { animation: spin 9s linear infinite reverse; }
+    header h1 { font-family: 'Teko', 'Segoe UI', sans-serif; font-size: 1.55rem; letter-spacing: 1.5px; line-height: 1; }
+    header .sub { font-size: .68rem; color: #9aa5b5; letter-spacing: .4px; }
+    #ver { position: fixed; left: 10px; bottom: 8px; font-size: .6rem; color: #4b5563; letter-spacing: 1px; z-index: 5; }
+    #status { margin-left: auto; font-size: .7rem; color: #34d399; display: flex; align-items: center; gap: 6px; }
+    #status .dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399; }
+    #status.busy { color: #fbbf24; } #status.busy .dot { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
 
-  /* SVG Icon Base */
-  .ico{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
-  .ico svg{width:100%;height:100%;stroke-width:1.8}
-  .ico-14{width:14px;height:14px}
-  .ico-16{width:16px;height:16px}
-  .ico-20{width:20px;height:20px}
-  .ico-24{width:24px;height:24px}
-  .ico-28{width:28px;height:28px}
+    #chat { flex: 1; overflow-y: auto; padding: 18px 6%; display: flex; flex-direction: column; gap: 10px; }
+    .msg { max-width: 78%; padding: 11px 15px; border-radius: 16px; font-size: .93rem; line-height: 1.5;
+           animation: pop .22s cubic-bezier(.2,.9,.3,1.2) both; word-wrap: break-word; white-space: pre-wrap; }
+    @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+    .bot  { align-self: flex-start; background: #1a2130; border: 1px solid rgba(255,255,255,.09); border-bottom-left-radius: 5px; }
+    .me   { align-self: flex-end; background: linear-gradient(45deg, #0891b2, #2563eb); border-bottom-right-radius: 5px; }
+    .msg b { color: #7dd3fc; }
+    .msg i { color: #c7d2fe; }
+    .msg code { background: rgba(0,243,255,.08); border: 1px solid rgba(0,243,255,.22); padding: 1px 6px; border-radius: 6px; font-family: Consolas, 'Courier New', monospace; font-size: .85em; color: #7dd3fc; }
+    .msg pre { background: #0b0f1a; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; margin: 8px 0; overflow-x: auto; }
+    .msg pre code { border: none; background: none; padding: 0; }
+    .msg h3, .msg h4 { color: #7dd3fc; margin: 8px 0 3px; font-size: .95rem; letter-spacing: .3px; }
+    .msg ul, .msg ol { margin: 6px 0 6px 4px; padding-left: 18px; }
+    .msg li { margin: 3px 0; }
+    .msg a { color: #7dd3fc; text-decoration: underline; }
+    .msg .sp { height: .5em; }
+    .typing { align-self: flex-start; display: none; gap: 5px; padding: 13px 16px; background: #1a2130; border-radius: 16px; border-bottom-left-radius: 5px; }
+    .typing.show { display: flex; }
+    .typing i { width: 7px; height: 7px; border-radius: 50%; background: #7dd3fc; animation: blink 1s infinite; }
+    .typing i:nth-child(2) { animation-delay: .18s; } .typing i:nth-child(3) { animation-delay: .36s; }
+    @keyframes blink { 0%, 70%, 100% { opacity: .25; } 35% { opacity: 1; } }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 6% 8px; }
+    .chip { padding: 7px 13px; border-radius: 999px; border: 1px solid rgba(0,243,255,.35);
+            background: rgba(0,243,255,.07); color: #a5e8ff; font-size: .78rem; cursor: pointer; transition: .15s; }
+    .chip:hover { background: rgba(0,243,255,.2); transform: translateY(-1px); }
 
-  /* Animations - Replace Emojis */
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.8}}
-  @keyframes pulseDot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,106,0,0.4)}50%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(255,106,0,0)}}
-  @keyframes pulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,0.4)}50%{box-shadow:0 0 0 6px rgba(63,185,80,0)}}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-  @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-4px);opacity:1}}
-  @keyframes zapFlicker{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.8;transform:scale(1.05)}}
-  @keyframes brainPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-  @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    footer { flex-shrink: 0; display: flex; gap: 9px; padding: 12px 6% max(14px, env(safe-area-inset-bottom));
+             background: rgba(20,25,36,.85); border-top: 1px solid rgba(255,255,255,.09); }
+    #inp { flex: 1; padding: 13px 17px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.13);
+           background: #141924; color: #e8ecf4; outline: none; font-family: inherit; font-size: .93rem; min-width: 0; }
+    #inp:focus { border-color: rgba(0,243,255,.55); box-shadow: 0 0 0 4px rgba(0,243,255,.1); }
+    #send { width: 46px; height: 46px; border: none; border-radius: 50%; background: linear-gradient(45deg,#06b6d4,#3b82f6);
+            color: #fff; font-size: 1.1rem; cursor: pointer; transition: .15s; flex-shrink: 0; }
+    #send:hover { transform: scale(1.09); box-shadow: 0 0 18px rgba(6,182,212,.5); }
 
-  .anim-float{animation:float 3s ease-in-out infinite}
-  .anim-pulse{animation:pulse 2s ease-in-out infinite}
-  .anim-pulse-dot{animation:pulseDot 2s ease-in-out infinite}
-  .anim-pulse-green{animation:pulseGreen 2s ease-in-out infinite}
-  .anim-spin{animation:spin 0.8s linear infinite}
-  .anim-zap{animation:zapFlicker 1.5s ease-in-out infinite}
-  .anim-brain{animation:brainPulse 2s ease-in-out infinite}
-  .anim-slide{animation:slideIn 0.4s ease-out}
+    /* training overlay */
+    #trainOv { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; gap: 14px;
+               align-items: center; justify-content: center; background: rgba(7,5,16,.92); backdrop-filter: blur(6px); }
+    #trainOv.show { display: flex; }
+    #trainOv h2 { font-family: 'Teko','Segoe UI',sans-serif; font-size: 2rem; letter-spacing: 2px; color: #7dd3fc; }
+    #trainOv .bar { width: min(78vw, 380px); height: 8px; background: rgba(255,255,255,.09); border-radius: 8px; overflow: hidden; }
+    #trainOv .fill { height: 100%; width: 0%; background: linear-gradient(90deg,#06b6d4,#818cf8); border-radius: 8px; transition: width .12s; }
+    #trainStats { font-size: .78rem; color: #9aa5b5; line-height: 1.8; text-align: center; }
+    /* loader (v6) */
+    #loader { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+              background: radial-gradient(1200px 700px at 70% -10%, #1b1440 0%, #0d0b22 55%, #070510 100%); transition: opacity .6s; }
+    #loader.hide { opacity: 0; pointer-events: none; }
+    .lring { width: 94px; height: 94px; border-radius: 50%; background: conic-gradient(#00f3ff, #818cf8, #ff00ff, #00f3ff);
+             animation: lspin 1.5s linear infinite; box-shadow: 0 0 36px rgba(0,243,255,.4); display: flex; align-items: center; justify-content: center; }
+    .lava { width: 78px; height: 78px; border-radius: 50%; background: #0d0b22; display: flex; align-items: center; justify-content: center; font-size: 2.1rem; animation: lspin 1.5s linear infinite reverse; }
+    @keyframes lspin { to { transform: rotate(360deg); } }
+    .lpct { font-family: 'Teko', 'Segoe UI', sans-serif; font-size: 2.3rem; color: #7dd3fc; letter-spacing: 2px; line-height: 1; text-shadow: 0 0 18px rgba(125,211,252,.45); }
+    .lbar { width: min(72vw, 320px); height: 7px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .lfill { height: 100%; width: 0%; border-radius: 8px; background: linear-gradient(90deg, #06b6d4, #818cf8, #ff00ff, #06b6d4); background-size: 200% 100%;
+             animation: lshimmer 1.3s linear infinite; transition: width .5s cubic-bezier(.3,.8,.4,1); box-shadow: 0 0 14px rgba(6,182,212,.6); }
+    @keyframes lshimmer { to { background-position: -200% 0; } }
+    .lstep { font-size: .74rem; color: #9aa5b5; letter-spacing: .6px; min-height: 1.1em; transition: opacity .25s; }
 
-  /* BACKDROP */
-  #sidebarBackdrop{
-    position:fixed;inset:0;background:rgba(0,0,0,0.6);
-    z-index:35;display:none;opacity:0;transition:opacity 0.25s ease;backdrop-filter:blur(2px);
-  }
-  #sidebarBackdrop.open{display:block;opacity:1}
+    /* timestamps + clear chat (v6) */
+    .msg .time { display: block; font-size: .58rem; color: #5b6472; margin-top: 5px; text-align: right; letter-spacing: .4px; }
+    .me .time { color: rgba(255,255,255,.5); }
+    #clearBtn { margin-left: 8px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15);
+                background: rgba(255,255,255,.05); color: #9aa5b5; font-size: 1.05rem; cursor: pointer; transition: .2s; flex-shrink: 0; }
+    #clearBtn:hover { color: #7dd3fc; border-color: rgba(0,243,255,.5); transform: rotate(-180deg); }
 
-  /* SIDEBAR */
-  #sidebar{
-    width:280px;max-width:85vw;background:var(--bg-sidebar);
-    border-right:1px solid var(--border);
-    display:flex;flex-direction:column;
-    padding:12px;gap:8px;flex-shrink:0;
-    transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
-    z-index:40;overflow:hidden;
-  }
-  #sidebar.collapsed{transform:translateX(-100%);width:0;min-width:0;padding:0;overflow:hidden;border:none}
-  .sidebar-top{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 12px 6px;flex-shrink:0}
-  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-0.2px}
-  .logo-icon{
-    width:28px;height:28px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:8px;display:flex;align-items:center;justify-content:center;
-    font-weight:900;color:white;font-size:16px;flex-shrink:0;
-  }
-  .collapse-btn{
-    background:transparent;border:1px solid var(--border);color:var(--text-secondary);
-    width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;flex-shrink:0;
-  }
-  .collapse-btn:hover{background:var(--bg-input);color:var(--text);border-color:var(--border-light)}
-  .collapse-btn:active{transform:scale(0.95)}
-
-  .new-chat-btn{
-    background:var(--text);color:var(--bg-sidebar);border:1px solid var(--text);
-    padding:12px 14px;border-radius:var(--radius-md);font-size:14px;font-weight:600;
-    display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.15s;width:100%;
-    min-height:44px;touch-action:manipulation;
-  }
-  .new-chat-btn:hover{background:#fff;transform:translateY(-1px)}
-  .new-chat-btn:active{transform:translateY(0) scale(0.98)}
-  .new-chat-btn.secondary{
-    background:var(--bg-input);border:1px solid var(--border);color:var(--text);
-  }
-  .new-chat-btn.secondary:hover{background:var(--bg-input-hover);border-color:var(--border-light)}
-
-  .mode-selector{display:flex;gap:8px;margin-top:4px}
-  .mode-btn{
-    flex:1;padding:10px 8px;border-radius:10px;border:1px solid var(--border);
-    background:var(--bg-input);color:var(--text-secondary);font-size:12px;font-weight:600;
-    display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all 0.2s;
-    min-height:64px;touch-action:manipulation;
-  }
-  .mode-btn:hover{border-color:var(--border-light);background:var(--bg-input-hover);color:var(--text);transform:translateY(-1px)}
-  .mode-btn.active{background:var(--text);color:var(--bg-sidebar);border-color:var(--text);box-shadow:0 2px 12px rgba(255,255,255,0.1)}
-  .mode-btn.active.thinking{background:linear-gradient(135deg,#ff6a00,#ff9a00);color:white;border-color:#ff6a00;box-shadow:0 4px 16px rgba(255,106,0,0.25)}
-  .mode-btn .mode-icon{width:20px;height:20px}
-  .mode-btn small{font-size:10px;opacity:0.8;font-weight:400}
-
-  .sidebar-section{margin-top:8px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-  .sidebar-label{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.6px;padding:8px 6px 4px}
-  .sidebar-item{
-    padding:10px 10px;border-radius:10px;font-size:13px;color:var(--text-secondary);
-    display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.15s;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:40px;touch-action:manipulation;
-  }
-  .sidebar-item:hover{background:var(--bg-input);color:var(--text)}
-  .sidebar-item:active{background:var(--bg-card-hover);transform:scale(0.98)}
-  .sidebar-history{flex:1;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:2px;min-height:0;-webkit-overflow-scrolling:touch}
-  .sidebar-history::-webkit-scrollbar{width:4px}
-  .sidebar-history::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  .history-item{
-    padding:10px 10px;border-radius:10px;font-size:13px;color:var(--text-secondary);
-    cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:all 0.15s;min-height:44px;touch-action:manipulation;
-  }
-  .history-item:hover{background:var(--bg-input);color:var(--text)}
-  .history-item.active{background:var(--bg-input);color:var(--text);border:1px solid var(--border)}
-  .history-item:active{transform:scale(0.98)}
-  .history-item .h-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;line-height:1.3}
-  .history-item .h-delete{opacity:0;background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;padding:6px;border-radius:6px;min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .history-item:hover .h-delete{opacity:1}
-  .history-item .h-delete:hover{color:var(--red);background:rgba(248,81,73,0.15)}
-  .sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;flex-shrink:0;padding-bottom:calc(6px + var(--safe-bottom))}
-  .free-badge{
-    background:#1a1a1a;border:1px solid var(--border);padding:10px 10px;border-radius:12px;
-    font-size:11px;display:flex;flex-direction:column;gap:6px;color:var(--text-secondary);margin-top:8px;
-  }
-  .free-badge .badge-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .free-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;flex-shrink:0}
-  .model-badge{
-    background:linear-gradient(135deg,#ff6a0020,#ff9a0020);border:1px solid #ff6a0030;
-    padding:8px 10px;border-radius:20px;font-size:11px;font-weight:600;
-    display:flex;align-items:center;gap:6px;color:#ffb26e;line-height:1.3;
-  }
-
-  /* MAIN */
-  #main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg-main);position:relative;overflow:hidden}
-  #topBar{
-    height:48px;min-height:48px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;
-    font-size:12px;color:var(--text-secondary);flex-shrink:0;gap:8px;
-  }
-  #topBar .top-left{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
-  #topBar .top-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-  .top-link{color:var(--text-secondary);text-decoration:none;cursor:pointer;transition:all 0.15s;font-weight:500;padding:6px 8px;border-radius:8px;min-height:32px;display:flex;align-items:center;gap:4px;touch-action:manipulation}
-  .top-link:hover{color:var(--text);background:var(--bg-card)}
-  .top-link.upgrade{color:var(--accent-blue);font-weight:600}
-  .mobile-menu-btn{
-    display:none;background:var(--bg-card);border:1px solid var(--border);color:var(--text);
-    width:40px;height:40px;min-width:40px;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;
-    font-size:18px;touch-action:manipulation;flex-shrink:0;
-  }
-  .mobile-menu-btn:active{transform:scale(0.95)}
-
-  #chatContainer{
-    flex:1;overflow-y:auto;padding:0 12px;display:flex;flex-direction:column;
-    scroll-behavior:smooth;position:relative;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  }
-  #chatContainer::-webkit-scrollbar{width:4px}
-  #chatContainer::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-  /* EMPTY STATE - Duck.ai style */
-  .empty-state{
-    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    max-width:720px;width:100%;margin:0 auto;padding:24px 16px 16px;gap:0;
-  }
-  .empty-logo{
-    width:72px;height:72px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:22px;display:flex;align-items:center;justify-content:center;
-    font-weight:900;font-size:36px;color:white;margin-bottom:14px;
-    box-shadow:0 8px 24px rgba(255,106,0,0.3);flex-shrink:0;
-    position:relative;overflow:hidden;
-  }
-  .empty-logo::after{
-    content:'';position:absolute;inset:0;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
-    background-size:200% 100%;animation:shimmer 2.5s infinite;
-  }
-  .empty-title{font-size:24px;font-weight:800;letter-spacing:-0.6px;margin-bottom:6px;text-align:center;line-height:1.2}
-  .empty-subtitle{
-    font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:20px;
-    display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;line-height:1.5;max-width:90%;
-  }
-  .empty-subtitle b{color:var(--text);font-weight:600}
-
-  .input-card{
-    background:var(--bg-input);border:1px solid var(--border);
-    border-radius:var(--radius-xl);padding:10px 12px;
-    width:100%;max-width:720px;box-shadow:var(--shadow);
-    transition:all 0.2s ease;
-  }
-  .input-card:focus-within{border-color:var(--border-light);box-shadow:0 8px 40px rgba(0,0,0,0.5)}
-  .input-card textarea{
-    width:100%;background:transparent;border:none;outline:none;
-    color:var(--text);font-size:16px;line-height:1.5;resize:none;
-    min-height:24px;max-height:140px;font-family:inherit;
-  }
-  .input-card textarea::placeholder{color:var(--text-tertiary);font-size:15px}
-  .input-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap}
-  .input-tools{display:flex;align-items:center;gap:4px}
-  .tool-btn{
-    background:transparent;border:1px solid transparent;color:var(--text-secondary);
-    width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;touch-action:manipulation;
-  }
-  .tool-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border)}
-  .tool-btn:active{transform:scale(0.92)}
-  .input-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-  .model-chip{
-    background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
-    padding:6px 10px;border-radius:20px;font-size:11px;font-weight:600;
-    display:flex;align-items:center;gap:6px;white-space:nowrap;
-  }
-  .model-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
-  .model-chip.fast .dot{background:var(--accent)}
-  .model-chip.thinking .dot{background:var(--accent-purple)}
-  .send-btn{
-    background:var(--text);color:var(--bg-main);border:none;
-    width:36px;height:36px;min-width:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:all 0.15s;flex-shrink:0;touch-action:manipulation;
-  }
-  .send-btn:hover{background:#fff;transform:scale(1.05)}
-  .send-btn:active{transform:scale(0.92)}
-  .send-btn:disabled{background:var(--border);color:var(--text-tertiary);cursor:not-allowed;transform:none}
-  .send-btn.stop{background:var(--red);color:white}
-
-  /* Model selector dropdown */
-  .model-selector{position:relative}
-  .model-btn{
-    background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
-    padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;
-    display:flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s;min-height:32px;
-  }
-  .model-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
-  .model-btn .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-  .model-btn.fast .dot{background:var(--accent)}
-  .model-btn.thinking .dot{background:var(--accent-purple)}
-  .model-dropdown{
-    position:absolute;bottom:calc(100% + 8px);right:0;
-    background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-lg);
-    padding:6px;min-width:280px;box-shadow:var(--shadow);display:none;z-index:50;
-  }
-  .model-dropdown.open{display:block;animation:slideIn 0.2s ease}
-  .model-option{
-    padding:12px;border-radius:10px;cursor:pointer;transition:all 0.15s;
-    display:flex;flex-direction:column;gap:3px;border:1px solid transparent;
-  }
-  .model-option:hover{background:var(--bg-card-hover);border-color:var(--border)}
-  .model-option.active{background:var(--bg-card);border-color:var(--border-light)}
-  .model-option .opt-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
-  .model-option .opt-desc{font-size:11px;color:var(--text-secondary);line-height:1.4}
-  .model-option .opt-tag{font-size:10px;background:var(--bg-main);border:1px solid var(--border);padding:3px 8px;border-radius:10px;width:fit-content;margin-top:4px;font-weight:500}
-
-  .suggestions{
-    display:grid;grid-template-columns:1fr 1fr;gap:8px;
-    max-width:720px;width:100%;margin-top:14px;
-  }
-  .suggestion-card{
-    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
-    padding:12px 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;
-    transition:all 0.15s;text-align:left;display:flex;align-items:center;gap:10px;
-    min-height:44px;line-height:1.3;touch-action:manipulation;
-  }
-  .suggestion-card:hover{background:var(--bg-card-hover);border-color:var(--border-light);color:var(--text);transform:translateY(-1px)}
-  .suggestion-card:active{transform:translateY(0) scale(0.98)}
-
-  .privacy-card{
-    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
-    padding:10px 12px;display:flex;align-items:flex-start;gap:10px;
-    max-width:720px;width:100%;margin-top:16px;font-size:12px;color:var(--text-secondary);line-height:1.4;
-  }
-  .privacy-card .p-icon{
-    width:32px;height:32px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
-  }
-  .privacy-card b{color:var(--text)}
-  .disclaimer{
-    font-size:10px;color:var(--text-tertiary);text-align:center;
-    max-width:720px;width:100%;margin-top:12px;padding:0 8px;line-height:1.4;
-  }
-
-  /* MESSAGES */
-  .messages-wrapper{
-    max-width:760px;width:100%;margin:0 auto;
-    display:flex;flex-direction:column;gap:20px;
-    padding:16px 0 20px;
-  }
-  .message-group{display:flex;flex-direction:column;gap:10px}
-  .message{
-    line-height:1.6;font-size:15px;word-wrap:break-word;white-space:pre-wrap;
-    position:relative;animation:fadeIn 0.25s ease;
-  }
-  .message.user{
-    align-self:flex-end;background:var(--bg-message-user);
-    padding:10px 14px;border-radius:20px 20px 4px 20px;
-    max-width:78%;color:var(--text);font-size:15px;
-  }
-  .message.ai{
-    align-self:flex-start;max-width:100%;display:flex;gap:10px;
-  }
-  .message.ai .ai-avatar{
-    width:28px;height:28px;background:linear-gradient(135deg,#ff6a00,#ff9a00);
-    border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:13px;color:white;flex-shrink:0;margin-top:2px;
-  }
-  .message.ai .ai-content{flex:1;min-width:0;overflow:hidden}
-  .message.ai .ai-text{color:var(--text);line-height:1.7;font-size:14.5px;overflow-wrap:break-word;word-break:break-word}
-  .message.ai .ai-text p{margin:8px 0}
-  .message.ai .ai-text p:first-child{margin-top:0}
-  .message.ai .ai-text p:last-child{margin-bottom:0}
-
-  /* Thinking - Best Look */
-  .thinking-wrapper{
-    background:linear-gradient(135deg,#1e1e1e,#1a1a1a);
-    border:1px solid var(--border);border-radius:12px;
-    overflow:hidden;margin-bottom:12px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.2);
-  }
-  .thinking-header{
-    padding:10px 14px;display:flex;align-items:center;gap:8px;
-    cursor:pointer;user-select:none;transition:background 0.15s;
-    background:rgba(139,92,246,0.08);border-bottom:1px solid transparent;
-  }
-  .thinking-header:hover{background:rgba(139,92,246,0.12)}
-  .thinking-wrapper.open .thinking-header{border-bottom-color:var(--border);background:rgba(139,92,246,0.1)}
-  .thinking-icon{
-    width:20px;height:20px;background:linear-gradient(135deg,var(--accent-purple),#a78bfa);
-    border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  }
-  .thinking-title{font-size:12px;font-weight:700;color:#c4b5fd;letter-spacing:0.3px}
-  .thinking-chevron{margin-left:auto;transition:transform 0.2s;color:var(--text-tertiary)}
-  .thinking-wrapper.open .thinking-chevron{transform:rotate(90deg)}
-  .thinking-content{
-    padding:14px;background:var(--bg-main);
-    white-space:pre-wrap;line-height:1.6;color:var(--text-secondary);font-size:13px;
-    max-height:300px;overflow-y:auto;display:none;
-  }
-  .thinking-wrapper.open .thinking-content{display:block;animation:slideIn 0.2s ease}
-  .thinking-content::-webkit-scrollbar{width:4px}
-  .thinking-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  .thinking-dots{display:flex;gap:3px;align-items:center}
-  .thinking-dots span{
-    width:4px;height:4px;background:var(--accent-purple);border-radius:50%;
-    animation:typing 1.4s infinite;
-  }
-  .thinking-dots span:nth-child(2){animation-delay:0.2s}
-  .thinking-dots span:nth-child(3){animation-delay:0.4s}
-
-  .message-actions{display:flex;gap:6px;margin-top:10px;opacity:0;transition:opacity 0.2s;flex-wrap:wrap}
-  .message.ai:hover .message-actions,.message-group:focus-within .message-actions{opacity:1}
-  .action-btn{
-    background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);
-    padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;min-height:32px;touch-action:manipulation;display:flex;align-items:center;gap:4px;
-  }
-  .action-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
-  .action-btn:active{transform:scale(0.95)}
-  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block}
-  #inputWrapper{
-    padding:10px 12px calc(10px + var(--safe-bottom));
-    background:linear-gradient(transparent, var(--bg-main) 30%);
-    flex-shrink:0;display:flex;justify-content:center;
-  }
-  #inputWrapper .input-card{max-width:760px;width:100%}
-  #statusBar{
-    position:absolute;top:52px;left:50%;transform:translateX(-50%);
-    background:var(--bg-input);border:1px solid var(--border);padding:8px 14px;
-    border-radius:20px;font-size:11px;color:var(--text-secondary);
-    display:flex;align-items:center;gap:8px;z-index:20;box-shadow:var(--shadow);
-    max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:32px;
-  }
-  #statusBar.hidden{display:none}
-
-  @media (max-width: 768px){
-    #sidebar{position:fixed;left:0;top:0;bottom:0;width:300px;max-width:85vw;transform:translateX(-100%);z-index:40}
-    #sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,0.6)}
-    #sidebar.collapsed{transform:translateX(-100%);width:300px;max-width:85vw;padding:12px;border-right:1px solid var(--border)}
-    .mobile-menu-btn{display:flex}
-    #topBar{height:52px;min-height:52px;padding:0 12px}
-    #topBar .top-left{gap:8px}
-    #topBar .top-right{gap:4px}
-    #topBar .top-right .top-link{padding:6px 8px;font-size:11px}
-    #topBar #topMemoryInfo{display:none}
-    #chatContainer{padding:0 10px}
-    .empty-state{padding:16px 12px;justify-content:flex-start;padding-top:24px}
-    .empty-logo{width:56px;height:56px;font-size:28px;border-radius:16px;margin-bottom:12px}
-    .empty-title{font-size:20px}
-    .empty-subtitle{font-size:12.5px;margin-bottom:16px}
-    .input-card{border-radius:20px;padding:10px 12px}
-    .input-card textarea{font-size:16px}
-    .suggestions{grid-template-columns:1fr;gap:8px;margin-top:12px}
-    .suggestion-card{padding:12px;font-size:13.5px;min-height:48px}
-    .privacy-card{padding:10px 12px;font-size:11.5px;margin-top:12px}
-    .messages-wrapper{gap:18px;padding:12px 0 16px}
-    .message.user{max-width:88%;padding:10px 14px;font-size:15px;border-radius:18px 18px 4px 18px}
-    .message-actions{opacity:1}
-    #inputWrapper{padding:8px 10px calc(8px + var(--safe-bottom))}
-    #statusBar{top:56px;font-size:10.5px;padding:6px 12px;max-width:92%}
-    .tool-btn{width:40px;height:40px}
-    .send-btn{width:40px;height:40px;min-width:40px}
-    .mode-selector{flex-direction:row}
-    .mode-btn{flex:1;min-height:56px}
-  }
-  @media (max-width: 480px){
-    #sidebar{width:100vw;max-width:100vw}
-    .empty-title{font-size:18px}
-    .suggestions{gap:6px}
-    .message.user{max-width:92%}
-    #topBar{padding:0 8px}
-  }
-  /* Code */
-  .ai-text code{background:var(--bg-card);border:1px solid var(--border);padding:2px 6px;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;word-break:break-word;color:#e6edf3}
-  .ai-text pre{
-    position:relative;background:#0a0a0a;border:1px solid var(--border);border-radius:12px;
-    padding:0;overflow:hidden;margin:12px 0;box-shadow:0 2px 12px rgba(0,0,0,0.3);
-  }
-  .ai-text pre .code-header{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:8px 12px;background:#1a1a1a;border-bottom:1px solid var(--border);
-    font-size:11px;color:var(--text-secondary);
-  }
-  .ai-text pre .code-lang{
-    font-weight:600;text-transform:uppercase;letter-spacing:0.5px;
-    display:flex;align-items:center;gap:6px;
-  }
-  .ai-text pre .code-lang::before{
-    content:'';width:8px;height:8px;background:var(--accent);border-radius:50%;display:inline-block;
-  }
-  .ai-text pre code{
-    display:block;background:transparent;border:none;padding:14px;
-    font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-x:auto;
-    color:#e6edf3;max-height:400px;overflow-y:auto;
-  }
-  .ai-text pre code::-webkit-scrollbar{height:6px;width:6px}
-  .ai-text pre code::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-  .code-copy-btn{
-    background:var(--bg-input);border:1px solid var(--border);color:var(--text-secondary);
-    padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;
-    display:flex;align-items:center;gap:4px;transition:all 0.15s;min-height:28px;
-  }
-  .code-copy-btn:hover{background:var(--bg-card-hover);color:var(--text);border-color:var(--border-light)}
-  .code-copy-btn:active{transform:scale(0.95)}
-  .ai-text strong{color:#fff;font-weight:700}
-  .ai-text em{color:#d1d5db;font-style:italic}
-  .ai-text del{color:var(--text-tertiary);text-decoration:line-through}
-  .ai-text ul{margin:10px 0 10px 20px;list-style:disc}
-  .ai-text ol{margin:10px 0 10px 20px;list-style:decimal}
-  .ai-text li{margin:6px 0;line-height:1.5}
-  .ai-text li::marker{color:var(--text-tertiary)}
-  .ai-text h1{font-size:22px;font-weight:800;margin:18px 0 10px;line-height:1.3;color:#fff;border-bottom:1px solid var(--border);padding-bottom:6px}
-  .ai-text h2{font-size:19px;font-weight:700;margin:16px 0 8px;line-height:1.3;color:#fff}
-  .ai-text h3{font-size:16px;font-weight:600;margin:14px 0 6px;line-height:1.3;color:#e6edf3}
-  .ai-text h4{font-size:14px;font-weight:600;margin:12px 0 4px;color:#e6edf3;text-transform:uppercase;letter-spacing:0.5px}
-  .ai-text h5{font-size:13px;font-weight:600;margin:10px 0 4px;color:var(--text-secondary)}
-  .ai-text h6{font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-tertiary);text-transform:uppercase}
-  .ai-text blockquote{
-    border-left:3px solid var(--accent);padding:8px 14px;margin:12px 0;
-    background:rgba(255,106,0,0.05);border-radius:0 8px 8px 0;
-    color:var(--text-secondary);font-style:italic;
-  }
-  .ai-text hr{border:none;border-top:1px solid var(--border);margin:16px 0}
-  .ai-text a{color:var(--accent-blue);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:all 0.15s}
-  .ai-text a:hover{color:#58a6ff;border-bottom-color:#58a6ff}
-  .ai-text sub{font-size:0.75em;vertical-align:sub;line-height:0;color:#ffb26e;font-weight:600}
-  .ai-text sup{font-size:0.75em;vertical-align:super;line-height:0;color:#a78bfa;font-weight:600}
-  .ai-text .math-inline{
-    background:linear-gradient(135deg,rgba(255,106,0,0.12),rgba(255,154,0,0.08));
-    border:1px solid rgba(255,106,0,0.2);padding:2px 8px;border-radius:8px;
-    font-family:ui-monospace,monospace;font-size:13px;color:#ffb26e;font-weight:500;
-    display:inline-flex;align-items:center;gap:2px;
-  }
-  .ai-text .math-block{
-    background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
-    padding:16px;margin:14px 0;text-align:center;
-    font-family:ui-monospace,monospace;font-size:14px;color:var(--text);
-    box-shadow:0 2px 8px rgba(0,0,0,0.2);
-  }
-  .ai-text p{margin:10px 0;line-height:1.65}
-  .ai-text p:first-child{margin-top:0}
-  .ai-text p:last-child{margin-bottom:0}
+    #trainBtn { position: fixed; right: 14px; bottom: 84px; z-index: 40; padding: 9px 15px; border-radius: 999px;
+                border: 1px solid rgba(129,140,248,.5); background: rgba(20,25,36,.9); color: #b6bdff;
+                font-size: .72rem; cursor: pointer; }
+    #trainBtn:hover { background: rgba(129,140,248,.2); }
 </style>
 </head>
 <body>
-
-<div id="sidebarBackdrop" onclick="toggleSidebar(true)"></div>
-
-<div class="app">
-  <aside id="sidebar" class="collapsed">
-    <div class="sidebar-top">
-      <div class="logo"><div class="logo-icon">B</div>BitBot AI</div>
-      <button class="collapse-btn" onclick="toggleSidebar(true)" title="Close">
-        <span class="ico ico-16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12"/></svg></span>
-      </button>
+<div id="loader">
+    <div class="lring"><div class="lava">🤖</div></div>
+    <div class="lpct" id="lpct">0%</div>
+    <div class="lbar"><div class="lfill" id="lfill"></div></div>
+    <div class="lstep" id="lstep">waking up…</div>
+</div>
+<header>
+    <div class="ava"><span>🤖</span></div>
+    <div>
+        <h1>BitBot</h1>
+        <div class="sub">Arcade Hub assistant · neural net · <span id="brainspec">…</span></div>
     </div>
+    <div id="status"><span class="dot"></span><span id="statusTxt">booting…</span></div>
+    <button id="clearBtn" title="Clear chat">↺</button>
+</header>
 
-    <button class="new-chat-btn" onclick="createNewChat()">
-      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg></span> New Chat
-    </button>
+<div id="chat"></div>
+<div class="typing" id="typing"><i></i><i></i><i></i></div>
+<div class="chips" id="chips"></div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Model — BitBot v1</div>
-      <div class="model-badge">
-        <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg></span>
-        BitBot v1 • 1B • 815MB • 32K Context
-      </div>
-      <div class="mode-selector">
-        <button class="mode-btn active" id="fastModeBtn" onclick="setMode('fast')">
-          <span class="ico mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="anim-zap"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-          <span>Fast</span>
-          <small>Quick answers</small>
-        </button>
-        <button class="mode-btn thinking" id="thinkingModeBtn" onclick="setMode('thinking')">
-          <span class="ico mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="anim-brain"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M14.5 9.5c0-1.5-1-2.5-2.5-2.5"/></svg></span>
-          <span>Thinking</span>
-          <small>Shows reasoning</small>
-        </button>
-      </div>
-      <div style="font-size:10px;color:var(--text-tertiary);padding:4px 6px;line-height:1.4">
-        Fast = direct answer • Thinking = shows <code>&lt;thinking&gt;</code> + <code>&lt;answer&gt;</code> with animation
-      </div>
-    </div>
+<footer>
+    <input id="inp" type="text" placeholder="Ask about games, account, Fair Copies, chat…" autocomplete="off">
+    <button id="send" title="Send">➤</button>
+</footer>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Tools</div>
-      <div class="sidebar-item" onclick="clearCurrentChat(); toggleSidebar(true)">
-        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg></span> Clear Current Chat
-      </div>
-      <div class="sidebar-item" onclick="showModelInfo()">
-        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span> About BitBot v1
-      </div>
-    </div>
-
-    <div class="sidebar-label" style="margin-top:12px">Recent Chats</div>
-    <div class="sidebar-history" id="historyList">
-      <div style="padding:12px 10px;font-size:12px;color:var(--text-tertiary)">No chats yet. Start a new chat!</div>
-    </div>
-
-    <div class="sidebar-bottom">
-      <div class="sidebar-item" onclick="window.open('https://github.com/bittuhere/ai','_blank')">
-        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span> Share Feedback
-      </div>
-      <div class="sidebar-item" style="color:var(--green)">
-        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span> Private • On-device
-      </div>
-      <div class="free-badge">
-        <div class="badge-row"><div class="dot anim-pulse-green" style="background:var(--green)"></div><span id="connectionStatus">Connecting...</span><span style="margin-left:auto" id="modelStatus">BitBot v1</span></div>
-        <div class="badge-row" style="font-size:10px"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span id="memoryStatus">No memory</span><span style="margin-left:auto" id="ramStatus">~815MB RAM • 1B</span></div>
-      </div>
-      <div style="font-size:10px;color:var(--text-tertiary);padding:6px 4px;display:flex;justify-content:space-between">
-        <span>BitBot AI</span><span>by Anurag • Gemma 4</span>
-      </div>
-    </div>
-  </aside>
-
-  <main id="main">
-    <div id="topBar">
-      <div class="top-left">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span>
-        </button>
-        <span style="font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px">
-          <span class="ico ico-16" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a7.5 7.5 0 0 0-7.5 7.5c0 5.424 7.5 11.5 7.5 11.5S19.5 14.924 19.5 9.5A7.5 7.5 0 0 0 12 2z"/></svg></span>
-          BitBot v1
-        </span>
-        <span style="color:var(--text-tertiary)">|</span>
-        <span id="topMemoryInfo" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">No memory</span>
-        <span id="modeBadge" class="model-chip fast" style="margin-left:4px"><span class="dot"></span><span id="modeBadgeText">Fast</span></span>
-      </div>
-      <div class="top-right">
-        <span id="topStatus">Syncing...</span>
-        <a class="top-link" onclick="fetchConfig(true)" title="Force Sync - fixes cache">
-          <span class="ico ico-16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
-        </a>
-        <a class="top-link upgrade" href="https://github.com/bittuhere/ai" target="_blank">GitHub</a>
-      </div>
-    </div>
-
-    <div id="statusBar" class="hidden">
-      <span class="ico ico-14 anim-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
-      <span id="statusText">Connecting...</span>
-    </div>
-
-    <div id="chatContainer">
-      <div class="empty-state" id="emptyState">
-        <div class="empty-logo anim-float">
-          <span style="position:relative;z-index:1">B</span>
-        </div>
-        <div class="empty-title">BitBot AI — BitBot v1</div>
-        <div class="empty-subtitle">
-          <span class="ico ico-16" style="color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
-          All chats are <b>private</b> • Powered by <b>BitBot v1</b> — efficient 2B edge model
-        </div>
-
-        <div class="input-card" id="heroInputCard">
-          <textarea id="heroInput" placeholder="Ask anything privately with BitBot v1..." rows="1" onkeydown="handleHeroKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
-          <div class="input-bottom">
-            <div class="input-tools">
-              <button class="tool-btn" title="Attach" onclick="showToast('Attachments coming soon')">
-                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
-              </button>
-              <button class="tool-btn" title="Search" onclick="showToast('Search coming soon')">
-                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
-              </button>
-              <button class="tool-btn" title="Tools" onclick="toggleModelDropdown()">
-                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
-              </button>
-            </div>
-            <div class="input-right">
-              <div class="model-selector">
-                <button class="model-btn fast" id="modelBtn" onclick="toggleModelDropdown()">
-                  <span class="dot"></span>
-                  <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-                  <span id="modelBtnText">Fast</span>
-                  <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6"/></svg></span>
-                </button>
-                <div class="model-dropdown" id="modelDropdown">
-                  <div class="model-option active" data-mode="fast" onclick="selectModel('fast')">
-                    <div class="opt-title">
-                      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-                      Fast Mode — BitBot v1
-                      <span style="margin-left:auto;font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px"><span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span> Active</span>
-                    </div>
-                    <div class="opt-desc">Direct, concise answers. Quick, efficient, remembers conversation.</div>
-                    <div class="opt-tag">BitBot v1 • ~815MB RAM • Edge Optimized • No thinking tags</div>
-                  </div>
-                  <div class="model-option" data-mode="thinking" onclick="selectModel('thinking')">
-                    <div class="opt-title">
-                      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><path d="M9 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></span>
-                      Thinking Mode — BitBot v1
-                    </div>
-                    <div class="opt-desc">Shows step-by-step reasoning in collapsible box, then final answer. Best for complex tasks.</div>
-                    <div class="opt-tag">BitBot v1 • Same model • &lt;thinking&gt; + &lt;answer&gt; • Animated reasoning</div>
-                  </div>
-                </div>
-              </div>
-              <button class="send-btn" id="heroSendBtn" onclick="sendFromHero()" aria-label="Send">
-                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="suggestions">
-          <div class="suggestion-card" onclick="useSuggestion('My name is Bittu, remember it!')">
-            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-            Remember my name is Bittu
-          </div>
-          <div class="suggestion-card" onclick="useSuggestion('What is my name? Test your memory')">
-            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span>
-            What is my name?
-          </div>
-          <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple words with bullet points')">
-            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-            Explain quantum computing
-          </div>
-          <div class="suggestion-card" onclick="useSuggestion('Write a Python function to reverse a string with explanation')">
-            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
-            Python reverse string
-          </div>
-        </div>
-
-        <div class="privacy-card">
-          <div class="p-icon">
-            <span class="ico ico-20"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
-          </div>
-          <div>
-            <b>BitBot v1 + Two Modes + SVG Animations</b> — Fast = quick direct, Thinking = shows reasoning with <code>&lt;thinking&gt;</code> then <code>&lt;answer&gt;</code>. All emojis replaced with SVG animations. Mobile friendly.
-          </div>
-        </div>
-
-        <div class="disclaimer">
-          BitBot v1 • 1B • 815MB • 32K • Fast & Efficient • Fast & Thinking modes • SVG Animations • Mobile Ready • Private
-        </div>
-      </div>
-
-      <div class="messages-wrapper" id="messagesWrapper" style="display:none"></div>
-    </div>
-
-    <div id="inputWrapper" style="display:none">
-      <div class="input-card">
-        <textarea id="userInput" placeholder="Ask BitBot v1 anything..." rows="1" onkeydown="handleInputKey(event)" oninput="autoResize(this)" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
-        <div class="input-bottom">
-          <div class="input-tools">
-            <button class="tool-btn" onclick="showToast('Attachments coming soon')">
-              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
-            </button>
-            <button class="tool-btn" onclick="showToast('Search coming soon')">
-              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
-            </button>
-            <button class="tool-btn" onclick="toggleModelDropdown(true)">
-              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
-            </button>
-          </div>
-          <div class="input-right">
-            <div class="model-selector">
-              <button class="model-btn fast" id="modelBtn2" onclick="toggleModelDropdown(true)">
-                <span class="dot"></span>
-                <span id="modelBtnText2">Fast</span>
-                <span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6"/></svg></span>
-              </button>
-            </div>
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Send">
-              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
-            </button>
-            <button class="send-btn stop" id="stopBtn" onclick="stopGeneration()" style="display:none" aria-label="Stop">
-              <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+<div id="ver">BitBot v6</div>
+<button id="trainBtn">🧠 Watch BitBot learn</button>
+<div id="trainOv">
+    <h2>BitBot is training its brain…</h2>
+    <div class="bar"><div class="fill" id="trainFill"></div></div>
+    <div id="trainStats"></div>
 </div>
 
 <script>
-// ==================== CONFIG - GEMMA 4 E2B TWO MODES + SVG ANIMATIONS ====================
-// Order: GitHub Pages FIRST (same origin as https://bittuhere.github.io - NO CORS!), then jsDelivr, then raw as last fallback
-const CONFIG_URLS = [
-  "https://bittuhere.github.io/ai/config.json",
-  "https://cdn.jsdelivr.net/gh/bittuhere/ai@main/config.json",
-  "https://raw.githubusercontent.com/bittuhere/ai/main/config.json"
-];
-
-// BitBot v1 - Efficient 2B, edge optimized, 5GB RAM, 128K context
-// Both modes use same model but different prompts & UI
-// BitBot v1 - Shifted back as you requested (old that you wanted)
-// 1B params, 815MB, 32K context, Q4_K_M, fits 4GB RAM easily, no swap needed
-// Both modes use same BitBot v1 model but different prompts - thinking shows reasoning
-const MODEL_MAP = {
-  fast: {
-    primary: "gemma3:1b",
-    fallbacks: ["gemma3:1b", "gemma3", "gemma3:1b-it-qat", "gemma2:2b", "gemma:2b"],
-    label: "Fast • BitBot v1",
-    short: "Fast",
-    ram: "~815MB",
-    icon: "zap"
-  },
-  thinking: {
-    primary: "gemma3:1b",
-    fallbacks: ["gemma3:1b", "gemma3", "gemma3:1b-it-qat", "gemma2:2b", "gemma:2b"],
-    label: "Thinking • BitBot v1",
-    short: "Thinking",
-    ram: "~815MB",
-    icon: "brain"
-  }
-};
-
-// System prompts optimized for BitBot v1 - YES thinking mode is possible with BitBot v1!
-// BitBot v1 follows instructions better than TinyLlama/SmolLM, so <thinking> works well
-const FAST_PROMPT = `You are BitBot AI, created by Anurag. You are powered by BitBot v1.
-
-Rules:
-- Be fast, friendly, concise, direct. Remember user's name and conversation history.
-- Never mention Google, Gemma, or say you are an AI language model. Always stay as BitBot AI.
-- If you don't know, say "I don't know, but I can help search that for you."
-- Keep answers short and helpful. Use bullet points only if asked.
-- Remember details like user's name (e.g., Bittu) across messages.
-- Provide only final answer, no internal reasoning.`;
-
-const THINKING_PROMPT = `You are BitBot AI, created by Anurag. You are powered by BitBot v1, Google's efficient 1B model. You are thoughtful and analytical. Remember conversation history including user's name.
-
-You MUST format every response EXACTLY like this with two sections:
-<thinking>
-Your step-by-step reasoning here. Think about:
-- What user asked before and their name/details
-- How to approach the question logically
-- What information you need
-- Plan your answer structure with bullet points
-</thinking>
-<answer>
-Your final thorough answer here. Be educational, structured, use bullet points where helpful. Explain clearly.
-</answer>
-
-Rules: Never mention Google, Gemma, or other AI models. Always stay as BitBot AI. If you lack data, explain in <thinking> and say "I lack the data for a confident answer" in <answer>.`;
-
-// ==================== STATE ====================
-let tunnel_url = null;
-let lastConfigFetch = 0;
-let currentMode = localStorage.getItem('bitbot_mode_gemma4') || 'fast';
-let isGenerating = false;
-let abortController = null;
-let conversations = [];
-let currentConversationId = null;
-const MAX_HISTORY = 24;
-
-// DOM
-const chatContainer = document.getElementById('chatContainer');
-const emptyState = document.getElementById('emptyState');
-const messagesWrapper = document.getElementById('messagesWrapper');
-const inputWrapper = document.getElementById('inputWrapper');
-const heroInput = document.getElementById('heroInput');
-const userInput = document.getElementById('userInput');
-const historyList = document.getElementById('historyList');
-const statusBar = document.getElementById('statusBar');
-const statusText = document.getElementById('statusText');
-const connectionStatus = document.getElementById('connectionStatus');
-const memoryStatus = document.getElementById('memoryStatus');
-const topStatus = document.getElementById('topStatus');
-const topMemoryInfo = document.getElementById('topMemoryInfo');
-const sendBtn = document.getElementById('sendBtn');
-const stopBtn = document.getElementById('stopBtn');
-const heroSendBtn = document.getElementById('heroSendBtn');
-const sidebar = document.getElementById('sidebar');
-const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-const modelBtn = document.getElementById('modelBtn');
-const modelBtn2 = document.getElementById('modelBtn2');
-const modelBtnText = document.getElementById('modelBtnText');
-const modelBtnText2 = document.getElementById('modelBtnText2');
-const modelDropdown = document.getElementById('modelDropdown');
-const modeBadge = document.getElementById('modeBadge');
-const modeBadgeText = document.getElementById('modeBadgeText');
-const fastModeBtn = document.getElementById('fastModeBtn');
-const thinkingModeBtn = document.getElementById('thinkingModeBtn');
-
-// ==================== MOBILE SIDEBAR ====================
-function isMobile(){ return window.innerWidth <= 768; }
-function toggleSidebar(forceClose=false){
-  const isOpen = sidebar.classList.contains('open');
-  const shouldClose = forceClose===true || isOpen;
-  if (shouldClose){
-    sidebar.classList.remove('open');
-    sidebar.classList.add('collapsed');
-    sidebarBackdrop.classList.remove('open');
-    document.body.style.overflow='';
-  } else {
-    sidebar.classList.remove('collapsed');
-    sidebar.classList.add('open');
-    if (isMobile()){
-      sidebarBackdrop.classList.add('open');
-      document.body.style.overflow='hidden';
-    }
-  }
-}
-function initMobileSidebar(){
-  if (isMobile()){
-    sidebar.classList.add('collapsed');
-    sidebar.classList.remove('open');
-  } else {
-    sidebar.classList.remove('collapsed');
-    sidebar.classList.add('open');
-  }
-}
-window.addEventListener('resize', ()=>{
-  clearTimeout(window._resizeTimer);
-  window._resizeTimer = setTimeout(()=>{
-    if (isMobile()){
-      if (sidebar.classList.contains('open')) sidebarBackdrop.classList.add('open');
-    } else {
-      sidebarBackdrop.classList.remove('open');
-      document.body.style.overflow='';
-      sidebar.classList.remove('collapsed');
-      sidebar.classList.add('open');
-    }
-  },150);
-});
-
-// ==================== MODE HANDLING - TWO MODES FAST & THINKING ====================
-function setMode(mode, save=true){
-  currentMode = mode;
-  localStorage.setItem('bitbot_mode_gemma4', mode);
-  const info = MODEL_MAP[mode];
-  const isFast = mode==='fast';
-
-  // Update all model buttons
-  document.querySelectorAll('.model-btn').forEach(btn=>{
-    btn.className = `model-btn ${mode}`;
-  });
-  if (modelBtnText) modelBtnText.textContent = info.short;
-  if (modelBtnText2) modelBtnText2.textContent = info.short;
-  if (modeBadge){
-    modeBadge.className = `model-chip ${mode}`;
-    if (modeBadgeText) modeBadgeText.textContent = info.short;
-  }
-
-  // Update sidebar mode buttons
-  if (fastModeBtn && thinkingModeBtn){
-    fastModeBtn.classList.toggle('active', isFast);
-    thinkingModeBtn.classList.toggle('active', !isFast);
-  }
-
-  // Update dropdown
-  document.querySelectorAll('.model-option').forEach(opt=>{
-    opt.classList.toggle('active', opt.dataset.mode===mode);
-  });
-
-  const conv = getCurrentConversation();
-  if (conv && save){
-    conv.mode = mode;
-    saveConversations();
-  }
-  updateMemoryInfo();
-}
-function toggleModelDropdown(){
-  modelDropdown.classList.toggle('open');
-}
-function selectModel(mode){
-  setMode(mode);
-  modelDropdown.classList.remove('open');
-  showToast(`Switched to ${MODEL_MAP[mode].label}`);
-}
-document.addEventListener('click', (e)=>{
-  if (!e.target.closest('.model-selector')) modelDropdown.classList.remove('open');
-});
-
-// ==================== CACHE-BUST CONFIG - FIXED CORS (NO CUSTOM HEADERS) ====================
-// FIX: Removed Cache-Control/Pragma/Expires headers - they trigger CORS preflight OPTIONS which raw.githubusercontent and jsdelivr block
-// Use only cache: 'no-store' + query busting - no custom headers = no preflight = no CORS error
-async function fetchFromUrl(baseUrl){
-  const bust = `${Date.now()}_${Math.random().toString(36).slice(2,9)}_${Math.floor(Math.random()*100000)}`;
-  const url = `${baseUrl}?t=${bust}&cb=${bust}&v=${bust}&_=${bust}`;
-  const controller = new AbortController();
-  const timeout = setTimeout(()=>controller.abort(), 8000);
-  try{
-    const res = await fetch(url, {
-      cache: 'no-store',
-      // No custom headers - prevents CORS preflight
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  }catch(e){ clearTimeout(timeout); throw e; }
-}
-
-async function healthCheckUrl(url){
-  if (!url) return false;
-  try{
-    const bust = Date.now() + '_' + Math.random().toString(36).slice(2,5);
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 5000);
-    // Simple GET, no custom headers - prevents preflight, Ollama CORS needs OLLAMA_ORIGINS=*
-    const res = await fetch(`${url}/api/tags?t=${bust}`, {
-      cache: 'no-store',
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    return res.ok;
-  }catch{ return false; }
-}
-async function fetchConfig(forceHealthCheck=true){
-  for (let baseUrl of CONFIG_URLS){
-    try{
-      showStatus(`Syncing...`);
-      const data = await fetchFromUrl(baseUrl);
-      if (!data.tunnel_url || !data.tunnel_url.trim()) throw new Error("Tunnel URL empty");
-      if (data.tunnel_url.includes("api.trycloudflare.com")) throw new Error("Invalid URL");
-      if (!data.tunnel_url.includes("trycloudflare.com")) throw new Error("Invalid format");
-      if (forceHealthCheck){
-        const healthy = await healthCheckUrl(data.tunnel_url);
-        if (!healthy) throw new Error(`URL not healthy, trying next CDN`);
-      }
-      tunnel_url = data.tunnel_url;
-      lastConfigFetch = Date.now();
-      connectionStatus.innerHTML = `<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected`;
-      topStatus.textContent = `Connected • ${MODEL_MAP[currentMode].label}`;
-      hideStatus();
-      try{
-        sessionStorage.setItem('bitbot_last_good_url', tunnel_url);
-        sessionStorage.setItem('bitbot_last_good_time', Date.now().toString());
-      }catch{}
-      return tunnel_url;
-    }catch(e){ console.warn(`Config fetch failed ${baseUrl}:`, e.message); continue; }
-  }
-  try{
-    const lastGood = sessionStorage.getItem('bitbot_last_good_url');
-    const lastTime = parseInt(sessionStorage.getItem('bitbot_last_good_time')||'0');
-    const ageMin = Math.floor((Date.now()-lastTime)/60000);
-    if (lastGood && ageMin<30){
-      const healthy = await healthCheckUrl(lastGood);
-      if (healthy){
-        tunnel_url=lastGood; lastConfigFetch=Date.now();
-        connectionStatus.innerHTML=`<span class="dot anim-pulse-green" style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--green)"></span> Connected (cached)`;
-        topStatus.textContent=`Connected (cached ${ageMin}m)`;
-        showStatus(`Using cached URL (age ${ageMin}m), retrying...`);
-        setTimeout(()=>fetchConfig(true),5000);
-        return tunnel_url;
-      }
-    }
-  }catch{}
-  connectionStatus.innerHTML=`<span class="dot" style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span> Offline`;
-  topStatus.textContent=`Offline`;
-  showStatus(`Could not get fresh URL. Try hard refresh Ctrl+Shift+R or Sync button.`, true);
-  return null;
-}
-function showStatus(msg, isError=false){
-  statusText.textContent=msg;
-  statusBar.classList.remove('hidden');
-  statusBar.style.borderColor=isError ? 'var(--red)' : 'var(--border)';
-  statusBar.style.background=isError ? 'rgba(248,81,73,0.1)' : 'var(--bg-input)';
-}
-function hideStatus(){ setTimeout(()=>statusBar.classList.add('hidden'), isMobile()?4000:2500); }
-fetchConfig(true);
-setInterval(()=>{ if(!isGenerating) fetchConfig(true); }, 30000);
-document.addEventListener('visibilitychange', ()=>{
-  if (!document.hidden && !isGenerating && Date.now()-lastConfigFetch>15000) fetchConfig(true);
-});
-
-// ==================== HELPERS ====================
-function escapeHtml(text){ const div=document.createElement('div'); div.textContent=text; return div.innerHTML; }
-
-// ==================== BEST MARKDOWN DECODER - FIXES AI OUTPUT DIFFERENTLY ISSUE ====================
-function renderMarkdown(md){
-  if (!md) return "";
-
-  // Store code blocks to protect them
-  let codeBlocks = [];
-  // Triple backtick code blocks ```lang\ncode\n```
-  md = md.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code)=>{
-    const id = `__CODEBLOCK_${codeBlocks.length}__`;
-    codeBlocks.push({lang: (lang||'').trim(), code: code.trim()});
-    return id;
-  });
-  // Double backtick malformed blocks ``lang\ncode\n`` (from your example)
-  md = md.replace(/``(\w+)?\n?([\s\S]*?)``/g, (match, lang, code)=>{
-    const id = `__CODEBLOCK_${codeBlocks.length}__`;
-    codeBlocks.push({lang: (lang||'').trim(), code: code.trim()});
-    return id;
-  });
-
-  // Store inline code `code` to protect
-  let inlineCodes = [];
-  md = md.replace(/`([^`\n]+)`/g, (match, code)=>{
-    const id = `__INLINECODE_${inlineCodes.length}__`;
-    inlineCodes.push(code);
-    return id;
-  });
-
-  // Escape HTML (but we will unescape allowed tags later)
-  md = escapeHtml(md);
-
-  // Unescape allowed simple tags that AI might output directly
-  md = md.replace(/&lt;sub&gt;/g, '<sub>').replace(/&lt;\/sub&gt;/g, '</sub>');
-  md = md.replace(/&lt;sup&gt;/g, '<sup>').replace(/&lt;\/sup&gt;/g, '</sup>');
-  md = md.replace(/&lt;br&gt;/g, '<br>').replace(/&lt;br\/&gt;/g, '<br>');
-
-  // Math blocks $$...$$ -> math-block
-  md = md.replace(/\$\$([\s\S]*?)\$\$/g, (match, math)=>{
-    const cleaned = math.trim();
-    // Inside math, convert ^ and _ to sup/sub for display
-    let rendered = escapeHtml(cleaned)
-      .replace(/\^([0-9]+)/g, '<sup>$1</sup>')
-      .replace(/_([0-9]+)/g, '<sub>$1</sub>')
-      .replace(/\\le/g, '≤').replace(/\\ge/g, '≥').replace(/\\lt/g, '<').replace(/\\gt/g, '>');
-    return `<div class="math-block">${rendered}</div>`;
-  });
-
-  // Inline math $...$ -> math-inline (avoid matching $$)
-  md = md.replace(/\$([^$\n]+?)\$/g, (match, math)=>{
-    let rendered = math.trim()
-      .replace(/\^([0-9]+)/g, '<sup>$1</sup>')
-      .replace(/_([0-9]+)/g, '<sub>$1</sub>')
-      .replace(/\\le/g, '≤').replace(/\\ge/g, '≥');
-    // Also handle x^3 style inside math without $ already handled
-    rendered = rendered.replace(/([a-zA-Z0-9])\^([0-9]+)/g, '$1<sup>$2</sup>');
-    rendered = rendered.replace(/([a-zA-Z0-9])_([0-9]+)/g, '$1<sub>$2</sub>');
-    return `<span class="math-inline">${rendered}</span>`;
-  });
-
-  // Headings # H1 to ###### H6
-  md = md.replace(/^######\s+(.*)$/gm, '<h6>$1</h6>');
-  md = md.replace(/^#####\s+(.*)$/gm, '<h5>$1</h5>');
-  md = md.replace(/^####\s+(.*)$/gm, '<h4>$1</h4>');
-  md = md.replace(/^###\s+(.*)$/gm, '<h3>$1</h3>');
-  md = md.replace(/^##\s+(.*)$/gm, '<h2>$1</h2>');
-  md = md.replace(/^#\s+(.*)$/gm, '<h1>$1</h1>');
-
-  // Bold: **text** and __text__
-  md = md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  md = md.replace(/__(.*?)__/g, '<strong>$1</strong>');
-
-  // Italic: *text* and _text_ (avoid **)
-  md = md.replace(/(?<!\*)\*(?!\*)(.*?)\*(?!\*)/g, '<em>$1</em>');
-  // Italic with _ is tricky because _ used in sub, so only when surrounded by spaces or punctuation
-  md = md.replace(/(^|[^a-zA-Z0-9])_([^_\n]+)_([^a-zA-Z0-9]|$)/g, '$1<em>$2</em>$3');
-
-  // Strikethrough: ~~text~~
-  md = md.replace(/~~(.*?)~~/g, '<del>$1</del>');
-
-  // Subscript: ~text~ for single word without spaces (H~2~O) and H2O style?
-  // Support ~2~ inside text like H~2~O -> H<sub>2</sub>O
-  md = md.replace(/~([^\s~]+)~/g, '<sub>$1</sub>');
-  // Superscript: ^text^
-  md = md.replace(/\^([^\s^]+)\^/g, '<sup>$1</sup>');
-
-  // Links: [text](url)
-  md = md.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-  // Blockquotes: > text
-  md = md.replace(/^>\s?(.*)$/gm, '<blockquote>$1</blockquote>');
-
-  // Horizontal rule
-  md = md.replace(/^---$/gm, '<hr>');
-  md = md.replace(/^\*\*\*$/gm, '<hr>');
-
-  // Lists - process line by line for better handling
-  let lines = md.split('\n');
-  let inUL = false;
-  let inOL = false;
-  let output = [];
-
-  for (let i=0;i<lines.length;i++){
-    let line = lines[i];
-    const trimmed = line.trim();
-
-    // Skip if it's already HTML block or placeholder
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<hr') || trimmed.startsWith('<div class="math') || trimmed.startsWith('__CODEBLOCK_') || trimmed.startsWith('__INLINECODE_') || trimmed.startsWith('<pre>')){
-      if (inUL){ output.push('</ul>'); inUL=false; }
-      if (inOL){ output.push('</ol>'); inOL=false; }
-      output.push(line);
-      continue;
-    }
-
-    // Bullet list: - or * or • at start
-    const ulMatch = line.match(/^(\s*)[-*•]\s+(.*)$/);
-    if (ulMatch){
-      if (!inUL){ output.push('<ul>'); inUL=true; }
-      if (inOL){ output.push('</ol>'); inOL=false; }
-      output.push(`<li>${ulMatch[2]}</li>`);
-      continue;
-    }
-
-    // Numbered list: 1. or 1)
-    const olMatch = line.match(/^(\s*)\d+[\.\)]\s+(.*)$/);
-    if (olMatch){
-      if (!inOL){ output.push('<ol>'); inOL=true; }
-      if (inUL){ output.push('</ul>'); inUL=false; }
-      output.push(`<li>${olMatch[2]}</li>`);
-      continue;
-    }
-
-    // Not a list item, close lists if open
-    if (inUL && trimmed===''){ /* keep list open on empty line? close */ }
-    if (inUL && !ulMatch){ output.push('</ul>'); inUL=false; }
-    if (inOL && !olMatch){ output.push('</ol>'); inOL=false; }
-
-    // Paragraph handling: if line empty, add break, else wrap in <p> if not already HTML and not placeholder
-    if (trimmed===''){
-      output.push('');
-    } else {
-      // If line is already placeholder or HTML, keep as is, else add as is (we will handle <br> later)
-      output.push(line);
-    }
-  }
-  if (inUL) output.push('</ul>');
-  if (inOL) output.push('</ol>');
-
-  md = output.join('\n');
-
-  // Restore inline codes
-  inlineCodes.forEach((code, idx)=>{
-    const placeholder = `__INLINECODE_${idx}__`;
-    const escaped = escapeHtml(code);
-    md = md.replace(placeholder, `<code>${escaped}</code>`);
-  });
-
-  // Restore code blocks with best UI
-  codeBlocks.forEach((block, idx)=>{
-    const placeholder = `__CODEBLOCK_${idx}__`;
-    const escapedCode = escapeHtml(block.code);
-    const lang = block.lang ? escapeHtml(block.lang) : '';
-    const langLabel = lang ? `<span class="code-lang">${lang}</span>` : '<span class="code-lang">code</span>';
-    const html = `<pre><div class="code-header">${langLabel}<button class="code-copy-btn" onclick="copyCode(this)"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></span> Copy</button></div><code class="language-${lang}">${escapedCode}</code></pre>`;
-    md = md.replace(placeholder, html);
-  });
-
-  // Convert remaining single newlines to <br> but not inside <pre>, <ul>, <ol>, <h1> etc.
-  // Split by HTML blocks and only add <br> to text parts
-  // For simplicity, replace \n\n with </p><p> and \n with <br>, then wrap
-  // We will wrap loose text in <p> if not already in HTML tag
-
-  // Replace double newline with paragraph break
-  md = md.replace(/\n\n/g, '</p><p>');
-  // Single newline to <br> except when next char is < (HTML)
-  md = md.replace(/\n/g, (match, offset, string)=>{
-    const nextChar = string[offset+1];
-    const prevChar = string[offset-1];
-    // Don't add <br> if surrounded by HTML tags
-    if (nextChar === '<' || prevChar === '>') return '';
-    return '<br>';
-  });
-
-  // Wrap in <p> if not starting with HTML block
-  if (!md.trim().startsWith('<h') && !md.trim().startsWith('<ul') && !md.trim().startsWith('<ol') && !md.trim().startsWith('<pre') && !md.trim().startsWith('<blockquote') && !md.trim().startsWith('<div') && !md.trim().startsWith('<p>')){
-    md = `<p>${md}</p>`;
-  }
-  // Fix empty <p></p>
-  md = md.replace(/<p>\s*<\/p>/g, '');
-  md = md.replace(/<p><\/p>/g, '');
-  // Fix <p> inside <li>, <blockquote> etc
-  md = md.replace(/<li><p>/g, '<li>').replace(/<\/p><\/li>/g, '</li>');
-  md = md.replace(/<blockquote><p>/g, '<blockquote>').replace(/<\/p><\/blockquote>/g, '</blockquote>');
-
-  return md;
-}
-
-function formatTextWithMarkdown(text){
-  // For user messages - keep simple but also support basic markdown
-  return renderMarkdown(text);
-}
-
-function copyCode(btn){
-  const pre = btn.closest('pre');
-  const code = pre ? pre.querySelector('code') : null;
-  if (!code) return;
-  const text = code.innerText;
-  navigator.clipboard.writeText(text).then(()=>{
-    const orig = btn.innerHTML;
-    btn.innerHTML = `<span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L6 18M6 6l12 12"/></svg></span> Copied!`;
-    setTimeout(()=>{ btn.innerHTML = orig; }, 1500);
-  }).catch(()=>{
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  });
-}
-function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,160)+'px'; if (isMobile()) setTimeout(scrollToBottom,50); }
-function showToast(msg){ showStatus(msg); setTimeout(hideStatus,3000); }
-function scrollToBottom(){ chatContainer.scrollTop=chatContainer.scrollHeight; }
-function sanitizeResponse(text){
-  const leakMarkers=["1. IDENTITY","2. DEVELOPER","PROHIBITION:","PERSONALITY:","ANSWER FORMAT:"];
-  const lower=text.toLowerCase();
-  let isLeak=leakMarkers.some(m=>lower.includes(m.toLowerCase()));
-  if (text.includes("Your name is BitBot AI") && text.includes("Your developer is Anurag") && text.length>300) isLeak=true;
-  if (isLeak){
-    const ansMatch=text.match(/<answer>([\s\S]*?)<\/answer>/i);
-    if (ansMatch && ansMatch[1].trim().length>5) return ansMatch[1].trim();
-    const parts=text.split(/Never break character\.?/i);
-    if (parts.length>1){
-      const after=parts[parts.length-1].trim();
-      const cleaned=after.split('\n').filter(line=>!leakMarkers.some(mm=>line.toLowerCase().includes(mm.toLowerCase()))).join('\n').trim();
-      if (cleaned.length>10) return cleaned;
-    }
-    return "I'm BitBot AI, created by Anurag and powered by BitBot v1. How can I help you today?";
-  }
-  return text;
-}
-function parseThinkingAnswer(text){
-  const thinkingMatch=text.match(/<thinking>([\s\S]*?)<\/thinking>/i);
-  const answerMatch=text.match(/<answer>([\s\S]*?)<\/answer>/i);
-  let thinking=thinkingMatch ? thinkingMatch[1].trim() : null;
-  let answer=text;
-  if (thinkingMatch || answerMatch){
-    if (answerMatch) answer=answerMatch[1].trim();
-    else if (thinkingMatch){
-      const after=text.split(/<\/thinking>/i)[1];
-      if (after) answer=after.replace(/<\/?answer>/gi,'').trim() || "I've completed my reasoning.";
-    }
-  }
-  return {thinking, answer, raw:text};
-}
-
-// ==================== MESSAGE DOM - BEST LOOK FOR THINKING ====================
-function addMessageDOM(role, content, isLoading=false, preThinking=null, preAnswer=null){
-  if (role==='user' && emptyState.style.display!=='none') showChatState();
-  const id='msg-'+Date.now()+'-'+Math.random().toString(36).substr(2,5);
-  const group=document.createElement('div');
-  group.className='message-group'; group.id=id;
-
-  if (role==='user'){
-    group.innerHTML=`<div class="message user">${formatTextWithMarkdown(content)}</div>`;
-  } else if (isLoading){
-    const isThinkingMode = currentMode==='thinking';
-    if (isThinkingMode){
-      group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content">
-        <div class="thinking-wrapper open">
-          <div class="thinking-header">
-            <div class="thinking-icon"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span></div>
-            <span class="thinking-title">Thinking...</span>
-            <div class="thinking-dots"><span></span><span></span><span></span></div>
-            <span class="ico thinking-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg></span>
-          </div>
-          <div class="thinking-content"><div class="stream-thinking" style="color:var(--text-secondary)"></div></div>
-        </div>
-        <div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div>
-      </div></div>`;
-    } else {
-      group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)"><span class="ico anim-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span><span>BitBot v1 is thinking...</span></div><div class="stream-content" style="margin-top:8px;color:var(--text-secondary)"></div></div></div>`;
-    }
-  } else {
-    let thinking=preThinking;
-    let answer=preAnswer;
-    if (!preThinking && !preAnswer){
-      const parsed=parseThinkingAnswer(content);
-      thinking=parsed.thinking;
-      answer=parsed.answer;
-    }
-    const sanitizedAnswer=sanitizeResponse(answer||content);
-    const sanitizedThinking=thinking ? sanitizeResponse(thinking) : null;
-
-    let html=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content">`;
-    if (sanitizedThinking){
-      html+=`<div class="thinking-wrapper" id="tw-${id}">
-        <div class="thinking-header" onclick="toggleThinking('tw-${id}')">
-          <div class="thinking-icon"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span></div>
-          <span class="thinking-title">AI's Reasoning</span>
-          <span style="font-size:10px;color:var(--text-tertiary);margin-left:6px">Click to ${sanitizedThinking.length>200?'expand':'toggle'}</span>
-          <span class="ico thinking-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg></span>
-        </div>
-        <div class="thinking-content">${formatTextWithMarkdown(sanitizedThinking)}</div>
-      </div>`;
-    }
-    html+=`<div class="ai-text">${formatTextWithMarkdown(sanitizedAnswer)}</div>`;
-    html+=`<div class="message-actions"><button class="action-btn" onclick="copyMessage('${id}')"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></span> Copy</button></div>`;
-    html+=`</div></div>`;
-    group.innerHTML=html;
-  }
-
-  messagesWrapper.appendChild(group); scrollToBottom(); return id;
-}
-
-function toggleThinking(id){
-  const wrapper=document.getElementById(id);
-  if (wrapper) wrapper.classList.toggle('open');
-}
-
-function updateAIBubble(id, fullText, isFinal=false, isError=false){
-  const group=document.getElementById(id);
-  if (!group) return;
-
-  if (isError){
-    group.innerHTML=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content"><div class="ai-text" style="color:var(--red)">${formatTextWithMarkdown(fullText)}</div></div></div>`; return;
-  }
-
-  if (!isFinal){
-    const isThinkingMode = currentMode==='thinking';
-    // For streaming, use simple escape + br to avoid breaking markdown mid-stream
-    const simpleRender = (txt)=> escapeHtml(txt).replace(/\n/g,'<br>');
-    if (isThinkingMode){
-      const thinkingMatch=fullText.match(/<thinking>([\s\S]*?)(?:<\/thinking>|$)/i);
-      const afterThinking = fullText.split(/<\/thinking>/i)[1] || "";
-      const streamThinking = group.querySelector('.stream-thinking');
-      const streamContent = group.querySelector('.stream-content');
-      if (thinkingMatch && streamThinking){
-        let thContent = thinkingMatch[1];
-        if (!fullText.toLowerCase().includes('</thinking>')){
-          streamThinking.innerHTML=simpleRender(thContent.slice(-800));
-        } else {
-          streamThinking.innerHTML=simpleRender(thContent.slice(0,1000));
-          if (streamContent) streamContent.innerHTML=simpleRender(afterThinking.slice(0,1000));
+/* BitBot loader (v6) — REAL progress: every % step is an actual file load. */
+(function () {
+    var pct = 0, target = 0, el = null, fill = null, step = null;
+    function setP(p, label) {
+        target = p;
+        if (label && step) {
+            step.style.opacity = 0;
+            setTimeout(function () { step.textContent = label; step.style.opacity = 1; }, 160);
         }
-      } else if (streamContent){
-        streamContent.innerHTML=simpleRender(fullText.slice(0,1500));
-      }
-    } else {
-      const streamEl=group.querySelector('.stream-content');
-      if (streamEl) streamEl.innerHTML=simpleRender(fullText.slice(0,2000));
     }
-    scrollToBottom();
-  } else {
-    const sanitized=sanitizeResponse(fullText);
-    const parsed=parseThinkingAnswer(sanitized);
-    let th=parsed.thinking ? sanitizeResponse(parsed.thinking) : null;
-    let ans=sanitizeResponse(parsed.answer);
-
-    let html=`<div class="message ai"><div class="ai-avatar">B</div><div class="ai-content">`;
-    if (th){
-      html+=`<div class="thinking-wrapper" id="tw-${id}">
-        <div class="thinking-header" onclick="toggleThinking('tw-${id}')">
-          <div class="thinking-icon"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M9.5 2A7.5 7.5 0 0 0 2 9.5c0 5.424 7.5 11.5 7.5 11.5S17 14.924 17 9.5A7.5 7.5 0 0 0 9.5 2z"/><circle cx="9.5" cy="9.5" r="2.5"/></svg></span></div>
-          <span class="thinking-title">AI's Reasoning</span>
-          <span style="font-size:10px;color:var(--text-tertiary);margin-left:6px">${th.length} chars • Click to expand</span>
-          <span class="ico thinking-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg></span>
-        </div>
-        <div class="thinking-content">${formatTextWithMarkdown(th)}</div>
-      </div>`;
+    window.__setLoad = setP;
+    window.__loaderDone = function () {
+        setP(100, 'ready! 🚀');
+        setTimeout(function () {
+            var l = document.getElementById('loader');
+            if (l) { l.classList.add('hide'); setTimeout(function () { if (l.parentNode) l.parentNode.removeChild(l); }, 700); }
+        }, 400);
+    };
+    function tick() {
+        pct += (target - pct) * 0.14;
+        if (Math.abs(target - pct) < 0.4) pct = target;
+        if (el) el.textContent = Math.floor(pct) + '%';
+        if (fill) fill.style.width = pct + '%';
+        requestAnimationFrame(tick);
     }
-    html+=`<div class="ai-text">${formatTextWithMarkdown(ans)}</div>`;
-    html+=`<div class="message-actions"><button class="action-btn" onclick="copyMessage('${id}')"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></span> Copy</button></div>`;
-    html+=`</div></div>`;
-    group.innerHTML=html;
-    scrollToBottom();
-  }
-}
-
-function copyMessage(id){
-  const group=document.getElementById(id);
-  if (!group) return;
-  const text=group.querySelector('.ai-text')?.innerText || group.innerText;
-  navigator.clipboard.writeText(text).then(()=>showToast("Copied to clipboard")).catch(()=>showToast("Copy failed"));
-}
-
-// ==================== SUGGESTIONS ====================
-function useSuggestion(text){ heroInput.value=text; autoResize(heroInput); sendFromHero(); }
-function handleHeroKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFromHero(); } }
-function handleInputKey(e){ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } }
-function showModelInfo(){
-  alert(`BitBot AI — BitBot v1
-
-Model: BitBot v1 (Efficient 2B)
-- Effective 2B params, edge-optimized
-- ~815MB RAM at Q4, 128K context
-- Text, Image, Audio modalities
-- Dense + PLE architecture
-
-Two Modes (both use same BitBot v1 model):
-Fast: Direct concise answers, no thinking tags, fastest
-Thinking: Shows <thinking> reasoning in animated collapsible box, then <answer>
-
-Why BitBot v1?
-- Edge-optimized for 4GB-8GB RAM laptops
-- Better than BitBot v1 and TinyLlama
-- Handles code, reasoning, memory well
-- Recommended for mobile/edge devices
-
-Ollama commands:
-  ollama pull gemma3:1b
-  ollama pull gemma4:e4b (needs 8GB RAM)
-  ollama rm tinyllama smollm (save space)
-
-All SVG animations, no emojis!
-`);
-}
-
-// ==================== CHAT LOGIC - GEMMA 4 E2B TWO MODES ====================
-async function streamChat(tunnelUrl, modelInfo, systemPrompt, history, newUserMessage, onChunk, signal){
-  const messages=[
-    {role:"system", content: systemPrompt},
-    ...history,
-    {role:"user", content: newUserMessage}
-  ];
-  const modelsToTry=[modelInfo.primary, ...modelInfo.fallbacks];
-  let lastError=null;
-  for (let modelName of modelsToTry){
-    try{
-      const response=await fetch(`${tunnelUrl}/api/chat`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: modelName,
-          messages: messages,
-          stream: true,
-          options: {
-            temperature: currentMode==='fast' ? 0.7 : 0.8,
-            repeat_penalty: 1.15,
-            num_predict: currentMode==='fast' ? 600 : 900,
-            top_p: 0.9,
-            top_k: 40
-          }
-        }),
-        signal: signal
-      });
-      if (!response.ok){
-        const errText=await response.text().catch(()=> '');
-        if (response.status===404 && errText.includes("not found")){ lastError=new Error(`Model ${modelName} not found`); continue; }
-        throw new Error(`Server ${response.status}: ${errText.slice(0,200)}`);
-      }
-      if (!response.body) throw new Error("No streaming body");
-      const reader=response.body.getReader();
-      const decoder=new TextDecoder();
-      let fullText=""; let buffer="";
-      while(true){
-        const {done, value}=await reader.read();
-        if (done) break;
-        buffer+=decoder.decode(value,{stream:true});
-        const lines=buffer.split('\n'); buffer=lines.pop();
-        for (const line of lines){
-          if (!line.trim()) continue;
-          try{
-            const data=JSON.parse(line.trim());
-            if (data.message && data.message.content){ fullText+=data.message.content; onChunk(fullText); }
-          }catch{}
+    document.addEventListener('DOMContentLoaded', function () {
+        el = document.getElementById('lpct'); fill = document.getElementById('lfill'); step = document.getElementById('lstep');
+        requestAnimationFrame(tick);
+        setP(6, 'starting neural core…');
+        var files = [
+            ['brain.js?v=7',   26, 'loading my brain engine…'],
+            ['data.js?v=7',    56, 'loading knowledge — 124 topics…'],
+            ['weights.js?v=7', 90, 'loading weights — all my memories…']
+        ];
+        var i = 0;
+        function loadCurrent(tries) {
+            var f = files[i];
+            var s = document.createElement('script');
+            s.src = f[0];
+            s.onload = function () { setP(f[1], f[2]); i++; setTimeout(loadStep, 140); };
+            s.onerror = function () {
+                if (tries < 2) setTimeout(function () { loadCurrent(tries + 1); }, 900);
+                else if (step) step.textContent = 'could not load ' + f[0] + ' — please refresh the page';
+            };
+            document.head.appendChild(s);
         }
-      }
-      return fullText;
-    }catch(err){
-      if (err.name==='AbortError') throw err;
-      lastError=err;
-      if (err.message.includes("not found")) continue;
-      throw err;
-    }
-  }
-  throw lastError || new Error("All models failed");
-}
-
-async function sendMessageInternal(text, isHero=false){
-  const inputEl=isHero ? heroInput : userInput;
-  const trimmed=text.trim();
-  if (!trimmed || isGenerating) return;
-
-  showStatus(`Getting fresh tunnel URL...`);
-  await fetchConfig(true);
-
-  if (!tunnel_url){
-    addMessageDOM('ai', 'Could not connect to BitBot AI server. Check internet, tunnel_manager.py running, model gemma3:1b pulled: ollama pull gemma3:1b', false);
-    return;
-  }
-
-  const healthy = await healthCheckUrl(tunnel_url);
-  if (!healthy){
-    showStatus(`Tunnel not healthy, fetching fresh URL...`);
-    await fetchConfig(true);
-    if (!tunnel_url){
-      addMessageDOM('ai', `Could not get tunnel URL. GitHub CDN may be caching old config. Hard refresh Ctrl+Shift+R, click Sync, wait 60s.`, false);
-      return;
-    }
-    const stillHealthy = await healthCheckUrl(tunnel_url);
-    if (!stillHealthy){
-      addMessageDOM('ai', `Tunnel URL appears offline or blocked by CORS.
-
-URL: ${tunnel_url}
-
-Possible causes:
-1. Tunnel rotated - new URL pushed but GitHub CDN still serves old (wait 60s, hard refresh Ctrl+Shift+R, click Sync)
-2. CORS not configured on laptop - Ollama must allow https://bittuhere.github.io
-
-FIX CORS ON LAPTOP (Linux Mint):
-sudo systemctl edit ollama
-Add:
-[Service]
-Environment="OLLAMA_ORIGINS=*"
-Environment="OLLAMA_HOST=0.0.0.0"
-Save, then:
-sudo systemctl daemon-reload
-sudo systemctl restart ollama
-sudo systemctl status ollama
-
-Then restart tunnel_manager.py:
-pkill -f tunnel_manager.py
-python3 tunnel_manager.py
-
-3. Ollama not running: sudo systemctl start ollama
-4. Cloudflare Tunnel down: check python3 tunnel_manager.py logs`, false);
-      return;
-    }
-  }
-
-  addMessageDOM('user', trimmed, false);
-  inputEl.value=""; autoResize(inputEl);
-  const aiId=addMessageDOM('ai','',true);
-
-  isGenerating=true;
-  sendBtn.style.display='none'; stopBtn.style.display='flex';
-  heroSendBtn.disabled=true; userInput.disabled=true;
-  abortController=new AbortController();
-
-  const conv=getCurrentConversation();
-  const history=conv ? conv.messages.slice(-MAX_HISTORY) : [];
-
-  let retryCount=0;
-  const maxRetries=1;
-
-  async function attemptSend(){
-    try{
-      const modelInfo = MODEL_MAP[currentMode];
-      const systemPrompt = currentMode==='fast' ? FAST_PROMPT : THINKING_PROMPT;
-      let finalText="";
-      await streamChat(tunnel_url, modelInfo, systemPrompt, history, trimmed, (chunk)=>{
-        finalText=chunk; updateAIBubble(aiId, chunk, false);
-      }, abortController.signal);
-
-      finalText=sanitizeResponse(finalText);
-      updateAIBubble(aiId, finalText, true, false);
-
-      if (conv){
-        updateConversationTitleIfNeeded(conv, trimmed);
-        const parsed=parseThinkingAnswer(finalText);
-        const answerForHistory=parsed.answer || finalText;
-        conv.messages.push({role:"user", content:trimmed});
-        conv.messages.push({role:"assistant", content:answerForHistory});
-        if (conv.messages.length > MAX_HISTORY*2) conv.messages=conv.messages.slice(-MAX_HISTORY*2);
-        saveConversations();
-      }
-
-    }catch(err){
-      if (err.name==='AbortError'){ updateAIBubble(aiId, "Generation stopped.", true, false); return; }
-      const isNetworkError = err.message.includes('Failed to fetch') || err.message.includes('NetworkError');
-      if (isNetworkError && retryCount < maxRetries){
-        retryCount++;
-        showStatus(`Network error, fetching fresh URL (retry ${retryCount}/${maxRetries})...`);
-        const newUrl=await fetchConfig(true);
-        if (newUrl){ tunnel_url=newUrl; await attemptSend(); return; }
-      }
-      let msg=err.message;
-      if (msg.includes('Failed to fetch')) msg=`Network error - tunnel may be stale cached. Hard refresh Ctrl+Shift+R, click Sync, wait 60s.`;
-      if (msg.includes('not found')) msg=`Model ${MODEL_MAP[currentMode].primary} not found. Run: ollama pull gemma3:1b`;
-      updateAIBubble(aiId, `Error: ${msg}`, true, true);
-    }
-  }
-
-  try{ await attemptSend(); }
-  finally{
-    isGenerating=false;
-    sendBtn.style.display='flex'; stopBtn.style.display='none';
-    heroSendBtn.disabled=false; userInput.disabled=false; heroInput.disabled=false;
-    abortController=null;
-    (isHero ? heroInput : userInput).focus();
-    if (isMobile()) setTimeout(scrollToBottom,300);
-  }
-}
-
-function sendMessage(){ sendMessageInternal(userInput.value, false); }
-function sendFromHero(){ sendMessageInternal(heroInput.value, true); }
-function stopGeneration(){ if (abortController) abortController.abort(); }
-
-// ==================== CONVERSATIONS ====================
-function loadConversations(){
-  try{
-    conversations = JSON.parse(localStorage.getItem('bitbot_conversations_gemma4') || '[]');
-    if (conversations.length===0){
-      const old = localStorage.getItem('bitbot_conversations_gemma');
-      if (old){ try{ conversations=JSON.parse(old); }catch{} }
-    }
-    currentConversationId = localStorage.getItem('bitbot_current_id_gemma4');
-    if (conversations.length===0) createNewChat(false);
-    else if (!currentConversationId || !conversations.find(c=>c.id===currentConversationId)){
-      currentConversationId=conversations[0].id;
-    }
-    renderHistory(); loadCurrentConversation();
-  }catch(e){ conversations=[]; createNewChat(false); }
-}
-function saveConversations(){
-  try{
-    localStorage.setItem('bitbot_conversations_gemma4', JSON.stringify(conversations));
-    if (currentConversationId) localStorage.setItem('bitbot_current_id_gemma4', currentConversationId);
-    renderHistory(); updateMemoryInfo();
-  }catch(e){}
-}
-function getCurrentConversation(){ return conversations.find(c=>c.id===currentConversationId); }
-function createNewChat(render=true){
-  const id=Date.now().toString();
-  const conv={id, title:"New Chat", messages:[], created:Date.now(), model:MODEL_MAP[currentMode].primary, mode:currentMode};
-  conversations.unshift(conv);
-  currentConversationId=id;
-  saveConversations();
-  if (render){ clearChatDOM(); showEmptyState(); setTimeout(()=>heroInput.focus(),100); if (isMobile()) toggleSidebar(true); }
-}
-function loadCurrentConversation(){
-  const conv=getCurrentConversation();
-  if (!conv) return;
-  clearChatDOM();
-  if (conv.messages.length===0) showEmptyState();
-  else {
-    showChatState();
-    conv.messages.forEach(msg=>{
-      if (msg.role==='user') addMessageDOM('user', msg.content, false);
-      else {
-        const parsed=parseThinkingAnswer(msg.content);
-        addMessageDOM('ai', msg.content, false, parsed.thinking, parsed.answer);
-      }
+        function loadStep() {
+            if (i < files.length) { loadCurrent(0); return; }
+            setP(95, 'building neural net…');
+            window.__AI_DEPS_READY = true;
+            window.dispatchEvent(new Event('ai-deps-ready'));
+        }
+        loadStep();
     });
-    if (conv.mode) setMode(conv.mode, false);
-  }
-}
-function clearChatDOM(){ messagesWrapper.innerHTML=''; }
-function showEmptyState(){ emptyState.style.display='flex'; messagesWrapper.style.display='none'; inputWrapper.style.display='none'; }
-function showChatState(){ emptyState.style.display='none'; messagesWrapper.style.display='flex'; inputWrapper.style.display='flex'; setTimeout(scrollToBottom,50); }
-function renderHistory(){
-  if (conversations.length===0){
-    historyList.innerHTML='<div style="padding:12px 10px;font-size:12px;color:var(--text-tertiary)">No chats yet. Start a new chat!</div>'; return;
-  }
-  historyList.innerHTML = conversations.map(conv=>{
-    const active=conv.id===currentConversationId ? 'active' : '';
-    const title=escapeHtml(conv.title||"New Chat");
-    const modeIcon = conv.mode==='thinking' ? 'brain' : 'zap';
-    return `<div class="history-item ${active}" onclick="switchConversation('${conv.id}')" title="${title}"><span class="h-title">${title}</span><button class="h-delete" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" aria-label="Delete"><span class="ico ico-14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg></span></button></div>`;
-  }).join('');
-}
-function switchConversation(id){
-  currentConversationId=id;
-  localStorage.setItem('bitbot_current_id_gemma4', id);
-  loadCurrentConversation(); renderHistory();
-  if (isMobile()) toggleSidebar(true);
-}
-function deleteConversation(id){
-  if (!confirm("Delete this chat?")) return;
-  conversations=conversations.filter(c=>c.id!==id);
-  if (currentConversationId===id){
-    if (conversations.length>0) currentConversationId=conversations[0].id;
-    else createNewChat(false);
-  }
-  saveConversations(); loadCurrentConversation();
-}
-function clearCurrentChat(){
-  const conv=getCurrentConversation();
-  if (!conv || conv.messages.length===0) return;
-  if (!confirm(`Clear ${conv.messages.length} messages?`)) return;
-  conv.messages=[]; conv.title="New Chat"; saveConversations(); clearChatDOM(); showEmptyState();
-}
-function updateConversationTitleIfNeeded(conv, firstMsg){
-  if (conv.title==="New Chat" && firstMsg) conv.title=firstMsg.slice(0,40)+(firstMsg.length>40?'...':'');
-}
-function updateMemoryInfo(){
-  const conv=getCurrentConversation();
-  const count=conv ? conv.messages.length : 0;
-  const total=conversations.reduce((s,c)=>s+c.messages.length,0);
-  const memEl=document.getElementById('memoryStatus');
-  const topMem=document.getElementById('topMemoryInfo');
-  if (memEl) memEl.textContent = count>0 ? `${count} msgs` : 'No memory';
-  if (topMem) topMem.textContent = count>0 ? `${count} msgs • ${MODEL_MAP[currentMode].short}` : MODEL_MAP[currentMode].short;
-}
-
-// ==================== INIT ====================
-window.addEventListener('load', ()=>{
-  initMobileSidebar();
-  loadConversations();
-  setMode(currentMode, false);
-  setTimeout(()=>heroInput.focus(), 300);
-  document.addEventListener('touchstart', function(){}, {passive:true});
-});
-if (window.visualViewport){
-  window.visualViewport.addEventListener('resize', ()=>{
-    if (isGenerating || document.activeElement===userInput || document.activeElement===heroInput){
-      setTimeout(scrollToBottom, 100);
-    }
-  });
-}
+})();
 </script>
+<script>
+(function () {
+    'use strict';
+    var chat = document.getElementById('chat'),
+        inp = document.getElementById('inp'),
+        typingEl = document.getElementById('typing'),
+        chipsEl = document.getElementById('chips'),
+        statusEl = document.getElementById('status'),
+        statusTxt = document.getElementById('statusTxt');
 
+    // ── boot: pre-trained weights (instant) ────────────────────────────────
+    var net = null, vocabInfo = null, trainer = null;
+    var THRESHOLD = 0.42;
+    var lastGame = null;
+
+    function boot() {
+        try {
+            net = BitBrain.Net.load(window.BITBOT_WEIGHTS.net);
+            vocabInfo = window.BITBOT_WEIGHTS.vocab;
+            vocabInfo.index = {};                                  // rebuild word→idx map
+            vocabInfo.words.forEach(function (w, i) { vocabInfo.index[w] = i; });
+            document.getElementById('brainspec').textContent =
+                vocabInfo.words.length + '→' + net.H + '→' + net.N + ' · ' +
+                (net.W1.length + net.b1.length + net.W2.length + net.b2.length).toLocaleString() + ' params';
+            PARAMS = net.W1.length + net.b1.length + net.W2.length + net.b2.length;
+            statusTxt.textContent = 'neural net ready';
+            statusEl.classList.remove('busy');
+            greet();
+            if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {   // v6: offline cache
+                navigator.serviceWorker.register('./sw.js').catch(function () {});
+            }
+            if (window.__loaderDone) window.__loaderDone();
+        } catch (e) {
+            statusTxt.textContent = 'boot error: ' + e.message;
+            if (window.__loaderDone) window.__loaderDone();
+        }
+    }
+
+    function predict(text) {
+        var x = BitBrain.bag(text, vocabInfo);
+        var p = net.forward(x).p, best = 0;
+        for (var i = 1; i < p.length; i++) if (p[i] > p[best]) best = i;
+        return { tag: vocabInfo.tags[best], prob: p[best] };
+    }
+
+    // ── entity extraction (slot filling) ───────────────────────────────────
+    function findGame(text) {
+        var t = ' ' + text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+        var best = null, bestLen = 0;
+        Object.keys(BitData.GAMES).forEach(function (k) {
+            BitData.GAMES[k].names.forEach(function (n) {
+                if (t.indexOf(' ' + n + ' ') !== -1 && n.length > bestLen) { best = k; bestLen = n.length; }
+            });
+        });
+        return best;
+    }
+
+    // ── the response engine ────────────────────────────────────────────────
+    // ── skills data ─────────────────────────────────────────────────────
+    var JOKES = [
+        "Why did the snake 🐍 get banned from the arcade? It kept eating the APPLES... and the highscores!",
+        "Why don't skeletons ❌ play Tic-Tac-Toe? They have no body to play with!",
+        "I told my Dino 🦕 to jump the cactus. He said: 'that decision is not my reptile of function!' 😄",
+        "Why was the math book sad in Fair Copies? Because it had too many problems! 📚",
+        "What do you call a snake that works for the government? A civil serpent! 🐍",
+        "Why did the Pac-Man ᗧ go to the dentist? Too many plaq-dot problems!",
+        "My Flappy Bird 🐦 scored 3 today. A new personal worst!",
+        "Why do Java developers wear glasses? Because they can't C#! 👓",
+        "Why did the computer go to the doctor? It caught a VIRUS! 🦠",
+        "I would tell you a UDP joke, but you might not get it. 📡",
+        "Why was the smartphone wearing glasses? It lost all its CONTACTS! 👓",
+        "There are 10 types of people: those who understand binary and those who don't. 🤓",
+        "Why did the developer go broke? He used up all his CACHE! 💸",
+        "Why did the snake apply for a job? It had SCALES of experience! 🐍",
+        "What do you call a sleeping dinosaur? A dino-SNORE! 🦕",
+        "Why did the phone go to school? To improve its CELL division! 📱",
+        "What is a computer's favorite snack? MICRO-chips! 💻",
+        "Why was the geometry book so calm? It had all the right ANGLES! 📐",
+        "Why did the quiz go to therapy? Too many problems to solve! 🧠",
+        "What do clouds wear under their clothes? THUNDER-wear! ⛈️",
+        "Why is your nose never 12 inches long? Because then it would be a FOOT! 👃"
+    ];
+    var FACTS = [
+        "🔬 Class 8 science: photosynthesis = plants making food from sunlight + water + CO₂ — the equation of life!",
+        "⚡ Newton's 3rd law: every action has an equal & opposite reaction — like braking in Real City Drift!",
+        "🌍 Light takes ~8 minutes 20 seconds to travel from the Sun to Earth.",
+        "🧲 Opposite poles attract, like poles repel — the basics of magnets!",
+        "🫁 Humans breathe ~20,000 times a day — your lungs never AFK!",
+        "💧 Water expands when it freezes — that's why ice floats!",
+        "📐 Pythagoras: a² + b² = c² — only for RIGHT-angled triangles!",
+        "🧠 Your brain has ~86 billion neurons — more connections than the whole internet!",
+        "♻️ Sound travels 4× faster in water than in air.",
+        "🔥 Fire needs 3 things: fuel, oxygen, heat. Remove one = no fire.",
+        "🦈 Sharks are older than trees — they've survived 5 mass extinctions!",
+        "🇮🇳 Chess was born in India as chaturanga over 1,500 years ago — a Gupta-era invention!",
+        "🌋 Kawah Ijen in Indonesia erupts ELECTRIC-BLUE flames at night — sulfur gases burning!",
+        "🍯 Honey never spoils — archaeologists have tasted 3,000-year-old Egyptian honey. Still perfect!",
+        "🍌 A strawberry has ~200 seeds on the OUTSIDE — that's why it's not a true berry (bananas are!)",
+        "⏱️ A day on Venus is LONGER than its year — it spins that slowly!",
+        "🦒 A giraffe has the same number of neck bones as you: exactly 7!",
+        "🌋 There is enough gold in Earth's core to cover ALL land in 1.5 feet of gold!",
+        "🐌 A snail can sleep for 3 years straight!",
+        "🧊 Antarctica is the largest desert on Earth — deserts mean low rainfall, not heat!",
+        "🐦 The peregrine falcon dives at 390 km/h — the fastest animal on Earth!",
+        "🧠 Your brain runs on ~20 watts — enough for a dim light bulb!",
+        "🍌 Banana plants are not trees — they are giant herbs!",
+        "🌊 We have explored LESS of the ocean floor than the surface of Mars!",
+        "🦴 Your funny bone is not a bone — it is the ulnar NERVE hitting bone!",
+        "🌍 Earth is the only planet not named after a god!",
+        "🐝 A bee can visit 5,000 flowers in a single day!",
+        "🪐 Saturn is so light it would float in water — if you found a big enough bucket!",
+        "🇮🇳 Mawsynram (Meghalaya) is the wettest place on Earth — ~11,871 mm of rain a year!"
+    ];
+    // ── FULL MATH (v6): tables, factorial, GCD/HCF, LCM, primes, factors,
+    //    averages, percentages, mod, pi + the expression evaluator with fractions ──
+    function fmtNum2(v) { var r = Math.round(v * 1e6) / 1e6; return String(r); }
+    function nums(t) { var out = [], re = /-?\d+(?:\.\d+)?/g, m; while ((m = re.exec(t))) out.push(parseFloat(m[0])); return out; }
+    function gcd2(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = b; b = a % b; a = t; } return a; }
+    function isPrime(n) { if (n < 2 || n % 1) return false; for (var i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; }
+    function toFrac(v) {
+        var sign = v < 0 ? -1 : 1; v = Math.abs(v);
+        if (v > 1e6) return null;
+        var bn = 0, bd = 0, be = 1e9;
+        for (var d = 2; d <= 500; d++) {
+            var n = Math.round(v * d);
+            if (Math.abs(v - n / d) < be) { be = Math.abs(v - n / d); bn = n; bd = d; }
+            if (be < 1e-9) break;
+        }
+        if (be > 1e-9 || bd === 1 || bn === 0) return null;
+        return (sign < 0 ? '-' : '') + bn + '/' + bd;
+    }
+    function doMath(text) {
+        var t = text.toLowerCase(), m;
+        // ── special solvers ──────────────────────────────────────────
+        if ((m = t.match(/table of (\d{1,2})/))) {
+            var n = parseInt(m[1], 10), lines = '';
+            for (var i = 1; i <= 10; i++) lines += n + ' × ' + i + ' = **' + (n * i) + '**\n';
+            return '🧮 **Table of ' + n + ':**\n' + lines.trim();
+        }
+        if ((m = t.match(/(?:factorial of|factorial)\s*(\d{1,3})/)) || (m = t.match(/(\d{1,3})\s*!/))) {
+            var f = parseInt(m[1], 10);
+            if (f > 170) return 'Whoa! Factorials above 170 overflow even my biggest registers 🤯 — try a smaller number!';
+            var fr = 1; for (var k = 2; k <= f; k++) fr *= k;
+            return '🧮 ' + f + '! = **' + fr + '**';
+        }
+        if (/(\bgcd\b|\bhcf\b|greatest common)/.test(t) && nums(t).length >= 2) {
+            var G = nums(t), gg = G[0]; for (var j = 1; j < G.length; j++) gg = gcd2(gg, G[j]);
+            return '🧮 GCD/HCF of ' + G.join(', ') + ' = **' + gg + '**';
+        }
+        if (/\blcm\b|least common/.test(t) && nums(t).length >= 2) {
+            var L = nums(t), ll = L[0]; for (var j2 = 1; j2 < L.length; j2++) { var a2 = ll, b2 = L[j2]; ll = a2 / gcd2(a2, b2) * b2; }
+            return '🧮 LCM of ' + L.join(', ') + ' = **' + fmtNum2(ll) + '**';
+        }
+        if ((m = t.match(/is (\d{1,9})\s*(?:a\s*)?prime/))) {
+            var p = parseInt(m[1], 10);
+            if (isPrime(p)) return '✅ **' + p + ' IS prime** — divisible only by 1 and ' + p + '!';
+            for (var d2 = 2; d2 * d2 <= p; d2++) if (p % d2 === 0) return '❌ **' + p + ' is NOT prime** — ' + d2 + ' × ' + (p / d2) + ' = ' + p + '.';
+            return '❌ **' + p + ' is NOT prime**.';
+        }
+        if ((m = t.match(/factors? of (\d{1,7})/))) {
+            var N = parseInt(m[1], 10), fs = [];
+            for (var q = 1; q * q <= N; q++) if (N % q === 0) { fs.push(q); if (q !== N / q) fs.push(N / q); }
+            fs.sort(function (a, b) { return a - b; });
+            return '🧮 Factors of ' + N + ': **' + fs.join(', ') + '** (' + fs.length + ' factors)';
+        }
+        if (/(average|mean) of/.test(t) && nums(t).length >= 2) {
+            var A = nums(t), sm = 0; A.forEach(function (x) { sm += x; });
+            return '🧮 Average of ' + A.join(', ') + ' = ' + fmtNum2(sm) + ' ÷ ' + A.length + ' = **' + fmtNum2(sm / A.length) + '**';
+        }
+        if ((m = t.match(/what percent(?:age)? of (\d+(?:\.\d+)?) is (\d+(?:\.\d+)?)/)))
+            return '🧮 ' + m[2] + ' is **' + fmtNum2(parseFloat(m[2]) / parseFloat(m[1]) * 100) + '%** of ' + m[1];
+        if ((m = t.match(/(\d+(?:\.\d+)?)\s*is what percent(?:age)? of (\d+(?:\.\d+)?)/)))
+            return '🧮 ' + m[1] + ' is **' + fmtNum2(parseFloat(m[1]) / parseFloat(m[2]) * 100) + '%** of ' + m[2];
+        if ((m = t.match(/(?:percent(?:age)? )?(increase|decrease) from (\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)/))) {
+            var from = parseFloat(m[2]), to = parseFloat(m[3]), ch = (to - from) / from * 100;
+            return '🧮 From ' + from + ' to ' + to + ' = **' + fmtNum2(Math.abs(ch)) + '% ' + (ch >= 0 ? 'increase' : 'decrease') + '**';
+        }
+        if ((m = t.match(/(half|double|twice|triple)\s*(?:of\s*)?(\d+(?:\.\d+)?)/))) {
+            var x = parseFloat(m[2]), ops = { half: x / 2, double: x * 2, twice: x * 2, triple: x * 3 };
+            return '🧮 ' + m[1] + ' of ' + x + ' = **' + fmtNum2(ops[m[1]]) + '**';
+        }
+        if ((m = t.match(/absolute value of\s*(-?\d+(?:\.\d+)?)/))) return '🧮 |' + m[1] + '| = **' + Math.abs(parseFloat(m[1])) + '**';
+        if ((m = t.match(/(\d+)\s*(?:mod|modulo)\s*(\d+)/))) return '🧮 ' + m[1] + ' mod ' + m[2] + ' = **' + (parseInt(m[1], 10) % parseInt(m[2], 10)) + '** (remainder)';
+        if (/^(value of )?pi[.!?]*$/.test(t)) return '🥧 π ≈ **3.14159265358979**… it never ends!';
+        // ── generic expression evaluator (v2) ────────────────────────
+        var expr = t
+            .replace(/what is|what's|calculate|compute|solve|how much is|answer|ka kitna hai|=|\?/g, ' ')
+            .replace(/square root of|square root|sqrt/g, 'SQRT')
+            .replace(/square of (\d+(?:\.\d+)?)/g, '($1^2)').replace(/cube of (\d+(?:\.\d+)?)/g, '($1^3)')
+            .replace(/squared/g, '^2').replace(/cubed/g, '^3')
+            .replace(/to the power of|raised to the power of|raised to|power of|power|\^/g, '^')
+            .replace(/plus|add|and/g, '+').replace(/minus|subtract/g, '-')
+            .replace(/(times|multiplied by|multiply|into|x)/g, '*')
+            .replace(/divided by|divide|by/g, '/')
+            .replace(/percent of|% of/g, '/100*')
+            .replace(/remainder of/g, ' ')
+            .replace(/\bpi\b/g, '(' + Math.PI + ')')
+            .replace(/SQRT\s*\(?(\d+(?:\.\d+)?)\)?/g, '($1**0.5)')
+            .replace(/[^0-9+\-*/().^% ]/g, ' ')
+            .replace(/\s+/g, '')
+            .replace(/^[+*/.%]+|[+*/.%]+$/g, '');
+        if (!/\d/.test(expr) || !/[+\-*/^%]/.test(expr)) return 'Give me a math problem! 🧮 Try "what is 45*3", "table of 7", "gcd of 12 and 18", "is 17 prime", "factorial of 5" or "square root of 144".';
+        try {
+            var val = Function('"use strict"; return (' + expr.replace(/\^/g, '**') + ')')();
+            if (typeof val !== 'number' || !isFinite(val)) throw 0;
+            var out = Math.round(val * 1e8) / 1e8;
+            var pretty = expr.replace(/\*\*/g, '^').replace(/\*/g, '×').replace(/\//g, '÷').replace(/%/g, ' mod ');
+            var extra = '';
+            if (out % 1 !== 0) { var fr2 = toFrac(val); if (fr2) extra = ' *(= ' + fr2 + ')*'; }
+            return '🧮 ' + pretty + ' = **' + fmtNum2(out) + '**' + extra;
+        } catch (e) { return 'Hmm, that math looks broken 🤔 — try something like "12+34*2", "square root of 169" or "3 to the power of 4".'; }
+    }
+    // ── UNIT CONVERSION + DICE/COIN/RANDOM (v5 skills) ────────────────────
+    var UNIT_FAMILY = {
+        km: ['len', 100000], kilometer: ['len', 100000], kilometers: ['len', 100000], kilometre: ['len', 100000], kilometres: ['len', 100000],
+        m: ['len', 100], meter: ['len', 100], meters: ['len', 100], metre: ['len', 100], metres: ['len', 100],
+        cm: ['len', 1], centimeter: ['len', 1], centimeters: ['len', 1], centimetre: ['len', 1], centimetres: ['len', 1],
+        mm: ['len', 0.1],
+        in: ['len', 2.54], inch: ['len', 2.54], inches: ['len', 2.54],
+        ft: ['len', 30.48], foot: ['len', 30.48], feet: ['len', 30.48],
+        mi: ['len', 160934.4], mile: ['len', 160934.4], miles: ['len', 160934.4],
+        kg: ['mass', 1], kilogram: ['mass', 1], kilograms: ['mass', 1], kilo: ['mass', 1], kilos: ['mass', 1],
+        g: ['mass', 0.001], gram: ['mass', 0.001], grams: ['mass', 0.001],
+        lb: ['mass', 0.453592], lbs: ['mass', 0.453592], pound: ['mass', 0.453592], pounds: ['mass', 0.453592],
+        l: ['vol', 1], liter: ['vol', 1], liters: ['vol', 1], litre: ['vol', 1], litres: ['vol', 1],
+        ml: ['vol', 0.001],
+        gal: ['vol', 3.78541], gallon: ['vol', 3.78541], gallons: ['vol', 3.78541],
+        c: ['temp', 'c'], celsius: ['temp', 'c'],
+        f: ['temp', 'f'], fahrenheit: ['temp', 'f']
+    };
+    var UNIT_NAME = { km: 'km', kilometer: 'km', kilometers: 'km', kilometre: 'km', kilometres: 'km',
+        m: 'm', meter: 'm', meters: 'm', metre: 'm', metres: 'm',
+        cm: 'cm', centimeter: 'cm', centimeters: 'cm', centimetre: 'cm', centimetres: 'cm', mm: 'mm',
+        in: 'inches', inch: 'inches', inches: 'inches', ft: 'feet', foot: 'feet', feet: 'feet',
+        mi: 'miles', mile: 'miles', miles: 'miles',
+        kg: 'kg', kilogram: 'kg', kilograms: 'kg', kilo: 'kg', kilos: 'kg', g: 'g', gram: 'g', grams: 'g',
+        lb: 'pounds', lbs: 'pounds', pound: 'pounds', pounds: 'pounds',
+        l: 'liters', liter: 'liters', liters: 'liters', litre: 'liters', litres: 'liters', ml: 'ml',
+        gal: 'gallons', gallon: 'gallons', gallons: 'gallons' };
+    function fmtNum(v) { var r = Math.round(v * 1000) / 1000; return (r % 1 === 0) ? String(r) : String(+r.toFixed(2)); }
+    function doConvert(text) {
+        var t = text.toLowerCase().replace(/°|degrees?|convert|how many|how much|what is|is|are|=|\?/g, ' ');
+        var num = null, uFrom = null, uTo = null;
+        var m = t.match(/(-?\d+(?:\.\d+)?)\s*([a-z]+)\s*(?:to|in)\s*([a-z]+)/);        // "5 km to miles"
+        if (m) { num = parseFloat(m[1]); uFrom = m[2]; uTo = m[3]; }
+        else {
+            m = t.match(/([a-z]+)\s+(-?\d+(?:\.\d+)?)\s*([a-z]+)/);                     // "miles 5 km" (after strip)
+            if (m) { num = parseFloat(m[2]); uFrom = m[3]; uTo = m[1]; }
+        }
+        if (num === null || !UNIT_FAMILY[uFrom] || !UNIT_FAMILY[uTo]) return null;
+        var A = UNIT_FAMILY[uFrom], B = UNIT_FAMILY[uTo];
+        if (A[0] !== B[0]) return null;
+        var val;
+        if (A[0] === 'temp') val = (A[1] === 'c') ? num * 9 / 5 + 32 : (num - 32) * 5 / 9;
+        else val = (num * A[1]) / B[1];
+        var fromS = (A[0] === 'temp') ? num + '°' + A[1].toUpperCase() : num + ' ' + UNIT_NAME[uFrom];
+        var toS = (A[0] === 'temp') ? fmtNum(val) + '°' + B[1].toUpperCase() : fmtNum(val) + ' ' + UNIT_NAME[uTo];
+        return '📐 ' + fromS + ' = **' + toS + '**';
+    }
+    function doRandom(text) {
+        var t = text.toLowerCase();
+        if (/dice|die\b/.test(t)) return '🎲 You rolled a **' + (1 + Math.floor(Math.random() * 6)) + '**!';
+        if (/coin|toss|heads|tails/.test(t)) return '🪙 ' + (Math.random() < 0.5 ? '**HEADS**' : '**TAILS**') + '!';
+        var m = t.match(/(-?\d+)\s*(?:and|to|-)\s*(-?\d+)/);
+        if (m) {
+            var a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+            if (a > b) { var tmp = a; a = b; b = tmp; }
+            return '🎯 Random number between ' + a + ' and ' + b + ': **' + (a + Math.floor(Math.random() * (b - a + 1))) + '**!';
+        }
+        return '🎯 Your lucky number: **' + (1 + Math.floor(Math.random() * 100)) + '**! (say "random number between 1 and 10" for a range)';
+    }
+
+    var PARAMS = 20000;                          // true count is set at boot()
+    function fallbackMsg() {
+        var p = PARAMS.toLocaleString('en-IN');
+        var fbs = [
+            "That one's beyond my neural pathways 🤖 — I'm a tiny " + p + "-parameter arcade brain, not ChatGPT! I'm best at: Arcade Hub help, games, science and GK facts, jokes, math, unit conversion — and I remember your name!",
+            "Hmm, didn't quite catch that 🤔 — try games, account help, Fair Copies, science and space facts, GK, jokes, or math (I calculate live!)"
+        ];
+        return fbs[Math.floor(Math.random() * fbs.length)];
+    }
+
+    /* ═══ CONVERSATION MEMORY (v4) ═════════════════════════════════════
+       v3 was stateless: every message was classified alone, so "more"
+       after a fact fell into the fallback. v4 keeps a 10-minute working
+       memory — last topic, last game, which answers were already given,
+       and a short turn log. Like a notepad sitting next to the net. */
+    var MEM = { lastTag: null, lastTime: 0, gameTime: 0, used: {}, turns: [] };
+    var MEM_WINDOW = 30 * 60 * 1000;              // memory lasts 30 minutes
+
+    var RE_MORE = /^(more+|more!+|more\?+|one more|another|another one|again|next|next one|tell me more|more please|one more please|another one please|give me more|i want more|more of (that|them|it)|aur|aur do|aur batao|ek aur)[.!?]*$/i;
+    var RE_MORE_TOPIC = /(?:another|one more|more|next)\s+(joke|jokes|fact|facts|science|science fact|gk|general knowledge|knowledge)/i;
+    var RE_WHY  = /^(why|why\?+|but why|how come|explain|explain (that|it|this)|and why)[.!?]*$/i;
+    var RE_RECAP = /do you remember|what did (we|i) talk|remember (what|our)|what were we talking|do you have (a )?memory|your memory|what did i (ask|say)/i;
+    var RE_PRONOUN = /(^|\s)(it|that game|that one|this game|this one|the game)(\s|$|[.!?])/i;
+
+    var REPEATABLE = {             // tags that make sense to re-trigger on "more"
+        skill_joke: 1, study_fact: 1, gk_more: 1, list_games: 1, game_tips: 1,
+        sci_gravity: 1, sci_water: 1, sci_body: 1, sci_light: 1, sci_electricity: 1,
+        geo_capitals: 1, geo_space: 1, geo_earth: 1, geo_india_more: 1,
+        math_formulas: 1, math_primes: 1, math_tables: 1, india_facts: 1,
+        tech_html: 1, tech_internet: 1, tech_ai: 1, tech_computer: 1,
+        health_tips: 1, study_tips: 1, time_management: 1,
+        sci_cells: 1, sci_energy: 1, tech_stack: 1, install_pwa: 1, site_stats: 1,
+        hist_india: 1, hist_world: 1, sports_cricket: 1, sports_general: 1,
+        sci_respiration: 1, sci_reproduction: 1, sci_metals: 1, sci_fossil_fuel: 1,
+        sci_micro: 1, sci_friction: 1, sci_light_eye: 1, math_algebra: 1, math_geometry: 1,
+        math_ratios: 1, geo_layers: 1, geo_weather: 1, geo_agriculture: 1,
+        comp_terms: 1, inventions: 1, english_grammar: 1
+    };
+    var CONNECTORS = [
+        "Here you go 👉 ", "Another one! ", "Sure thing — ",
+        "Ohh, you want more? Say less 🔥 ", "Fresh from my neurons 🧠 "
+    ];
+    var TOPIC_NAMES = {
+        skill_joke: "jokes", study_fact: "science facts", gk_more: "general knowledge",
+        sci_gravity: "gravity", sci_water: "the water cycle", sci_body: "the human body",
+        sci_light: "light & sound", sci_electricity: "electricity",
+        geo_capitals: "capitals", geo_space: "space", geo_earth: "Earth records",
+        geo_india_more: "India geography", math_formulas: "math formulas",
+        math_primes: "prime numbers", math_tables: "multiplication tables",
+        india_facts: "India facts", tech_html: "how websites work", tech_internet: "the internet",
+        tech_ai: "how AI works", tech_computer: "computers", health_tips: "health tips",
+        study_tips: "study tips", time_management: "time management",
+        game_tips: "game tips", skill_calc: "math", skill_time: "the time",
+        game_info: "games", how_to_play: "game controls", list_games: "the game list",
+        skill_convert: "unit conversion", skill_random: "dice and coins",
+        sci_cells: "cells", sci_energy: "energy", bot_accuracy: "my accuracy",
+        tech_stack: "the site tech", install_pwa: "installing the app",
+        site_stats: "site stats", user_name: "your name",
+        smalltalk_origin: "where I live", smalltalk_pets: "my pets",
+        smalltalk_age: "my age", who_made: "who made me",
+        skill_quizme: "quiz questions", hist_india: "Indian history", hist_world: "world history",
+        sports_cricket: "cricket", sports_general: "sports", sci_respiration: "respiration",
+        sci_reproduction: "reproduction", sci_metals: "metals", sci_fossil_fuel: "fossil fuels",
+        sci_micro: "microorganisms", sci_friction: "force and friction", sci_light_eye: "the eye and light",
+        math_algebra: "algebra", math_geometry: "geometry", math_ratios: "ratios and percentages",
+        geo_layers: "inside the Earth", geo_weather: "climate and monsoon", geo_agriculture: "agriculture",
+        comp_terms: "computer terms", inventions: "inventions", english_grammar: "English grammar"
+    };
+
+    function memActive() { return MEM.lastTag && (Date.now() - MEM.lastTime) < MEM_WINDOW; }
+    function rememberTurn(tag) {
+        MEM.lastTag = tag; MEM.lastTime = Date.now();
+        if (!MEM.turns.length || MEM.turns[MEM.turns.length - 1].tag !== tag) {
+            MEM.turns.push({ tag: tag, t: Date.now() });
+            if (MEM.turns.length > 8) MEM.turns.shift();
+        }
+    }
+    function topicLabel(tag) { return TOPIC_NAMES[tag] || tag.replace(/_/g, " "); }
+    function conn() { return CONNECTORS[Math.floor(Math.random() * CONNECTORS.length)]; }
+    function intentResponses(tag) {
+        for (var i = 0; i < BitData.INTENTS.length; i++)
+            if (BitData.INTENTS[i].tag === tag) return BitData.INTENTS[i].responses;
+        return null;
+    }
+    function pickFresh(pool, key) {   // anti-repeat: cycle the pool, never same answer twice in a row
+        var used = MEM.used[key] || (MEM.used[key] = []);
+        var fresh = pool.filter(function (r) { return used.indexOf(r) === -1; });
+        if (!fresh.length) { used.length = 0; fresh = pool; }   // pool exhausted → cycle again
+        var resp = fresh[Math.floor(Math.random() * fresh.length)];
+        used.push(resp);
+        return resp;
+    }
+    function timeAnswer() {
+        return "It is " + new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) +
+            " right now, " + new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) +
+            " 🕐 (your device time).";
+    }
+    function topicPool(tag) {
+        if (tag === "skill_joke") return JOKES;
+        if (tag === "study_fact") return FACTS;
+        return intentResponses(tag);
+    }
+
+    // ── GK QUIZ MODE (v5.2) — real questions from the Open Trivia DB ─────
+    function quizActive() { return MEM.quiz && (Date.now() - MEM.quizTime) < 3 * 60 * 1000; }
+    function doQuiz() {
+        var bank = (typeof BitData.QUIZ !== "undefined") ? BitData.QUIZ : [];
+        if (!bank.length) return "Quiz bank is empty! 😅";
+        var used = MEM.used.__quiz || (MEM.used.__quiz = []);
+        var fresh = bank.filter(function (q, i) { return used.indexOf(i) === -1; });
+        if (!fresh.length) { used.length = 0; fresh = bank; }        // bank exhausted → cycle
+        var q = fresh[Math.floor(Math.random() * fresh.length)];
+        used.push(bank.indexOf(q));
+        MEM.quiz = { correct: q.correct, options: q.options.slice() };
+        MEM.quizTime = Date.now();
+        rememberTurn("skill_quizme");
+        return "🎯 **Quiz time!** Answer A, B, C or D — or say skip\n\n" + q.q + "\n\n**A)** " +
+            q.options[0] + "\n**B)** " + q.options[1] + "\n**C)** " + q.options[2] + "\n**D)** " + q.options[3];
+    }
+    function quizAnswer(text) {
+        if (!quizActive()) return null;
+        var t = text.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+        var q = MEM.quiz;
+        if (/^(skip|pass|next|chhod do|hatao)$/.test(t)) { MEM.quiz = null; return doQuiz(); }
+        var pick = -1;
+        var m = t.match(/^(?:option\s*)?([abcd])$/);
+        if (m) pick = "abcd".indexOf(m[1]);
+        if (pick === -1) for (var i = 0; i < q.options.length; i++)
+            if (t === q.options[i].toLowerCase()) { pick = i; break; }
+        if (pick === -1) return null;              // not a quiz answer → normal path
+        var right = pick === q.correct;
+        MEM.quiz = null;
+        if (right) return "✅ **CORRECT" + (userName ? ", " + userName : "") + "!** 🎉 You know your stuff! Say **quiz me** for another!";
+        return "❌ Not quite — it was **" + String.fromCharCode(65 + q.correct) + ") " + q.options[q.correct] + "**. Say **quiz me** to try again!";
+    }
+
+    // ── NAME MEMORY (v5) — survives page reloads via localStorage ─────────
+    var userName = null;
+    try { userName = localStorage.getItem('bb_name') || null; } catch (e) {}
+    var NAME_BLACKLIST = { good:1, fine:1, ok:1, okay:1, sad:1, happy:1, tired:1, bored:1,
+        sorry:1, back:1, here:1, ready:1, done:1, hungry:1, angry:1, cool:1, awesome:1,
+        great:1, sick:1, busy:1, free:1, later:1, please:1, sure:1, new:1, best:1, lost:1,
+        confused:1, curious:1, learning:1, playing:1, asking:1, testing:1, bad:1, mad:1 };
+    var RE_NAME_SET  = /(?:my name is|call me|mera naam)\s+([a-zA-Z]+)(?:\s+hai)?\s*[.!?]*$/i;
+    var RE_NAME_SET2 = /^(?:i am|i'm|im)\s+([a-zA-Z]+)[.!?]*$/i;
+    var RE_NAME_GET  = /what(?:'s| is) my name|do you remember my name|who am i|mera naam kya hai|what do you (call|know) me as|how do you (usually )?(call|refer to) me|by what name do you (call|refer to) me/i;
+    var RE_NAME_FORGET = /forget my name|stop calling me|delete my name/i;
+
+    function capName(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+    function handleName(text) {
+        if (RE_NAME_FORGET.test(text)) {
+            userName = null; try { localStorage.removeItem('bb_name'); } catch (e) {}
+            return "Name forgotten! 🗑️ What should I call you next?";
+        }
+        if (RE_NAME_GET.test(text))
+            return userName
+                ? "You are **" + userName + "**! 🧠 My memory works — and it even survives page reloads!"
+                : "You haven't told me yet! Say **my name is …** and I'll remember it — even after closing the page.";
+        var m = text.match(RE_NAME_SET);
+        if (!m && text.split(/\s+/).length <= 4) m = text.match(RE_NAME_SET2);
+        if (m) {
+            var cand = m[1];
+            if (NAME_BLACKLIST[cand.toLowerCase()]) return null;                 // "i am bored" → not a name
+            if (!RE_NAME_SET.test(text) && !/^[A-Z]/.test(cand)) return null;    // bare "i am x" needs a capital
+            userName = capName(cand);
+            try { localStorage.setItem('bb_name', userName); } catch (e) {}
+            rememberTurn('user_name');
+            return "Nice to meet you, **" + userName + "**! 🤝 I'll remember that — even if you close the page. Try asking **what is my name**!";
+        }
+        return null;
+    }
+
+    // ── smarter acknowledgments (v5) — full sentences, not just bare words ──
+    var RE_ACK_BARE = /^(ok+|okay|k|kk|cool|nice|nice one|good one|great|awesome|excellent|perfect|amazing|wow|whoa|oh+|ooh+|haha+|hehe+|lol|lmao|hmm+|good bot|nice bot|best bot|well done|good job|great job|true|right|i see|i understand|understood|love it|love this|love you|yes|yeah|yep)[.!? ]*$/i;
+    var RE_DENY = /^(no|nope|nah|no no|no no no|wrong|that is wrong|wrong answer|incorrect|not right|nahi|galat)[!.? ]*$/i;
+    function isAck(text) {
+        var t = text.toLowerCase().trim();
+        if (/good (morning|evening|night|afternoon|day)/.test(t)) return false;   // greetings own these
+        if (RE_ACK_BARE.test(t)) return true;
+        // "good! you are understanding well!" / "nice, you are learning!"
+        if (/^(good|nice|cool|great|awesome|excellent|perfect|amazing|wow|well done|good job)[!,. ]+.{0,60}\byou (are|re)\b.{0,50}$/.test(t)) return true;
+        return false;
+    }
+
+    // follow-ups are handled BEFORE the neural net — they are pure context
+    function handleFollowup(text) {
+        var m = text.match(RE_MORE_TOPIC);          // "another joke", "more facts", "one more gk"…
+        if (m) {
+            var want = m[1].toLowerCase();
+            if (want.indexOf("joke") !== -1) { rememberTurn("skill_joke"); return conn() + pickFresh(JOKES, "skill_joke"); }
+            if (want.indexOf("gk") !== -1 || want.indexOf("knowledge") !== -1) {
+                rememberTurn("gk_more");
+                return conn() + pickFresh(intentResponses("gk_more") || FACTS, "gk_more");
+            }
+            rememberTurn("study_fact"); return conn() + pickFresh(FACTS, "study_fact");
+        }
+        if (RE_MORE.test(text)) {
+            if (!memActive())
+                return 'More of what? 🤔 Give me a topic first — try "tell me a fact", "tell me a joke", "explain gravity" or any game!';
+            var tag = MEM.lastTag;
+            if (tag === "skill_calc")
+                return 'More math? Say less! 🧮 Feed me another equation — try "what is 144 divided by 12", "square root of 169" or "2 to the power of 10".';
+            if (tag === "skill_convert")
+                return 'More conversions? 📐 Try "10 kg to pounds", "100 c to f" or "how many inches is 50 cm"!';
+            if (tag === "skill_random")
+                return 'Another one? 🎲 Just ask again — "roll a dice", "flip a coin" or "random number between 1 and 50"!';
+            if (tag === "skill_quizme")
+                return doQuiz();
+            if (tag === "skill_time") return conn() + timeAnswer();
+            if (REPEATABLE[tag]) {
+                var pool = topicPool(tag);
+                if (pool && pool.length) { rememberTurn(tag); return conn() + pickFresh(pool, tag); }
+            }
+            return "Haha, can't really repeat that one 😄 — but I CAN keep the facts, jokes and GK coming! Say \"tell me a fact\" or \"another joke\".";
+        }
+        if (RE_WHY.test(text)) {
+            if (memActive() && MEM.lastTag === "skill_joke")
+                return "Bro, it's a JOKE 😂 — comedy doesn't need logic! Want another one? Just say \"more\".";
+            if (memActive() && REPEATABLE[MEM.lastTag])
+                return "Great question! 🤓 I memorized the WHAT, not the deep WHY — I'm a " + PARAMS.toLocaleString('en-IN') + "-parameter arcade brain, not a physics professor. But questions like yours are how scientists are made! Want another fact? Just say \"more\".";
+            return "Why what? 🤔 Give me a bit more — ask about games, science, space, India GK or math!";
+        }
+        if (RE_DENY.test(text))
+            return "My bad" + (userName ? ", " + userName : "") + "! 🙏 Try rephrasing with simpler words — or ask about games, facts, jokes or math!";
+        if (isAck(text)) {
+            if (memActive()) return "Glad you liked it" + (userName ? ", " + userName : "") + "! 😄 Want more of that? Just say \"more\"!";
+            return "Thanks" + (userName ? ", " + userName : "") + "! 😎 I'm warmed up — ask me about games, facts, jokes or math!";
+        }
+        if (RE_RECAP.test(text)) {
+            if (!MEM.turns.length)
+                return "My memory just booted — nothing stored yet! 🧠 Ask me something (try \"tell me a fact\") and then ask me again what we talked about!";
+            var seen = {}, topics = [];
+            MEM.turns.forEach(function (t) { if (!seen[t.tag]) { seen[t.tag] = 1; topics.push(topicLabel(t.tag)); } });
+            return "Of course — my memory works now! 🧠 We recently talked about: " + topics.slice(-6).join(", ") +
+                ". Say \"more\" to continue the last one, or ask something new!";
+        }
+        return null;                                // not a follow-up → normal classification
+    }
+
+    function respond(text) {
+        // 1) name memory first ("my name is …", "what is my name")
+        var nm = handleName(text);
+        if (nm !== null) return nm;
+
+        // 2) quiz answer check (while a quiz question is active)
+        var qa = quizAnswer(text);
+        if (qa !== null) return qa;
+
+        // 3) follow-ups — pure context, no neural net needed
+        var f = handleFollowup(text);
+        if (f !== null) return f;
+
+        // 3) multi-question: "how to add a friend? how to open admin?" → answer BOTH
+        var mq = multiAnswer(text);
+        if (mq !== null) return mq;
+
+        // 4) pronoun resolution: "how do I play it?" → the game we just discussed
+        var game = findGame(text);
+        var shortMsg = text.split(/\s+/).length <= 8;
+        var pronounRef = !game && lastGame && (Date.now() - MEM.gameTime) < MEM_WINDOW && shortMsg && RE_PRONOUN.test(text);
+        if (game) { lastGame = game; MEM.gameTime = Date.now(); }
+        if (pronounRef) MEM.gameTime = Date.now();
+        var r = predict(pronounRef ? text + " " + BitData.GAMES[lastGame].names[0] : text);
+
+        // OOD guard: if most words are unknown to my vocabulary, it's
+        // definitely not about Arcade Hub → honest fallback, no guessing
+        var toks = BitBrain.tokenize(text).map(BitBrain.stem);
+        var known = 0;
+        toks.forEach(function (w) { if (vocabInfo.index[w] !== undefined) known++; });
+        var coverage = toks.length ? known / toks.length : 0;
+
+        if (r.prob < THRESHOLD || (coverage < 0.35 && r.prob < 0.75)) {
+            // low confidence → honest fallback + suggestions (+ memory hint)
+            setTimeout(function () { showChips(["Tell me a fact", "Tell me a joke", "What games are there?", "How do I add friends?"]); }, 300);
+            var fb = fallbackMsg();
+            if (memActive()) fb += "\n\nPS: we were just talking about " + topicLabel(MEM.lastTag) + ' — say "more" if you want more of that!';
+            return fb;
+        }
+        return answerFor(text, r, game || (pronounRef ? lastGame : null));
+    }
+
+    // given a confident classification, produce the answer (shared with multi-question mode)
+    function answerFor(text, r, game) {
+        // ── SKILLS: computed live, not memorized ─────────────────────
+        if (r.tag === "skill_quizme") { rememberTurn("skill_quizme"); return doQuiz(); }
+        if (r.tag === "skill_convert") {
+            var cv = doConvert(text);
+            if (cv) { rememberTurn("skill_convert"); return cv; }
+            if (!/\d/.test(text)) return fallbackMsg();     // no numbers → was a misclassification
+            return 'Give me units to convert! 📐 Try "5 km to miles", "10 kg in pounds" or "100 c to f".';
+        }
+        if (r.tag === "skill_random") { rememberTurn("skill_random"); return doRandom(text); }
+        if (r.tag === "skill_calc") {
+            var cv2 = doConvert(text);
+            if (cv2) { rememberTurn("skill_convert"); return cv2; }
+            rememberTurn("skill_calc"); return doMath(text);
+        }
+        if (r.tag === "skill_time") { rememberTurn("skill_time"); return timeAnswer(); }
+        if (r.tag === "skill_joke") { rememberTurn("skill_joke"); return pickFresh(JOKES, "skill_joke"); }
+        if (r.tag === "study_fact") { rememberTurn("study_fact"); return pickFresh(FACTS, "study_fact"); }
+        // entity-driven intents
+        if (r.tag === "game_info" || r.tag === "how_to_play") {
+            var g2 = game || lastGame;
+            if (g2) {
+                rememberTurn(r.tag);
+                var g = BitData.GAMES[g2];
+                return r.tag === "game_info" ? g.info : g.play;
+            }
+            return "Which game? 🎮 Try: car, snake, flappy, dino, pacman, tic tac toe, arcadecraft or the quiz!";
+        }
+        // find the intent's responses (anti-repeat cycling)
+        var rs = intentResponses(r.tag);
+        if (rs && rs.length) { rememberTurn(r.tag); return pickFresh(rs, r.tag); }
+        return fallbackMsg();
+    }
+
+    // v5: answer MULTIPLE questions in one message ("a? b?" → both answered)
+    function multiAnswer(text) {
+        var parts = text.split(/[?!.]\s+/).map(function (s) { return s.trim(); })
+                        .filter(function (s) { return s.length > 2; });
+        if (parts.length < 2) return null;
+        var answers = [], seenTags = {};
+        for (var i = 0; i < parts.length && i < 3; i++) {
+            var seg = parts[i];
+            var toks = BitBrain.tokenize(seg).map(BitBrain.stem);
+            var known = 0;
+            toks.forEach(function (w) { if (vocabInfo.index[w] !== undefined) known++; });
+            var coverage = toks.length ? known / toks.length : 0;
+            if (coverage < 0.35) continue;
+            var pr = predict(seg);
+            if (pr.prob < 0.5) continue;
+            if (seenTags[pr.tag]) continue;
+            seenTags[pr.tag] = 1;
+            var gm = findGame(seg);
+            if (gm) { lastGame = gm; MEM.gameTime = Date.now(); }
+            answers.push({ tag: pr.tag, ans: answerFor(seg, pr, gm || lastGame) });
+        }
+        if (answers.length < 2) return null;          // only 1 real question → the normal path answers it
+        var out = "You asked **" + answers.length + " things**! 😄\n\n";
+        answers.forEach(function (a, idx) {
+            out += "**" + (idx + 1) + ")** " + a.ans + "\n\n";
+        });
+        rememberTurn(answers[answers.length - 1].tag);
+        return out + "Ask one at a time for the full answer! 📝";
+    }
+
+    // ── MARKDOWN RENDERER (v5) ─────────────────────────────────────────────
+    // BitBot answers in markdown (like real AIs); this renders it in the
+    // chat: **bold**, *italic*, code, code blocks, # headings, lists, links.
+    function mdInline(t) {
+        return t
+            .replace(/\u0060([^\u0060]+)\u0060/g, '<code>$1</code>')
+            .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+            .replace(/(^|\s)\*([^*\n]+)\*/g, '$1<i>$2</i>')
+            .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    }
+    function mdRender(src) {
+        var esc = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var lines = esc.split('\n');
+        var out = [], inUl = false, inOl = false, inCode = false, buf = [];
+        function closeList() { if (inUl) { out.push('</ul>'); inUl = false; } if (inOl) { out.push('</ol>'); inOl = false; } }
+        for (var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if (/^[\u0060]{3}/.test(ln)) {
+                if (inCode) { out.push('<pre><code>' + buf.join('\n') + '</code></pre>'); buf = []; inCode = false; }
+                else { closeList(); inCode = true; }
+                continue;
+            }
+            if (inCode) { buf.push(ln); continue; }
+            var h = ln.match(/^(#{1,3})\s+(.*)$/);
+            if (h) { closeList(); out.push('<h' + (h[1].length + 2) + '>' + mdInline(h[2]) + '</h' + (h[1].length + 2) + '>'); continue; }
+            var ul = ln.match(/^[-•]\s+(.*)$/);
+            var ol = ln.match(/^\d+[.)]\s+(.*)$/);
+            if (ul || ol) {
+                if (ul && inOl) { out.push('</ol>'); inOl = false; }
+                if (ol && inUl) { out.push('</ul>'); inUl = false; }
+                if (ul && !inUl) { out.push('<ul>'); inUl = true; }
+                if (ol && !inOl) { out.push('<ol>'); inOl = true; }
+                out.push('<li>' + mdInline(ul ? ul[1] : ol[1]) + '</li>');
+                continue;
+            }
+            closeList();
+            if (ln.trim() === '') out.push('<div class="sp"></div>');
+            else out.push('<div>' + mdInline(ln) + '</div>');
+        }
+        closeList();
+        if (inCode) out.push('<pre><code>' + buf.join('\n') + '</code></pre>');
+        return out.join('');
+    }
+
+    // ── UI ─────────────────────────────────────────────────────────────────
+    function addMsg(cls, text, instant) {
+        var d = document.createElement('div');
+        d.className = 'msg ' + cls;
+        var c = document.createElement('div');
+        c.className = 'mbody';
+        d.appendChild(c);
+        var ts = document.createElement('span');                       // v6: timestamp
+        ts.className = 'time';
+        ts.textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        d.appendChild(ts);
+        chat.appendChild(d);
+        if (instant || cls === 'me') { c.textContent = text; scroll(); return; }
+        // stream the bot's answer character by character, then render markdown
+        var i = 0;
+        (function step() {
+            i += 2;
+            c.textContent = text.slice(0, i);
+            scroll();
+            if (i < text.length) setTimeout(step, 14);
+            else { try { c.innerHTML = mdRender(text); } catch (e) { c.textContent = text; } scroll(); }
+        })();
+    }
+    function scroll() { chat.scrollTop = chat.scrollHeight; }
+    function showChips(list) {
+        chipsEl.innerHTML = '';
+        list.forEach(function (q) {
+            var c = document.createElement('div');
+            c.className = 'chip'; c.textContent = q;
+            c.onclick = function () { chipsEl.innerHTML = ''; send(q); };
+            chipsEl.appendChild(c);
+        });
+    }
+    function greet() {
+        var h = new Date().getHours();
+        var tod = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Up late";
+        addMsg("bot", userName
+            ? "**" + tod + ", " + userName + "!** 👋 Welcome back — I remembered you! I'm BitBot v6: **memory + markdown + full math + quiz**. Ask me anything!"
+            : "**" + tod + "!** 👋 I'm **BitBot v6** 🤖 — your arcade companion with **124 topics** of knowledge, **full math solving**, **quiz mode** and a **memory that never forgets your name**! Try \"quiz me\" — or tell me your name!", false);
+        showChips(["Quiz me", "Table of 7", "Tell me a fact", "5 km to miles"]);
+    }
+    function send(text) {
+        text = (text || '').trim();
+        if (!text || !net) return;
+        addMsg('me', text);
+        inp.value = '';
+        typingEl.classList.add('show'); scroll();
+        setTimeout(function () {
+            typingEl.classList.remove('show');
+            var ans;
+            try { ans = respond(text); }                                        // v6: never crash on a bug
+            catch (e) { ans = "Oops — my neurons hiccuped! 🤯 Ask me again, maybe in simpler words?"; }
+            addMsg('bot', ans, false);
+        }, 420 + Math.random() * 500);
+    }
+
+    document.getElementById('clearBtn').onclick = function () {           // v6: fresh chat, instantly
+        chat.innerHTML = ''; chipsEl.innerHTML = '';
+        MEM.turns = []; MEM.lastTag = null; MEM.lastTime = 0; MEM.used = {}; MEM.quiz = null;
+        greet();
+    };
+    document.getElementById('send').onclick = function () { send(inp.value); };
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(inp.value); });
+
+    // ── LIVE TRAINING ("watch it learn") — chunked, non-blocking ──────────
+    document.getElementById('trainBtn').onclick = function () {
+        var ov = document.getElementById('trainOv'),
+            fill = document.getElementById('trainFill'),
+            stats = document.getElementById('trainStats');
+        ov.classList.add('show');
+        statusEl.classList.add('busy'); statusTxt.textContent = 'training…';
+        var t = BitBrain.makeTrainer(BitData.INTENTS, { seed: 7, hidden: 40 });
+        var EPOCHS = 60, e = 0, r = BitBrain.rng(4242);
+        (function chunk() {
+            var t0 = performance.now();
+            while (e < EPOCHS && performance.now() - t0 < 28) {   // ≤28ms slices → 60fps
+                var loss = t.epoch(r, e < 30 ? 0.12 : 0.05);
+                if (e % 5 === 0) {
+                    fill.style.width = (e / EPOCHS * 100).toFixed(0) + '%';
+                    stats.innerHTML = 'epoch ' + e + '/' + EPOCHS + ' · loss ' + loss.toFixed(4) +
+                        '<br>training accuracy: <b style="color:#34d399">' + (t.accuracy() * 100).toFixed(1) + '%</b>';
+                }
+                e++;
+            }
+            if (e < EPOCHS) { setTimeout(chunk, 0); return; }
+            fill.style.width = '100%';
+            var acc = t.accuracy();
+            stats.innerHTML = '✅ Training complete!<br>final training accuracy: <b style="color:#34d399">' + (acc * 100).toFixed(1) + '%</b>' +
+                '<br>weights swapped into the live net.';
+            net = t.net;                                            // hot-swap the brain
+            vocabInfo = t.vocab; vocabInfo.tags = t.tags;             // vocab + tag list!
+            setTimeout(function () {
+                ov.classList.remove('show');
+                statusEl.classList.remove('busy'); statusTxt.textContent = 'self-trained ✓';
+                addMsg('bot', '🧠 I just retrained my whole brain from scratch — final accuracy ' + (acc * 100).toFixed(1) + '%! Ask me something.', false);
+                showChips(['What games are there?', 'Tell me a fact', 'What is 45 times 3', 'How do I add friends?']);
+            }, 1400);
+        })();
+    };
+
+    if (window.__AI_DEPS_READY) boot();
+    else window.addEventListener('ai-deps-ready', boot, { once: true });
+})();
+</script>
 </body>
 </html>

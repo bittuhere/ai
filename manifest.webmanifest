@@ -1,0 +1,15 @@
+{
+  "name": "BitBot — Arcade Hub AI",
+  "short_name": "BitBot",
+  "description": "The Arcade Hub AI assistant — chat, full math, quiz and 124 topics of knowledge",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0b22",
+  "theme_color": "#0d0b22",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

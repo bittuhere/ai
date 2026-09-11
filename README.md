@@ -1,4 +1,7 @@
-# 🤖 BitBot v6 — Arcade Hub's AI assistant (BETA)
+# 🤖 BitBot v7 — Arcade Hub's AI assistant (BETA)
+
+**Visible chain-of-thought • honest AI (never pretends) • full math • quiz mode •
+124 topics • 76µs answers • loading screen • offline service worker • PWA.
 
 **Ship-ready for bittuhere.github.io/ai** — loading screen with real %, service
 worker (offline + instant repeat loads), PWA installable, FULL math solver,
@@ -107,3 +110,30 @@ Regenerate shipped weights: `node train.js`.
 1. Delete the old `/ai/` project in the repo
 2. Copy this whole `ai/` folder into the repo as `/ai/`
 3. Commit + push — done! (SW + manifest work on GitHub Pages automatically)
+
+## New in v7 — chain of thought + honesty
+- **🧠 Visible chain-of-thought**: before every answer, a collapsible thinking
+  bubble shows the REAL reasoning: parse stats → neural-net verdict with
+  confidence % + runner-up intent → honesty/hedge decisions → response choice
+  (anti-repeat). Every value is genuine computation, not decoration.
+- **Honest AI (anti-trolling)**: threshold raised to 50% + hedge band ("Not
+  fully sure, but…") + honesty guard (unknown salient words + <75% → admits
+  ignorance) + "who is X?" people-catcher ("I don't know Rajesh — a friend of
+  yours? 😄") + "what is my girlfriend's name" → witty deflection. It NEVER
+  confidently makes things up anymore.
+- **Multi-question v2**: answers every understood part, admits the rest
+  ("I caught one of those questions… the other part went over my head 🤔")
+- **⚡ Live speed test**: "how fast are you?" runs a real benchmark —
+  ~1,000 classifications measured live (~60-80 µs each)
+- **Deterministic prime check** ("is 25 prime" never depends on classifier mood)
+- Pools: **50 facts, 30 jokes**; train config: seed 1337 (81/83 held-out,
+  2 label quirks only)
+- Measured performance: **76.5 µs/answer** (2,000 answers in 153ms, Chrome)
+
+## Performance envelope (measured, for the "1 lakh patterns" question)
+- Thinking speed: ~65-110 µs/answer — NEVER the bottleneck
+- Real limit = weights.js size: ~20 bytes/param; +1,000 vocab words ≈ +800KB
+  ≈ +0.3-0.5s load on low-end phones
+- **Sweet spot: ~2,500-4,000 patterns (~2-3MB weights) = still instant**
+- 100K patterns → 40-80MB weights → 5-15s loads on low-end = NOT instant
+- Knowledge CONTENT (responses/facts/quiz) adds ~zero weight — grow it freely!

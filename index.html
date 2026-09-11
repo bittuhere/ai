@@ -96,6 +96,15 @@
     /* timestamps + clear chat (v6) */
     .msg .time { display: block; font-size: .58rem; color: #5b6472; margin-top: 5px; text-align: right; letter-spacing: .4px; }
     .me .time { color: rgba(255,255,255,.5); }
+
+    /* chain of thought (v7) */
+    .cot { align-self: flex-start; max-width: 80%; padding: 8px 13px; border-radius: 14px; border-bottom-left-radius: 5px;
+           background: rgba(26,33,48,.55); border: 1px dashed rgba(125,211,252,.28); font-size: .73rem; color: #8b98ab;
+           animation: pop .2s both; }
+    .cot .thead { cursor: pointer; color: #7dd3fc; letter-spacing: .3px; user-select: none; }
+    .cot .tbody { display: none; margin-top: 7px; }
+    .cot.open .tbody { display: block; }
+    .cot .tstep { padding: 2.5px 0; border-top: 1px dotted rgba(139,152,171,.18); animation: pop .22s both; }
     #clearBtn { margin-left: 8px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15);
                 background: rgba(255,255,255,.05); color: #9aa5b5; font-size: 1.05rem; cursor: pointer; transition: .2s; flex-shrink: 0; }
     #clearBtn:hover { color: #7dd3fc; border-color: rgba(0,243,255,.5); transform: rotate(-180deg); }
@@ -132,7 +141,7 @@
     <button id="send" title="Send">➤</button>
 </footer>
 
-<div id="ver">BitBot v6</div>
+<div id="ver">BitBot v7</div>
 <button id="trainBtn">🧠 Watch BitBot learn</button>
 <div id="trainOv">
     <h2>BitBot is training its brain…</h2>
@@ -171,9 +180,9 @@
         requestAnimationFrame(tick);
         setP(6, 'starting neural core…');
         var files = [
-            ['brain.js?v=7',   26, 'loading my brain engine…'],
-            ['data.js?v=7',    56, 'loading knowledge — 124 topics…'],
-            ['weights.js?v=7', 90, 'loading weights — all my memories…']
+            ['brain.js?v=8',   26, 'loading my brain engine…'],
+            ['data.js?v=8',    56, 'loading knowledge — 125 topics…'],
+            ['weights.js?v=8', 90, 'loading weights — all my memories…']
         ];
         var i = 0;
         function loadCurrent(tries) {
@@ -209,7 +218,7 @@
 
     // ── boot: pre-trained weights (instant) ────────────────────────────────
     var net = null, vocabInfo = null, trainer = null;
-    var THRESHOLD = 0.42;
+    var THRESHOLD = 0.5;
     var lastGame = null;
 
     function boot() {
@@ -237,9 +246,12 @@
 
     function predict(text) {
         var x = BitBrain.bag(text, vocabInfo);
-        var p = net.forward(x).p, best = 0;
-        for (var i = 1; i < p.length; i++) if (p[i] > p[best]) best = i;
-        return { tag: vocabInfo.tags[best], prob: p[best] };
+        var p = net.forward(x).p, best = 0, second = -1;
+        for (var i = 1; i < p.length; i++) {
+            if (p[i] > p[best]) { second = best; best = i; }
+            else if (second === -1 || p[i] > p[second]) second = i;
+        }
+        return { tag: vocabInfo.tags[best], prob: p[best], tag2: second >= 0 ? vocabInfo.tags[second] : null, prob2: second >= 0 ? p[second] : 0 };
     }
 
     // ── entity extraction (slot filling) ───────────────────────────────────
@@ -277,7 +289,15 @@
         "Why was the geometry book so calm? It had all the right ANGLES! 📐",
         "Why did the quiz go to therapy? Too many problems to solve! 🧠",
         "What do clouds wear under their clothes? THUNDER-wear! ⛈️",
-        "Why is your nose never 12 inches long? Because then it would be a FOOT! 👃"
+        "Why is your nose never 12 inches long? Because then it would be a FOOT! 👃",
+        "Why did the teacher wear sunglasses? Her students were too BRIGHT! 😎",
+        "What is a snake's favorite subject? HISS-tory! 🐍",
+        "Why did the golfer bring two pairs of pants? In case he got a HOLE in one! ⛳",
+        "What do you call a boomerang that doesn't come back? A STICK! 🪃",
+        "Why was the broom late? It over-SWEPT! 🧹",
+        "What did one wall say to the other? Meet you at the CORNER! 🧱",
+        "Why do calculators make great friends? You can always COUNT on them! 🧮",
+        "Why did the computer sneeze? It had a virus! 🤧"
     ];
     var FACTS = [
         "🔬 Class 8 science: photosynthesis = plants making food from sunlight + water + CO₂ — the equation of life!",
@@ -308,7 +328,26 @@
         "🌍 Earth is the only planet not named after a god!",
         "🐝 A bee can visit 5,000 flowers in a single day!",
         "🪐 Saturn is so light it would float in water — if you found a big enough bucket!",
-        "🇮🇳 Mawsynram (Meghalaya) is the wettest place on Earth — ~11,871 mm of rain a year!"
+        "🇮🇳 Mawsynram (Meghalaya) is the wettest place on Earth — ~11,871 mm of rain a year!",
+        "🦴 Your bones are 4× stronger than concrete, gram for gram!",
+        "🐝 Honeybees dance to give directions — the waggle dance is a real map!",
+        "🦅 An eagle can spot a rabbit from 3 km away — vision ~8× sharper than yours!",
+        "🧊 Glaciers store about 69% of ALL fresh water on Earth!",
+        "🐘 Elephants are one of the very few animals that cannot jump!",
+        "🇮🇳 The Indian flag was adopted on 22 July 1947!",
+        "🐙 An octopus can taste with its ARMS!",
+        "⚡ A lightning bolt is about 5× hotter than the surface of the Sun!",
+        "🧠 Nerve signals travel at up to 430 km/h inside you!",
+        "🌊 The Indian Ocean is the warmest ocean on Earth!",
+        "🦈 A shark's skeleton is made entirely of cartilage — zero bones!",
+        "🌵 A cactus can survive up to 2 years without water!",
+        "🪐 A year on Mercury lasts just 88 Earth days!",
+        "🇮🇳 India's national anthem takes exactly 52 seconds to sing!",
+        "🕷️ Spiders are not insects — 8 legs vs an insect's 6!",
+        "🍎 An apple floats because 25% of its volume is air!",
+        "🌍 Earth spins at 1,670 km/h at the equator — you are moving RIGHT NOW!",
+        "🦩 Flamingos are born grey — they turn pink from eating shrimp!",
+        "🇮🇳 Kabaddi is over 4,000 years old — it is mentioned in the Mahabharata!"
     ];
     // ── FULL MATH (v6): tables, factorial, GCD/HCF, LCM, primes, factors,
     //    averages, percentages, mod, pi + the expression evaluator with fractions ──
@@ -471,10 +510,10 @@
 
     var PARAMS = 20000;                          // true count is set at boot()
     function fallbackMsg() {
-        var p = PARAMS.toLocaleString('en-IN');
         var fbs = [
-            "That one's beyond my neural pathways 🤖 — I'm a tiny " + p + "-parameter arcade brain, not ChatGPT! I'm best at: Arcade Hub help, games, science and GK facts, jokes, math, unit conversion — and I remember your name!",
-            "Hmm, didn't quite catch that 🤔 — try games, account help, Fair Copies, science and space facts, GK, jokes, or math (I calculate live!)"
+            "I honestly don't know that one yet 🤷 — I'm still learning! I'm best at: **Arcade Hub, games, full math, science, GK, history, sports** and school stuff.",
+            "That's beyond me for now 😅 — try the site, any game, math (I solve FULL math!), science, GK… or say **quiz me**!",
+            "My knowledge ends somewhere around there 🤔 — but I never pretend! Ask me about games, math, science, history, sports or Arcade Hub."
         ];
         return fbs[Math.floor(Math.random() * fbs.length)];
     }
@@ -529,7 +568,7 @@
         site_stats: "site stats", user_name: "your name",
         smalltalk_origin: "where I live", smalltalk_pets: "my pets",
         smalltalk_age: "my age", who_made: "who made me",
-        skill_quizme: "quiz questions", hist_india: "Indian history", hist_world: "world history",
+        bot_speed: "my speed", skill_quizme: "quiz questions", hist_india: "Indian history", hist_world: "world history",
         sports_cricket: "cricket", sports_general: "sports", sci_respiration: "respiration",
         sci_reproduction: "reproduction", sci_metals: "metals", sci_fossil_fuel: "fossil fuels",
         sci_micro: "microorganisms", sci_friction: "force and friction", sci_light_eye: "the eye and light",
@@ -559,6 +598,7 @@
         if (!fresh.length) { used.length = 0; fresh = pool; }   // pool exhausted → cycle again
         var resp = fresh[Math.floor(Math.random() * fresh.length)];
         used.push(resp);
+        cot('💬 choosing response ' + (pool.indexOf(resp) + 1) + ' of ' + pool.length + (fresh.length < pool.length ? ' (anti-repeat active)' : ''));
         return resp;
     }
     function timeAnswer() {
@@ -709,17 +749,44 @@
     }
 
     function respond(text) {
+        COT.length = 0;
         // 1) name memory first ("my name is …", "what is my name")
         var nm = handleName(text);
-        if (nm !== null) return nm;
+        if (nm !== null) { cot('👤 name memory matched — no classification needed'); return nm; }
+
+        // v7: deterministic prime check — never depends on the classifier's mood
+        if (/^(?:is\s+)?\d{1,9}\s*(?:a\s*)?prime\??$/i.test(text.trim())) {
+            cot('🔢 exact prime-check form detected → deterministic solver');
+            return doMath(text);
+        }
+
+        // v7: "who is X?" → honest unless X is someone I actually know
+        var wm = text.match(/^who (?:is|was|are)\s+([a-z' .]{2,30})\??$/i);
+        if (wm) {
+            var KNOWN_PEOPLE = /^(you|this|that|it|the admin|the owner|the developer|the maker|the creator|bittuhere|anurag|gandhi|mahatma gandhi|virat kohli|virat|sachin|sachin tendulkar|ashoka|thomas edison|edison|newton|isaac newton|albert einstein|einstein|hitler|modi|the president of india|the president|ronaldo|messi)\b/i;
+            if (!KNOWN_PEOPLE.test(wm[1].trim())) {
+                cot('🙋 asking about "' + wm[1].trim() + '" — not in my people knowledge → honest answer');
+                return "I don't know **" + wm[1].trim() + "** — a friend of yours? 😄 I know Arcade Hub, school subjects (science, math, history, GK) and general knowledge!";
+            }
+        }
+
+        // v7: "what is my girlfriend's name?" troll-catcher → witty + honest
+        var tm = text.match(/what(?:'s| is) my ([a-z' ]{3,30}?)\s+name\b/i);
+        if (tm) {
+            var who = tm[1].trim().replace(/[' ]+$/, '');
+            if (who) {
+                cot('🙋 personal question about "' + who + '" → honest deflection');
+                return "The name of your **" + who + "**? That's your secret to tell — not mine to know! 😄 I'm an arcade bot, not a mind reader!";
+            }
+        }
 
         // 2) quiz answer check (while a quiz question is active)
         var qa = quizAnswer(text);
-        if (qa !== null) return qa;
+        if (qa !== null) { cot('🎯 quiz in progress → checking your answer'); return qa; }
 
         // 3) follow-ups — pure context, no neural net needed
         var f = handleFollowup(text);
-        if (f !== null) return f;
+        if (f !== null) { if (!COT.length) cot('🔗 context handler matched (memory — neural net skipped)'); return f; }
 
         // 3) multi-question: "how to add a friend? how to open admin?" → answer BOTH
         var mq = multiAnswer(text);
@@ -730,7 +797,7 @@
         var shortMsg = text.split(/\s+/).length <= 8;
         var pronounRef = !game && lastGame && (Date.now() - MEM.gameTime) < MEM_WINDOW && shortMsg && RE_PRONOUN.test(text);
         if (game) { lastGame = game; MEM.gameTime = Date.now(); }
-        if (pronounRef) MEM.gameTime = Date.now();
+        if (pronounRef) { MEM.gameTime = Date.now(); cot('📌 pronoun "it" → resolving to ' + lastGame); }
         var r = predict(pronounRef ? text + " " + BitData.GAMES[lastGame].names[0] : text);
 
         // OOD guard: if most words are unknown to my vocabulary, it's
@@ -739,34 +806,63 @@
         var known = 0;
         toks.forEach(function (w) { if (vocabInfo.index[w] !== undefined) known++; });
         var coverage = toks.length ? known / toks.length : 0;
+        cot('📝 parsed ' + toks.length + ' words · ' + known + ' in my vocabulary (' + Math.round(coverage * 100) + '% coverage)');
+        cot('🧠 neural net → ' + r.tag + ' (' + (r.prob * 100).toFixed(1) + '%)' + (r.tag2 ? ' · runner-up: ' + r.tag2 + ' (' + (r.prob2 * 100).toFixed(1) + '%)' : ''));
 
         if (r.prob < THRESHOLD || (coverage < 0.35 && r.prob < 0.75)) {
-            // low confidence → honest fallback + suggestions (+ memory hint)
+            // low confidence → HONEST fallback, never a confident guess (+ memory hint)
+            cot('🚦 below ' + Math.round(THRESHOLD * 100) + '% confidence → admitting I do not know');
             setTimeout(function () { showChips(["Tell me a fact", "Tell me a joke", "What games are there?", "How do I add friends?"]); }, 300);
             var fb = fallbackMsg();
+            var pm = text.match(/who (?:is|was|are)\s+([a-z][a-z .]{1,25})/i);
+            if (pm) fb = "I don't know **" + pm[1].trim() + "** — a friend of yours? 😄 I know Arcade Hub, school subjects (science, math, history, GK) and general knowledge!";
             if (memActive()) fb += "\n\nPS: we were just talking about " + topicLabel(MEM.lastTag) + ' — say "more" if you want more of that!';
             return fb;
         }
-        return answerFor(text, r, game || (pronounRef ? lastGame : null));
+        // v7 HONESTY GUARD: salient unknown words + not-high confidence → admit ignorance
+        var salientUnknown = [];
+        toks.forEach(function (w) { if (w.length >= 4 && vocabInfo.index[w] === undefined && !/^\d+$/.test(w)) salientUnknown.push(w); });
+        if (salientUnknown.length && r.prob < 0.75) {
+            cot('🚨 unknown word' + (salientUnknown.length > 1 ? 's' : '') + ': ' + salientUnknown.join(', ') + ' — only ' + (r.prob * 100).toFixed(0) + '% sure → admitting ignorance');
+            setTimeout(function () { showChips(["Tell me a fact", "Tell me a joke", "What games are there?", "How do I add friends?"]); }, 300);
+            var fb2 = fallbackMsg();
+            var pm2 = text.match(/who (?:is|was|are)\s+([a-z][a-z .]{1,25})/i);
+            if (pm2) fb2 = "I don't know **" + pm2[1].trim() + "** — a friend of yours? 😄 I know Arcade Hub, school subjects (science, math, history, GK) and general knowledge!";
+            else fb2 = "I don't fully understand that — some words are new to me! 🤷 Try simpler wording, or ask about games, math, science, GK, history or the site.";
+            if (memActive()) fb2 += "\n\nPS: we were just talking about " + topicLabel(MEM.lastTag) + ' — say "more" if you want more of that!';
+            return fb2;
+        }
+        var hedge = r.prob < 0.68 ? "🤔 Not fully sure, but here's my best answer:\n\n" : "";
+        if (hedge) cot('⚖ only ' + (r.prob * 100).toFixed(0) + '% sure → answering with an honest hedge');
+        return hedge + answerFor(text, r, game || (pronounRef ? lastGame : null));
     }
 
     // given a confident classification, produce the answer (shared with multi-question mode)
     function answerFor(text, r, game) {
         // ── SKILLS: computed live, not memorized ─────────────────────
-        if (r.tag === "skill_quizme") { rememberTurn("skill_quizme"); return doQuiz(); }
+        if (r.tag === "bot_speed") {
+            rememberTurn("bot_speed");
+            var t0 = performance.now(), N = 1000;
+            for (var si = 0; si < N; si++) predict("how do i enable notifications on my phone");
+            var ms = performance.now() - t0;
+            cot('⚡ live benchmark: ' + N + ' classifications in ' + ms.toFixed(1) + ' ms');
+            return "⚡ **Speed test — live result:**\nI just classified **" + N + " messages in " + ms.toFixed(1) + " ms** — that is **" + (ms / N * 1000).toFixed(0) + " microseconds per answer**!\n\nPure math, zero lag. Try to out-ask me! 😄";
+        }
+        if (r.tag === "skill_quizme") { cot('🎯 quiz skill → picking an unseen question'); rememberTurn("skill_quizme"); return doQuiz(); }
         if (r.tag === "skill_convert") {
             var cv = doConvert(text);
             if (cv) { rememberTurn("skill_convert"); return cv; }
             if (!/\d/.test(text)) return fallbackMsg();     // no numbers → was a misclassification
             return 'Give me units to convert! 📐 Try "5 km to miles", "10 kg in pounds" or "100 c to f".';
         }
-        if (r.tag === "skill_random") { rememberTurn("skill_random"); return doRandom(text); }
+        if (r.tag === "skill_random") { cot('🎲 dice/coin/random skill'); rememberTurn("skill_random"); return doRandom(text); }
         if (r.tag === "skill_calc") {
             var cv2 = doConvert(text);
             if (cv2) { rememberTurn("skill_convert"); return cv2; }
+            cot('🧮 full-math solver engaged');
             rememberTurn("skill_calc"); return doMath(text);
         }
-        if (r.tag === "skill_time") { rememberTurn("skill_time"); return timeAnswer(); }
+        if (r.tag === "skill_time") { cot('🕐 live clock skill'); rememberTurn("skill_time"); return timeAnswer(); }
         if (r.tag === "skill_joke") { rememberTurn("skill_joke"); return pickFresh(JOKES, "skill_joke"); }
         if (r.tag === "study_fact") { rememberTurn("study_fact"); return pickFresh(FACTS, "study_fact"); }
         // entity-driven intents
@@ -785,34 +881,40 @@
         return fallbackMsg();
     }
 
-    // v5: answer MULTIPLE questions in one message ("a? b?" → both answered)
+    // v7: multi-question v2 — answer every understood part, ADMIT the rest
     function multiAnswer(text) {
         var parts = text.split(/[?!.]\s+/).map(function (s) { return s.trim(); })
                         .filter(function (s) { return s.length > 2; });
         if (parts.length < 2) return null;
-        var answers = [], seenTags = {};
+        var answers = [], unknown = 0, seenTags = {};
         for (var i = 0; i < parts.length && i < 3; i++) {
             var seg = parts[i];
             var toks = BitBrain.tokenize(seg).map(BitBrain.stem);
             var known = 0;
             toks.forEach(function (w) { if (vocabInfo.index[w] !== undefined) known++; });
             var coverage = toks.length ? known / toks.length : 0;
-            if (coverage < 0.35) continue;
             var pr = predict(seg);
-            if (pr.prob < 0.5) continue;
+            if (coverage < 0.35 || pr.prob < 0.45) { unknown++; continue; }
             if (seenTags[pr.tag]) continue;
             seenTags[pr.tag] = 1;
             var gm = findGame(seg);
             if (gm) { lastGame = gm; MEM.gameTime = Date.now(); }
             answers.push({ tag: pr.tag, ans: answerFor(seg, pr, gm || lastGame) });
         }
-        if (answers.length < 2) return null;          // only 1 real question → the normal path answers it
+        if (!answers.length) return null;             // nothing understood → normal path / honest fallback
+        cot('✂ detected ' + parts.length + ' questions → understood ' + answers.length + (unknown ? ', admitted ' + unknown + ' unknown' : ''));
+        if (answers.length === 1) {
+            rememberTurn(answers[0].tag);
+            return (unknown ? "I caught **one** of those questions 😄 — here goes:\n\n" : "") +
+                answers[0].ans +
+                (unknown ? "\n\n*(the other part went over my head — try asking it alone? 🤔)*" : "");
+        }
         var out = "You asked **" + answers.length + " things**! 😄\n\n";
         answers.forEach(function (a, idx) {
             out += "**" + (idx + 1) + ")** " + a.ans + "\n\n";
         });
         rememberTurn(answers[answers.length - 1].tag);
-        return out + "Ask one at a time for the full answer! 📝";
+        return out + "Ask one at a time for the full markdown answer! 📝";
     }
 
     // ── MARKDOWN RENDERER (v5) ─────────────────────────────────────────────
@@ -859,6 +961,38 @@
         return out.join('');
     }
 
+    // ── CHAIN OF THOUGHT (v7) — real reasoning steps, shown before each answer ──
+    var COT = [];
+    function cot(line) { COT.push(line); }
+    function showThinking(trace, done) {
+        if (!trace || !trace.length) { done(); return; }
+        var d = document.createElement('div');
+        d.className = 'cot open';
+        var head = document.createElement('div');
+        head.className = 'thead';
+        head.textContent = '🧠 thinking…';
+        var body = document.createElement('div');
+        body.className = 'tbody';
+        d.appendChild(head); d.appendChild(body);
+        chat.appendChild(d); scroll();
+        var i = 0;
+        (function next() {
+            if (i < trace.length) {
+                var ln = document.createElement('div');
+                ln.className = 'tstep';
+                ln.textContent = trace[i++];
+                body.appendChild(ln); scroll();
+                head.textContent = '🧠 thinking (' + i + '/' + trace.length + ')…';
+                setTimeout(next, 240);
+            } else {
+                d.classList.remove('open');
+                head.textContent = '🧠 ' + trace.length + ' steps ▾';
+                head.onclick = function () { d.classList.toggle('open'); scroll(); };
+                setTimeout(done, 200);
+            }
+        })();
+    }
+
     // ── UI ─────────────────────────────────────────────────────────────────
     function addMsg(cls, text, instant) {
         var d = document.createElement('div');
@@ -896,9 +1030,9 @@
         var h = new Date().getHours();
         var tod = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Up late";
         addMsg("bot", userName
-            ? "**" + tod + ", " + userName + "!** 👋 Welcome back — I remembered you! I'm BitBot v6: **memory + markdown + full math + quiz**. Ask me anything!"
-            : "**" + tod + "!** 👋 I'm **BitBot v6** 🤖 — your arcade companion with **124 topics** of knowledge, **full math solving**, **quiz mode** and a **memory that never forgets your name**! Try \"quiz me\" — or tell me your name!", false);
-        showChips(["Quiz me", "Table of 7", "Tell me a fact", "5 km to miles"]);
+            ? "**" + tod + ", " + userName + "!** 👋 Welcome back — I remembered you! I'm BitBot v7 with **visible chain-of-thought**: watch the 🧠 steps before every answer!"
+            : "**" + tod + "!** 👋 I'm **BitBot v7** 🤖 — now with **visible chain-of-thought** (watch the 🧠 before every answer!), **full math**, **quiz mode**, **speed test** and **124 topics**. Tell me your name — I'll remember it!", false);
+        showChips(["Quiz me", "How fast are you?", "Tell me a fact", "Table of 7"]);
     }
     function send(text) {
         text = (text || '').trim();
@@ -911,7 +1045,7 @@
             var ans;
             try { ans = respond(text); }                                        // v6: never crash on a bug
             catch (e) { ans = "Oops — my neurons hiccuped! 🤯 Ask me again, maybe in simpler words?"; }
-            addMsg('bot', ans, false);
+            showThinking(COT.slice(), function () { addMsg('bot', ans, false); });   // v7: chain of thought first
         }, 420 + Math.random() * 500);
     }
 
@@ -930,7 +1064,7 @@
             stats = document.getElementById('trainStats');
         ov.classList.add('show');
         statusEl.classList.add('busy'); statusTxt.textContent = 'training…';
-        var t = BitBrain.makeTrainer(BitData.INTENTS, { seed: 7, hidden: 40 });
+        var t = BitBrain.makeTrainer(BitData.INTENTS, { seed: 1337, hidden: 40 });
         var EPOCHS = 60, e = 0, r = BitBrain.rng(4242);
         (function chunk() {
             var t0 = performance.now();

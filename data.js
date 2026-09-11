@@ -234,7 +234,7 @@
         ] },
 
         { tag: 'cache_issue', patterns: [
-            'site looks broken', 'old version showing', 'game not loading', 'stale page',
+            'site looks broken', 'site looks old', 'site looks old and broken', 'old version showing', 'game not loading', 'stale page',
             'clear cache', 'something is glitched', 'page is weird', 'crashed game'
         ], responses: [
             'If anything looks broken or old 👾: hard-refresh with Ctrl+Shift+R (or pull-to-refresh twice on mobile). That clears the site cache and loads the fresh version.'
@@ -248,7 +248,7 @@
         ] },
 
         { tag: 'admin', patterns: [
-            'admin panel', 'who is admin', 'how to become admin', 'admin password',
+            'admin panel', 'who is admin', 'how to become admin', 'admin password', 'how to open the admin panel', 'open admin panel', 'admin panel kaise kholein',
             'admin features', 'moderator'
         ], responses: [
             'The **Admin Panel** ⚡ is restricted to the site owner (password protected). It manages **users, announcements, scores** and more — regular players can\'t (and shouldn\'t 😉) access it.'
@@ -369,7 +369,7 @@
         ] },
 
         { tag: 'smalltalk_sad', patterns: [
-            'i am sad', 'feeling low', 'i am upset', 'mood off', 'i failed my test',
+            'i am sad', 'feeling low', 'i feel low', 'i feel sad', 'i feel down', 'feeling down today', 'i am upset', 'mood off', 'i failed my test',
             'bad day', 'i am stressed', 'dukhi hoon', 'i am angry', 'exam went bad',
             'i am feeling sad', 'i am feeling low'
         ], responses: [
@@ -466,7 +466,7 @@
         { tag: 'india_facts', patterns: ['independence day', 'republic day', 'national animal of india', 'national bird', 'indian flag meaning', 'how many states in india'], responses: ['India 🇮🇳: Independence Day → 15 August, Republic Day → 26 January, national animal → tiger 🐯, national bird → peacock 🦚, 28 states + 8 UTs. The flag\'s saffron = courage, white = peace, green = growth!', 'More India 🇮🇳: national flower → lotus, national tree → banyan, national fruit → mango, and CHESS was born in India as chaturanga over 1,500 years ago!', 'Indian superlatives 🇮🇳: highest waterfall → Kunchikal Falls (Karnataka), largest delta → Sundarbans, and the Taj Mahal changes shade through the day — pinkish at dawn, white by evening!'] },
         { tag: 'study_tips', patterns: ['how to focus on study', 'exam tips', 'how to remember things', 'study motivation', 'best time to study', 'how to score good marks'], responses: ['Study power-ups 📚: 1) Pomodoro — 25 min focus + 5 min break. 2) Teach it to a friend (or me!) — best memory trick. 3) Sleep 8 hours — memory forms while sleeping. 4) Practice papers > re-reading. 5) Morning brain is freshest!'] },
         { tag: 'smalltalk_age', patterns: ['how old are you', 'your age', 'when were you born', 'birthday'], responses: ['I was born the moment you messaged me! 🐣 Youngest AI in Patna — but I know things older than the pyramids!'] },
-        { tag: 'smalltalk_fav', patterns: ['your favorite game', 'do you like games', 'what do you play', 'favorite color', 'do you have fun'], responses: ['I love ALL the games equally... but secretly, Snake 🐍 — we both speak the language of neural pathways!'] },
+        { tag: 'smalltalk_fav', patterns: ['your favorite game', 'do you like games', 'what do you play', 'favorite color', 'do you have fun', 'what are your hobbies in life', 'your hobbies in life'], responses: ['I love ALL the games equally... but secretly, Snake 🐍 — we both speak the language of neural pathways!'] },
         { tag: 'smalltalk_sleep', patterns: ['do you sleep', 'are you tired', 'do you rest', 'you need a break'], responses: ['Sleep? I never sleep — I am always one message away! 😄 Ask me anything, anytime!'] },
         { tag: 'smalltalk_friends', patterns: ['are we friends', 'will you be my friend', 'i like you', 'you are cool', 'you are my best friend'], responses: ['Best friends forever 🤝 — you trained me, I answer you. That\'s the purest friendship in computer science!'] },
         { tag: 'score_sync', patterns: ['how does score sync', 'where are scores stored', 'does score save offline', 'cloud sync', 'score not saving'], responses: ['Scores 🏆 sync to Firebase the moment you finish a game while online. If you\'re offline, play freely — but scores only save when the internet returns!'] },
@@ -1803,6 +1803,10 @@
     INTENTS.push({ tag: "english_grammar", patterns: ["what is a noun","what is a verb","what is an adjective","tenses in english","what is a pronoun","active and passive voice","what is a preposition","direct and indirect speech","what is a noun in english"],
         responses: ["📚 **Grammar power-ups:**\n- **Noun** = a name (Anurag, Patna, game)\n- **Verb** = the action (play, jump)\n- **Adjective** = describes a noun (fast car)\n- **Tenses** = time travel for verbs: play / played / will play\n- **Active:** \"Ram ate the mango\" · **Passive:** \"The mango was eaten by Ram\""] });
     INTENTS.push({ tag: "skill_quizme", patterns: ["quiz me","ask me a question","trivia","trivia question","quiz time","test my knowledge","gk quiz","ask me a quiz question","quiz question","ask me some trivia"],
+        responses: ["__SKILL__"] });
+
+    /* v7: live speed-test skill */
+    INTENTS.push({ tag: "bot_speed", patterns: ["how fast are you","are you fast","speed test","how quick are you","how fast do you think","are you instant","response time","are you quick"],
         responses: ["__SKILL__"] });
 
     /* v6: navigation, online safety, keyboard shortcuts */

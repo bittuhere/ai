@@ -3,7 +3,7 @@
 const BitBrain = require('./brain.js');
 const BitData = require('./data.js');
 
-const HIDDEN = 40, EPOCHS = 300, SEED = 7;
+const HIDDEN = 40, EPOCHS = 300, SEED = 1337;
 const t = BitBrain.makeTrainer(BitData.INTENTS, { seed: SEED, hidden: HIDDEN });
 const r = BitBrain.rng(4242);
 
@@ -97,6 +97,7 @@ const HELD_OUT = [
     ["who invented the lightbulb", "inventions"],
     ["what is a noun in english", "english_grammar"],
     ["trivia please", "skill_quizme"],
+    ["are you quick", "bot_speed"],
     ["hasao mujhe", "skill_joke"],
     ["dost kaise add karein", "friends_chat"],
 ];

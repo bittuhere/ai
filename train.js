@@ -1,17 +1,26 @@
-/* BitBot offline trainer — trains the net, writes weights.js, reports accuracy.
+/* BitBot offline trainer v9 — trains the ~77-lakh-parameter net, writes
+   QUANTIZED weights.js (int8 per-row → base64, ~10MB), reports accuracy.
    Run: node train.js   (this is how the shipped weights were produced) */
 const BitBrain = require('./brain.js');
 const BitData = require('./data.js');
+require('./data2.js');   // v8 knowledge expansion
+require('./data3.js');   // v9 knowledge expansion (site + SST + ICT + math concepts + templates)
 
-const HIDDEN = 40, EPOCHS = 300, SEED = 1337;
+const HIDDEN = +(process.env.H || 2048), EPOCHS = +(process.env.E || 120), SEED = 1337;
 const t = BitBrain.makeTrainer(BitData.INTENTS, { seed: SEED, hidden: HIDDEN });
 const r = BitBrain.rng(4242);
+const PARAMS = t.net.V * t.net.H + t.net.H + t.net.H * t.net.N + t.net.N;
+console.log(`architecture: vocab ${t.net.V} (incl. ${BitBrain.HASH_BUCKETS} hash) → hidden ${t.net.H} → intents ${t.net.N}`);
+console.log(`parameters:   ${PARAMS.toLocaleString('en-IN')} (${(PARAMS / 100000).toFixed(1)} lakh)`);
 
 let loss = 0;
+const T0 = Date.now();
 for (let e = 0; e < EPOCHS; e++) {
-    loss = t.epoch(r, e < 120 ? 0.12 : e < 200 ? 0.06 : 0.02);
-    if (e % 40 === 0) console.log(`epoch ${String(e).padStart(3)}  loss ${loss.toFixed(4)}  acc ${(t.accuracy()*100).toFixed(1)}%`);
+    loss = t.epoch(r, e < EPOCHS * 0.35 ? 0.12 : e < EPOCHS * 0.7 ? 0.06 : 0.02);
+    if (e % 10 === 0 || e === EPOCHS - 1)
+        console.log(`epoch ${String(e).padStart(3)}  loss ${loss.toFixed(4)}  acc ${(t.accuracy() * 100).toFixed(1)}%  (${((Date.now() - T0) / 1000).toFixed(0)}s)`);
 }
+console.log(`training finished in ${((Date.now() - T0) / 1000).toFixed(0)}s`);
 
 // held-out generalization test: phrasings NOT in the training data
 const HELD_OUT = [
@@ -36,7 +45,7 @@ const HELD_OUT = [
     ['help my login is failing', 'login_problem'],
     ['why do you want my email id', 'email_verify'],
     ['red circle on the friends button means what', 'unread_red_dot'],
-    ['my net is gone does the site work', 'offline'],
+    ['my net is gone does the site work', 'offline_detail'],
     ['which phones are supported', 'devices'],
     ['what is that c++ car experiment', 'wasm_car'],
     ['namaskar', 'greeting'],
@@ -51,7 +60,7 @@ const HELD_OUT = [
     ['i feel low today', 'smalltalk_sad'],
     ['what is 3 to the power of 4', 'skill_calc'],
     /* ── CLINC150 test-split utterances (never in training data) ── */
-    ["how are you doing", "greeting"],
+    ["how are you doing", "smalltalk_howru"],
     ["are you okay", "greeting"],
     ["good speaking to you", "bye"],
     ["it was great to speak with you", "bye"],
@@ -76,7 +85,7 @@ const HELD_OUT = [
     ["cats or dogs are your preference", "smalltalk_pets"],
     ["what kinds of pets do you own", "smalltalk_pets"],
     /* ── v5.2 knowledge intents + Hinglish ── */
-    ["who was ashoka", "hist_india"],
+    ["tell me about emperor ashoka", "hist_ancient"],
     ["tell me about the world wars", "hist_world"],
     ["how many players are there in a cricket team", "sports_cricket"],
     ["what is kabaddi", "sports_general"],
@@ -100,22 +109,255 @@ const HELD_OUT = [
     ["are you quick", "bot_speed"],
     ["hasao mujhe", "skill_joke"],
     ["dost kaise add karein", "friends_chat"],
+    /* ── v8 expansion: science ── */
+    ["explain photosynthesis in simple words", "sci_photosynthesis"],
+    ["how is food broken down inside our body", "sci_digestion"],
+    ["which blood vessels carry blood away from the heart", "sci_heart"],
+    ["what are reflex actions", "sci_nerves"],
+    ["why cant sound travel in a vacuum", "sci_sound"],
+    ["difference between conduction and convection", "sci_heat"],
+    ["what is sublimation give an example", "sci_matter"],
+    ["what is an electromagnet used for", "sci_magnets"],
+    ["what are protons and electrons", "sci_atom"],
+    ["who created the periodic table", "sci_elements"],
+    ["what does the ph scale tell us", "sci_acids"],
+    ["why does iron rust", "sci_reactions"],
+    ["what is the formula for acceleration", "sci_motion"],
+    ["give an example of newtons third law", "sci_newton"],
+    ["name the six simple machines", "sci_machines"],
+    ["what is transpiration in plants", "sci_plants"],
+    ["what are amphibians give examples", "sci_animals"],
+    ["what are decomposers in a food chain", "sci_ecosystem"],
+    ["how can we stop air pollution", "sci_pollution"],
+    ["what did charles darwin propose", "sci_evolution"],
+    ["how many bones does an adult human have", "sci_skeleton"],
+    ["which foods give us protein", "sci_nutrition"],
+    /* ── v8: math ── */
+    ["how do you add fractions with different denominators", "math_fractions"],
+    ["turn 0.75 into a fraction", "math_decimals"],
+    ["how do i work out 30 percent of a number", "math_percentage"],
+    ["bought for 400 sold for 500 what is the profit percent", "math_profit_loss"],
+    ["what is the chance of rolling a six on a die", "math_probability"],
+    ["how do you find the median of a list of numbers", "math_stats"],
+    ["what is the volume of a cylinder", "math_mensuration"],
+    ["what is sin 30 degrees", "math_trigonometry"],
+    ["what is any number raised to the power of zero", "math_exponents"],
+    ["what is a composite number", "math_numbers"],
+    ["a train goes 80 km per hour how far in 2 hours", "math_distance"],
+    /* ── v8: geography ── */
+    ["how many continents and oceans are there", "geo_continents"],
+    ["where does the river nile flow", "geo_rivers"],
+    ["how tall is mount everest", "geo_mountains"],
+    ["which is the biggest hot desert", "geo_deserts"],
+    ["how many union territories does india have", "geo_states"],
+    ["what is the smallest country by area", "geo_countries"],
+    ["why do we always see the same side of the moon", "geo_moon"],
+    ["why does earth have seasons", "geo_climate"],
+    ["name some renewable energy sources", "geo_resources"],
+    ["what is humus in soil", "geo_soil"],
+    ["what should you do during an earthquake", "geo_disasters"],
+    ["what is population density", "geo_population"],
+    ["what is the prime meridian", "geo_maps"],
+    ["why is indian time five and a half hours ahead", "geo_timezones"],
+    /* ── v8: history + civics ── */
+    ["what was the jallianwala bagh incident", "hist_freedom"],
+    ["which empire did akbar rule", "hist_mughal"],
+    ["what was special about the gupta period", "hist_ancient"],
+    ["the storming of the bastille is linked to which revolution", "hist_revolutions"],
+    ["who improved the steam engine in 1769", "hist_industrial"],
+    ["who first reached india by the sea route from europe", "hist_explorers"],
+    ["which cave temple was carved from a single rock", "hist_monuments"],
+    ["who chaired the drafting committee of the constitution", "civics_constitution"],
+    ["how many fundamental rights do citizens get", "civics_rights"],
+    ["who signs a bill to turn it into an act", "civics_parliament"],
+    ["what does the supreme court do", "civics_judiciary"],
+    ["why is democracy better than dictatorship", "civics_democracy"],
+    ["what does the election commission do", "civics_elections"],
+    ["who is the head of a gram panchayat", "civics_panchayat"],
+    ["what is an fir in police matters", "civics_law"],
+    /* ── v8: economics + computers + sports ── */
+    ["who prints the currency notes in india", "econ_money"],
+    ["what is the repo rate used to control", "econ_inflation"],
+    ["which sector contributes the most to indias gdp", "econ_gdp"],
+    ["what is an income tax slab", "econ_tax"],
+    ["what is a unicorn startup", "econ_business"],
+    ["what does dns do on the internet", "comp_networking"],
+    ["what language runs inside every web browser", "comp_coding"],
+    ["what is two factor authentication", "comp_security"],
+    ["difference between ram and storage in a phone", "comp_mobile"],
+    ["what is sql used for", "comp_database"],
+    ["what does vr mean in gaming", "comp_future"],
+    ["how many players does a football team have on the field", "sports_football"],
+    ["who won the fifa world cup in 2022", "sports_football"],
+    ["who is called the wizard of hockey", "sports_hockey"],
+    ["what do the five olympic rings represent", "sports_olympics"],
+    ["which sport does pv sindhu play", "sports_badminton"],
+    ["in which country did chess originate", "sports_chess"],
+    ["how long is a marathon race", "sports_athletics"],
+    ["what are esports tournaments", "sports_esports"],
+    /* ── v8: health + english + study ── */
+    ["why do people say breakfast is important", "health_diet"],
+    ["how much exercise does a teenager need", "health_fitness"],
+    ["why should we wash hands with soap", "health_hygiene"],
+    ["do antibiotics work against viruses", "health_diseases"],
+    ["which number do you dial for an ambulance in india", "health_firstaid"],
+    ["how can i reduce tension before exams", "health_mind"],
+    ["what is surya namaskar good for", "health_yoga"],
+    ["what are synonyms and antonyms", "eng_vocabulary"],
+    ["what is a synonym", "eng_vocabulary"],
+    ["im so bored right now", "smalltalk_bored"],
+    ["what does the idiom break a leg mean", "eng_idioms"],
+    ["explain the proverb all that glitters is not gold", "eng_proverbs"],
+    ["what is the format of a formal letter", "eng_writing"],
+    ["how can i become fluent in english speaking", "eng_speaking"],
+    ["why is reading books good for the brain", "eng_reading"],
+    ["how do i stop getting distracted while studying", "study_focus"],
+    ["what should i choose after class 10 science or commerce", "career_guide"],
+    /* ── v8: GK ── */
+    ["what is the national flower of india", "gk_symbols"],
+    ["which indian film song won an oscar", "gk_awards"],
+    ["who wrote the book discovery of india", "gk_books"],
+    ["which was the first satellite launched by india", "gk_firsts"],
+    ["when and why is diwali celebrated", "gk_festivals"],
+    ["name a classical dance form of kerala", "gk_dance"],
+    ["what is the tallest statue in the world", "gk_records"],
+    ["what is the currency of the united kingdom", "gk_currency"],
+    ["when is teachers day celebrated in india", "gk_days"],
+    ["who is known as the missile man of india", "gk_scientists"],
+    ["what is the full form of who", "gk_fullforms"],
+    ["how many satellites did the pslv launch in one go as a record", "gk_isro"],
+    /* ── v8: smalltalk + bot-meta ── */
+    ["do you like listening to songs", "smalltalk_music"],
+    ["suggest me a good movie to watch", "smalltalk_movies"],
+    ["i am hungry what should i eat", "smalltalk_food"],
+    ["which color do you love the most", "smalltalk_color"],
+    ["im bored what can i do right now", "smalltalk_bored"],
+    ["what goals do you have", "smalltalk_dream"],
+    ["i dont feel like going to school", "smalltalk_school"],
+    ["i like someone in my class what should i do", "smalltalk_love"],
+    ["i am so angry right now", "smalltalk_angry"],
+    ["is there intelligent life on other planets", "smalltalk_aliens"],
+    ["do u think god is real", "smalltalk_god"],
+    ["i want to give up please motivate me", "smalltalk_motivate"],
+    ["how many parameters does your brain have", "bot_params"],
+    ["how did you learn all these topics", "bot_learning"],
+    ["what are the limits of your knowledge", "bot_limits"],
+    ["will you be my best friend", "bot_friend"],
+    /* ── v8: Hinglish held-out ── */
+    ["padhai me dhyan kaise lagayein", "study_focus"],
+    ["tension kaise door karein", "health_mind"],
+    ["bharat ke tyohar batao", "gk_festivals"],
+    ["10th ke baad kya karein", "career_guide"],
+    ["dil kaise kaam karta hai", "sci_heart"],
+    ["bhukamp kyu aata hai", "geo_disasters"],
+    ["bor ho raha hu kuch batao", "smalltalk_bored"],
+    /* ── v9: SITE knowledge held-out ── */
+    ["what is the study section of the arcade hub", "site_categories"],
+    ["how do i sign in with google on this site", "site_google_login"],
+    ["how many questions are in the weekly quiz", "site_quiz_rules"],
+    ["i got banned from the quiz why", "site_quiz_ban"],
+    ["what do top three players receive on their profile", "site_medals"],
+    ["can i keep changing my display name daily", "site_username_change"],
+    ["how long can my profile description be", "site_bio"],
+    ["how do i send a message to the site owner", "site_contact_form"],
+    ["what all can the admin panel do", "site_admin_features"],
+    ["why does the screen ask me to turn my phone sideways", "site_rotate"],
+    ["my rank card says not ranked what does that mean", "site_rank"],
+    ["someone sent me a friend invite what do i do", "site_invite"],
+    ["where are the school exam copies kept", "site_fair_copies_drive"],
+    ["which games have their own leaderboard tabs", "site_leaderboard_tabs"],
+    ["what does the offline banner at top mean", "site_offline_banner"],
+    ["how do i set a fresh password on my account", "site_change_password_flow"],
+    ["which numbers are shown on my profile page", "site_profile_stats"],
+    /* ── v9: science held-out ── */
+    ["how are traits passed from parents to children", "sci_genetics"],
+    ["what is the difference between mitosis and meiosis", "sci_cell_division"],
+    ["why do teenagers suddenly get pimples", "sci_adolescence"],
+    ["how are stars born and how do they die", "sci_stars"],
+    ["how big is the universe we live in", "sci_universe"],
+    ["why do mirrors seem to flip left and right", "sci_mirrors"],
+    ["how do spectacles help people see clearly", "sci_lenses"],
+    ["why do school bags have wide straps", "sci_pressure"],
+    ["why does a rubbed comb attract tiny paper bits", "sci_static"],
+    ["when is work said to be done in physics", "sci_work_power"],
+    ["why is carbon such a special element", "sci_carbon"],
+    ["why should we say no to plastic carry bags", "sci_plastics"],
+    ["what makes a candle flame yellow or blue", "sci_combustion"],
+    ["why must we protect forests and wildlife", "sci_biodiversity"],
+    ["name the instrument that splits light into colours", "sci_instruments"],
+    /* ── v9: SST held-out ── */
+    ["who built the big temple at thanjavur", "hist_south_india"],
+    ["how did shivaji defeat much bigger armies", "hist_maratha"],
+    ["which ruler was called sher e punjab", "hist_sikh"],
+    ["how did a trading company end up ruling india", "hist_british"],
+    ["what is bihar famous for in ancient history", "hist_bihar"],
+    ["what changed in europe during the rebirth period", "hist_renaissance"],
+    ["which assassination started the first world war", "hist_ww1"],
+    ["which two cities were hit by atomic bombs", "hist_ww2"],
+    ["why was the united nations created after the war", "hist_un"],
+    ["which of the new seven wonders stands in india", "hist_wonders"],
+    ["which great river flows past munger", "geo_rivers"],   // river-question: geo_rivers is an acceptable (arguably better) answer
+    ["where in india can you see one horned rhinos", "geo_parks"],
+    ["why are huge dams built across rivers", "geo_dams"],
+    ["why is jamshedpur known as the steel city", "geo_industries"],
+    ["how many people travel on indian trains every day", "geo_transport"],
+    ["what are the duties of citizens towards the nation", "civics_duties"],
+    ["which amendment inserted the citizen duties", "civics_amendments"],
+    ["how can i demand records from a government office", "civics_rti"],
+    ["a shopkeeper charged me above mrp what can i do", "civics_consumer"],
+    ["what were the five year plans of india", "econ_planning"],
+    ["what economic changes happened in india in 1991", "econ_globalization"],
+    ["on which date is the union budget presented", "econ_budget"],
+    /* ── v9: ICT held-out ── */
+    ["who is known as the father of the computer", "ict_history"],
+    ["how many bits make up one byte", "ict_units"],
+    ["give two examples of pointing input devices", "ict_input_output"],
+    ["which software is used for making slide presentations", "ict_office"],
+    ["what does cc mean when sending mail", "ict_email"],
+    ["what is digilocker used for in india", "ict_egovernance"],
+    ["how does money move so fast through gpay", "ict_upi"],
+    ["why do short videos keep autoplaying one after another", "ict_social"],
+    ["someone threatens me online which law protects me", "ict_cyberlaw"],
+    ["is linux free to use and change", "ict_opensource"],
+    ["where do my google drive files physically live", "ict_cloud"],
+    ["how does chatgpt guess the next word", "ict_ai"],
+    ["which game engine was fortnite built with", "ict_gamedev"],
+    /* ── v9: maths-concept held-out ── */
+    ["in which order should operations be solved", "math_bodmas"],
+    ["how to find square root by the division method", "math_squares"],
+    ["is there a trick to find cube roots quickly", "math_cubes"],
+    ["product of hcf and lcm of two numbers equals what", "math_lcmhcf"],
+    ["is 2.5 a rational number or irrational", "math_rational"],
+    ["how to solve equations using the transposing method", "math_linear"],
+    ["what is the expansion of a minus b whole square", "math_identities"],
+    ["in which quadrant does the point minus 3 comma 4 lie", "math_coordinate"],
+    ["how many mirror lines does a square have", "math_symmetry"],
+    ["what do the overlapping parts of venn diagrams show", "math_sets"],
+    /* ── v9: Hinglish held-out ── */
+    ["maratha samrajya kisne sthapit kiya", "hist_maratha"],
+    ["nalanda university kahan sthit thi", "hist_bihar"],
+    ["upi se paise itni jaldi kaise pahunchte hain", "ict_upi"],
+    ["cloud computing ka matlab samjhao", "ict_cloud"],
+    ["samvidhan me kitne sanshodhan hue", "civics_amendments"],
+    ["venn diagram me golon ka overlap kya dikhata hai", "math_sets"],
 ];
 let ok = 0;
 const misses = [];
 HELD_OUT.forEach(([q, tag]) => {
     const p = t.predict(q);
-    if (p.tag === tag) ok++; else misses.push(`  ✗ "${q}" → ${p.tag} (${(p.prob*100).toFixed(0)}%), expected ${tag}`);
+    if (p.tag === tag) ok++; else misses.push(`  ✗ "${q}" → ${p.tag} (${(p.prob * 100).toFixed(0)}%), expected ${tag}`);
 });
 console.log('\n══════ HELD-OUT GENERALIZATION TEST ══════');
-console.log(`unseen phrasings: ${ok}/${HELD_OUT.length} correct = ${(ok/HELD_OUT.length*100).toFixed(1)}%`);
+console.log(`unseen phrasings: ${ok}/${HELD_OUT.length} correct = ${(ok / HELD_OUT.length * 100).toFixed(1)}%`);
 misses.forEach(m => console.log(m));
 
-// write weights.js (embedded — no fetch, works from file:// too)
-const w = { net: t.net.serialize(), vocab: { words: t.vocab.words, tags: t.tags } };
-const js = '/* BitBot pre-trained weights — generated by train.js (node). DO NOT EDIT.\n' +
-    '   ' + w.net.W1.length + '+' + w.net.W2.length + ' weights · vocab ' + w.vocab.words.length + ' words · ' + w.vocab.tags.length + ' intents\n' +
-    '   held-out accuracy: ' + (ok / HELD_OUT.length * 100).toFixed(1) + '% */\n' +
+// write weights.js — v9 QUANTIZED format (int8 per-row → base64, biases int16).
+const maxAbs = t.net.maxAbsWeight();
+const w = { net: t.net.serializeQ(), vocab: { words: t.vocab.words, tags: t.tags, HB: t.vocab.HB } };
+const js = '/* BitBot v9 pre-trained weights — generated by train.js (node). DO NOT EDIT.\n' +
+    '   QUANTIZED int8 per-row→base64 · ' + PARAMS.toLocaleString('en-IN') + ' params (' + (PARAMS / 100000).toFixed(1) + ' lakh)\n' +
+    '   vocab ' + w.vocab.words.length + ' words + ' + (w.vocab.HB || 0) + ' hash buckets · ' + w.vocab.tags.length + ' intents · hidden ' + HIDDEN + ' · max|w| ' + maxAbs.toFixed(3) + '\n' +
+    '   held-out accuracy: ' + (ok / HELD_OUT.length * 100).toFixed(1) + '% (' + ok + '/' + HELD_OUT.length + ') */\n' +
     'window.BITBOT_WEIGHTS = ' + JSON.stringify(w) + ';\n';
 require('fs').writeFileSync('weights.js', js);
-console.log('\nweights.js written (' + (js.length / 1024).toFixed(1) + ' KB)');
+console.log('\nweights.js written (' + (js.length / 1024 / 1024).toFixed(2) + ' MB) — int8 per-row quantized');

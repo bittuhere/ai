@@ -1,12 +1,15 @@
-/* ═══ BitBot service worker (v6) ═══════════════════════════════════════════
-   Caches the whole AI (index, brain, data, weights, icon) so repeat visits
-   load INSTANTLY and work offline. Cache name bumps on every release. */
-var CACHE = 'bitbot-v7';
+/* ═══ BitBot service worker (v9) ═══════════════════════════════════════════
+   Caches the whole AI (index, brain, math engine, data, weights, icon) so
+   repeat visits load INSTANTLY and work offline. Cache name bumps on every release. */
+var CACHE = 'bitbot-v9';
 var ASSETS = [
     './',
     './index.html',
     './brain.js',
+    './math.js',
     './data.js',
+    './data2.js',
+    './data3.js',
     './weights.js',
     './icon-512.png',
     './manifest.webmanifest'

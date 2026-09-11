@@ -180,9 +180,12 @@
         requestAnimationFrame(tick);
         setP(6, 'starting neural core…');
         var files = [
-            ['brain.js?v=8',   26, 'loading my brain engine…'],
-            ['data.js?v=8',    56, 'loading knowledge — 125 topics…'],
-            ['weights.js?v=8', 90, 'loading weights — all my memories…']
+            ['brain.js?v=10',   16, 'loading my brain engine…'],
+            ['math.js?v=10',    26, 'loading my math engine — BODMAS, √, ², !, lakh/crore…'],
+            ['data.js?v=10',    36, 'loading core knowledge…'],
+            ['data2.js?v=10',   48, 'loading the v8 knowledge expansion…'],
+            ['data3.js?v=10',   62, 'loading the v9 expansion — 330 topics, SST + ICT + deep maths…'],
+            ['weights.js?v=10', 90, 'loading 79-lakh quantized weights — all my memories…']
         ];
         var i = 0;
         function loadCurrent(tries) {
@@ -246,12 +249,17 @@
 
     function predict(text) {
         var x = BitBrain.bag(text, vocabInfo);
-        var p = net.forward(x).p, best = 0, second = -1;
-        for (var i = 1; i < p.length; i++) {
-            if (p[i] > p[best]) { second = best; best = i; }
-            else if (second === -1 || p[i] > p[second]) second = i;
+        var p = net.forward(x).p, best = 0, second = -1, third = -1;
+        for (var i = 1; i < p.length; i++) {                            // v9: top-3 in one pass
+            if (p[i] > p[best]) { third = second; second = best; best = i; }
+            else if (second === -1 || p[i] > p[second]) { third = second; second = i; }
+            else if (third === -1 || p[i] > p[third]) third = i;
         }
-        return { tag: vocabInfo.tags[best], prob: p[best], tag2: second >= 0 ? vocabInfo.tags[second] : null, prob2: second >= 0 ? p[second] : 0 };
+        return {
+            tag: vocabInfo.tags[best], prob: p[best],
+            tag2: second >= 0 ? vocabInfo.tags[second] : null, prob2: second >= 0 ? p[second] : 0,
+            tag3: third >= 0 ? vocabInfo.tags[third] : null, prob3: third >= 0 ? p[third] : 0
+        };
     }
 
     // ── entity extraction (slot filling) ───────────────────────────────────
@@ -297,7 +305,19 @@
         "Why was the broom late? It over-SWEPT! 🧹",
         "What did one wall say to the other? Meet you at the CORNER! 🧱",
         "Why do calculators make great friends? You can always COUNT on them! 🧮",
-        "Why did the computer sneeze? It had a virus! 🤧"
+        "Why did the computer sneeze? It had a virus! 🤧",
+        "Why do Java developers wear glasses? Because they can't C#! 👓",
+        "What's a neuron's favourite music? Heavy METAL... no wait, heavy WEIGHTS! 🎸",
+        "Why was the equal sign so humble? It knew it wasn't greater-than OR less-than anyone! ➗",
+        "I told my computer I needed a break... now it won't stop sending me KitKat ads 🍫",
+        "Why did the photosynthesis student ace the test? He was brILLIANT — full of light energy! 🌱",
+        "What did the tectonic plate say when it bumped into another? 'Sorry, my fault!' 🌋",
+        "Why don't electrons ever pay for anything? They're always CHARGED up... but totally free! ⚡",
+        "Parallel lines have so much in common... it's a shame they'll never meet 📏",
+        "Why did the smartphone need glasses? It lost its contacts! 📱",
+        "What is a robot's favourite snack? Computer CHIPS with extra cache! 🍟",
+        "Why did the democracy go to the doctor? It had too many PARTIES! 🗳️",
+        "My wifi and I are having issues... I think we lost our CONNECTION 💔📶"
     ];
     var FACTS = [
         "🔬 Class 8 science: photosynthesis = plants making food from sunlight + water + CO₂ — the equation of life!",
@@ -347,7 +367,32 @@
         "🍎 An apple floats because 25% of its volume is air!",
         "🌍 Earth spins at 1,670 km/h at the equator — you are moving RIGHT NOW!",
         "🦩 Flamingos are born grey — they turn pink from eating shrimp!",
-        "🇮🇳 Kabaddi is over 4,000 years old — it is mentioned in the Mahabharata!"
+        "🇮🇳 Kabaddi is over 4,000 years old — it is mentioned in the Mahabharata!",
+        "🧠 Your brain uses ~20% of your body's energy despite being only 2% of your weight!",
+        "🍯 Honey found in Egyptian pyramids (3,000+ years old) was still perfectly edible!",
+        "⚡ A single lightning bolt is ~5× hotter than the Sun's surface!",
+        "🦈 Sharks existed BEFORE trees — sharks ~450M years, trees ~350M years!",
+        "🌊 The Pacific Ocean is bigger than ALL the land on Earth combined!",
+        "🐙 An octopus has 3 hearts, 9 brains and BLUE blood!",
+        "🇮🇳 India's postal network is the largest in the world — 1.5+ lakh post offices!",
+        "🦴 Your femur (thigh bone) is stronger than concrete — it can bear ~30× your body weight!",
+        "☀️ The Sun loses ~4 million tonnes of mass EVERY SECOND (converted to light energy)!",
+        "🐜 The total weight of all ants on Earth ≈ the total weight of all humans!",
+        "💧 Hot water can freeze faster than cold water — the Mpemba effect!",
+        "🌙 The Moon drifts ~3.8 cm away from Earth every year!",
+        "🎲 Dice are the oldest gaming devices — 5,000-year-old dice were found in Iran!",
+        "🧬 Human DNA is ~99.9% identical between any two people — you're a 0.1% limited edition!",
+        "🏏 A cricket ball has exactly 6 rows of stitching — 216 stitches total!",
+        "🗼 The Eiffel Tower grows ~15 cm taller in summer (metal expands)!",
+        "🐋 A blue whale's heart is the size of a small car — its heartbeat is detectable 3 km away!",
+        "📱 The first computer 'bug' was a REAL moth stuck in a relay (1947, Harvard Mark II)!",
+        "🌍 Earth is not a perfect sphere — it bulges at the equator by ~43 km!",
+        "🍌 Bananas are slightly radioactive (potassium-40) — you'd need 10 MILLION at once for harm!",
+        "♟️ After just 4 moves each, a chess game can have reached 288 BILLION different positions!",
+        "🚂 India's railways carry ~2.3 crore passengers DAILY — like moving Australia's whole population every day!",
+        "👁️ Your eyes can distinguish ~10 million colours — and blink ~15 times a minute!",
+        "🛰️ ISRO's Chandrayaan-3 mission cost ~₹615 crore — less than many Bollywood movies' marketing budgets!",
+        "🐘 Elephants are the only animals that can't jump!"
     ];
     // ── FULL MATH (v6): tables, factorial, GCD/HCF, LCM, primes, factors,
     //    averages, percentages, mod, pi + the expression evaluator with fractions ──
@@ -370,10 +415,14 @@
     function doMath(text) {
         var t = text.toLowerCase(), m;
         // ── special solvers ──────────────────────────────────────────
-        if ((m = t.match(/table of (\d{1,2})/))) {
+        if ((m = t.match(/(?:table of|table)\s*(\d{1,15})/)) || (m = t.match(/(\d{1,15})\s*(?:ka|ki|ker)?\s*(?:table|pahada)/))) {
             var n = parseInt(m[1], 10), lines = '';
-            for (var i = 1; i <= 10; i++) lines += n + ' × ' + i + ' = **' + (n * i) + '**\n';
-            return '🧮 **Table of ' + n + ':**\n' + lines.trim();
+            var upto = 10, um = t.match(/(?:up ?to|upto|tak)\s*(\d{1,3})\b/);
+            if (um) upto = Math.min(Math.max(parseInt(um[1], 10), 1), 30);
+            for (var i = 1; i <= upto; i++) lines += n.toLocaleString('en-IN') + ' × ' + i + ' = **' + (n * i).toLocaleString('en-IN') + '**\n';
+            cot('🧮 table solver — works for ANY number, generating ' + upto + ' rows');
+            return '🧮 **Table of ' + n.toLocaleString('en-IN') + ':**\n' + lines.trim() +
+                '\n\n_Want more rows? Say "table of ' + n + ' up to 20" — and I do tables of ANY number, even crores! ♾️_';
         }
         if ((m = t.match(/(?:factorial of|factorial)\s*(\d{1,3})/)) || (m = t.match(/(\d{1,3})\s*!/))) {
             var f = parseInt(m[1], 10);
@@ -420,33 +469,32 @@
         if ((m = t.match(/absolute value of\s*(-?\d+(?:\.\d+)?)/))) return '🧮 |' + m[1] + '| = **' + Math.abs(parseFloat(m[1])) + '**';
         if ((m = t.match(/(\d+)\s*(?:mod|modulo)\s*(\d+)/))) return '🧮 ' + m[1] + ' mod ' + m[2] + ' = **' + (parseInt(m[1], 10) % parseInt(m[2], 10)) + '** (remainder)';
         if (/^(value of )?pi[.!?]*$/.test(t)) return '🥧 π ≈ **3.14159265358979**… it never ends!';
-        // ── generic expression evaluator (v2) ────────────────────────
-        var expr = t
-            .replace(/what is|what's|calculate|compute|solve|how much is|answer|ka kitna hai|=|\?/g, ' ')
-            .replace(/square root of|square root|sqrt/g, 'SQRT')
-            .replace(/square of (\d+(?:\.\d+)?)/g, '($1^2)').replace(/cube of (\d+(?:\.\d+)?)/g, '($1^3)')
-            .replace(/squared/g, '^2').replace(/cubed/g, '^3')
-            .replace(/to the power of|raised to the power of|raised to|power of|power|\^/g, '^')
-            .replace(/plus|add|and/g, '+').replace(/minus|subtract/g, '-')
-            .replace(/(times|multiplied by|multiply|into|x)/g, '*')
-            .replace(/divided by|divide|by/g, '/')
-            .replace(/percent of|% of/g, '/100*')
-            .replace(/remainder of/g, ' ')
-            .replace(/\bpi\b/g, '(' + Math.PI + ')')
-            .replace(/SQRT\s*\(?(\d+(?:\.\d+)?)\)?/g, '($1**0.5)')
-            .replace(/[^0-9+\-*/().^% ]/g, ' ')
-            .replace(/\s+/g, '')
-            .replace(/^[+*/.%]+|[+*/.%]+$/g, '');
-        if (!/\d/.test(expr) || !/[+\-*/^%]/.test(expr)) return 'Give me a math problem! 🧮 Try "what is 45*3", "table of 7", "gcd of 12 and 18", "is 17 prime", "factorial of 5" or "square root of 144".';
-        try {
-            var val = Function('"use strict"; return (' + expr.replace(/\^/g, '**') + ')')();
-            if (typeof val !== 'number' || !isFinite(val)) throw 0;
-            var out = Math.round(val * 1e8) / 1e8;
-            var pretty = expr.replace(/\*\*/g, '^').replace(/\*/g, '×').replace(/\//g, '÷').replace(/%/g, ' mod ');
-            var extra = '';
-            if (out % 1 !== 0) { var fr2 = toFrac(val); if (fr2) extra = ' *(= ' + fr2 + ')*'; }
-            return '🧮 ' + pretty + ' = **' + fmtNum2(out) + '**' + extra;
-        } catch (e) { return 'Hmm, that math looks broken 🤔 — try something like "12+34*2", "square root of 169" or "3 to the power of 4".'; }
+        // ── BitMath engine (v9) — real parser: ÷ × − ² ³ √ ! %, lakh/crore,
+        //    leading zeros, decimals, brackets + full BODMAS step-by-step ───
+        if (window.BitMath) {
+            var wantsSteps = /simplify|explain|steps?|step by step|process|procedure|samjhao|dikhao|vidhi|method|solution|how/.test(t);
+            var res = BitMath.solve(text);
+            if (res.ok) {
+                if (wantsSteps && res.steps && res.steps.length) {
+                    cot('🧮 BODMAS stepper → ' + res.steps.length + ' reduction step' + (res.steps.length > 1 ? 's' : ''));
+                    var out = ['🧮 **Solving `' + res.expr + '` step by step:**', '',
+                        '_Rule: **B**rackets → **O**rders (² ³ √ !) → **D**ivision → **M**ultiplication → **A**ddition → **S**ubtraction — and ÷× (like +−) go **left to right**._', ''];
+                    for (var si = 0; si < res.steps.length; si++) {
+                        var st = res.steps[si];
+                        out.push('**Step ' + (si + 1) + '** — ' + st.why + ': `' + st.calc + '` → expression becomes `' + st.expr + '`');
+                        cot('  🧮 step ' + (si + 1) + ': ' + st.calc + ' → ' + st.expr);
+                    }
+                    out.push('', '✅ **' + res.expr + ' = ' + fmtNum2(res.value) + '**' + (res.fraction ? ' *(= ' + res.fraction + ')*' : ''));
+                    return out.join('\n');
+                }
+                cot('🧮 BitMath parser → ' + res.normalized);
+                return '🧮 ' + res.expr + ' = **' + fmtNum2(res.value) + '**' + (res.fraction ? ' *(= ' + res.fraction + ')*' : '') +
+                    '\n\n_Want the working? Ask **"simplify and explain: ' + res.expr + '"** — I\'ll show every BODMAS step!_';
+            }
+            if (/[-+*/^%÷×!√²³]/.test(text) && /\d/.test(text))
+                return 'Hmm 🤔 — ' + res.error + '. Try something like "12+34×2", "√169", "5!" or "2² + 3".';
+        }
+        return 'Give me a math problem! 🧮 Try "what is 45*3", "table of 7", "gcd of 12 and 18", "is 17 prime", "factorial of 5" or "square root of 144".';
     }
     // ── UNIT CONVERSION + DICE/COIN/RANDOM (v5 skills) ────────────────────
     var UNIT_FAMILY = {
@@ -544,7 +592,47 @@
         sci_respiration: 1, sci_reproduction: 1, sci_metals: 1, sci_fossil_fuel: 1,
         sci_micro: 1, sci_friction: 1, sci_light_eye: 1, math_algebra: 1, math_geometry: 1,
         math_ratios: 1, geo_layers: 1, geo_weather: 1, geo_agriculture: 1,
-        comp_terms: 1, inventions: 1, english_grammar: 1
+        comp_terms: 1, inventions: 1, english_grammar: 1,
+        /* ── v8 knowledge expansion ── */
+        sci_photosynthesis: 1, sci_digestion: 1, sci_heart: 1, sci_nerves: 1, sci_sound: 1,
+        sci_heat: 1, sci_matter: 1, sci_magnets: 1, sci_atom: 1, sci_elements: 1,
+        sci_acids: 1, sci_reactions: 1, sci_motion: 1, sci_newton: 1, sci_machines: 1,
+        sci_plants: 1, sci_animals: 1, sci_ecosystem: 1, sci_pollution: 1, sci_evolution: 1,
+        sci_skeleton: 1, sci_nutrition: 1,
+        math_fractions: 1, math_decimals: 1, math_percentage: 1, math_profit_loss: 1,
+        math_probability: 1, math_stats: 1, math_mensuration: 1, math_trigonometry: 1,
+        math_exponents: 1, math_numbers: 1, math_distance: 1,
+        geo_continents: 1, geo_rivers: 1, geo_mountains: 1, geo_deserts: 1, geo_states: 1,
+        geo_countries: 1, geo_moon: 1, geo_climate: 1, geo_resources: 1, geo_soil: 1,
+        geo_disasters: 1, geo_population: 1, geo_maps: 1, geo_timezones: 1,
+        hist_freedom: 1, hist_gandhi: 1, hist_ancient: 1, hist_mughal: 1, hist_modern: 1,
+        hist_civilizations: 1, hist_revolutions: 1, hist_industrial: 1, hist_explorers: 1, hist_monuments: 1,
+        civics_constitution: 1, civics_rights: 1, civics_parliament: 1, civics_judiciary: 1,
+        civics_democracy: 1, civics_elections: 1, civics_panchayat: 1, civics_law: 1,
+        econ_money: 1, econ_banking: 1, econ_inflation: 1, econ_gdp: 1, econ_tax: 1, econ_business: 1,
+        comp_networking: 1, comp_coding: 1, comp_security: 1, comp_mobile: 1, comp_future: 1, comp_database: 1,
+        sports_football: 1, sports_hockey: 1, sports_olympics: 1, sports_badminton: 1,
+        sports_chess: 1, sports_athletics: 1, sports_esports: 1,
+        health_diet: 1, health_fitness: 1, health_hygiene: 1, health_diseases: 1,
+        health_firstaid: 1, health_mind: 1, health_yoga: 1,
+        eng_vocabulary: 1, eng_idioms: 1, eng_proverbs: 1, eng_writing: 1, eng_speaking: 1, eng_reading: 1,
+        study_focus: 1, career_guide: 1,
+        gk_symbols: 1, gk_awards: 1, gk_books: 1, gk_firsts: 1, gk_festivals: 1, gk_dance: 1,
+        gk_records: 1, gk_currency: 1, gk_days: 1, gk_scientists: 1, gk_fullforms: 1, gk_isro: 1,
+        /* ── v9 knowledge expansion ── */
+        sci_genetics: 1, sci_cell_division: 1, sci_adolescence: 1, sci_stars: 1, sci_universe: 1,
+        sci_mirrors: 1, sci_lenses: 1, sci_pressure: 1, sci_static: 1, sci_work_power: 1,
+        sci_carbon: 1, sci_plastics: 1, sci_combustion: 1, sci_biodiversity: 1, sci_instruments: 1,
+        hist_south_india: 1, hist_maratha: 1, hist_sikh: 1, hist_british: 1, hist_bihar: 1,
+        hist_renaissance: 1, hist_ww1: 1, hist_ww2: 1, hist_un: 1, hist_wonders: 1,
+        geo_bihar: 1, geo_parks: 1, geo_dams: 1, geo_industries: 1, geo_transport: 1,
+        civics_duties: 1, civics_amendments: 1, civics_rti: 1, civics_consumer: 1,
+        econ_planning: 1, econ_globalization: 1, econ_budget: 1,
+        ict_history: 1, ict_units: 1, ict_input_output: 1, ict_office: 1, ict_email: 1,
+        ict_egovernance: 1, ict_upi: 1, ict_social: 1, ict_cyberlaw: 1, ict_opensource: 1,
+        ict_cloud: 1, ict_ai: 1, ict_gamedev: 1,
+        math_bodmas: 1, math_squares: 1, math_cubes: 1, math_lcmhcf: 1, math_rational: 1,
+        math_linear: 1, math_identities: 1, math_coordinate: 1, math_symmetry: 1, math_sets: 1
     };
     var CONNECTORS = [
         "Here you go 👉 ", "Another one! ", "Sure thing — ",
@@ -574,7 +662,85 @@
         sci_micro: "microorganisms", sci_friction: "force and friction", sci_light_eye: "the eye and light",
         math_algebra: "algebra", math_geometry: "geometry", math_ratios: "ratios and percentages",
         geo_layers: "inside the Earth", geo_weather: "climate and monsoon", geo_agriculture: "agriculture",
-        comp_terms: "computer terms", inventions: "inventions", english_grammar: "English grammar"
+        comp_terms: "computer terms", inventions: "inventions", english_grammar: "English grammar",
+        /* ── v8 knowledge expansion ── */
+        sci_photosynthesis: "photosynthesis", sci_digestion: "digestion", sci_heart: "the heart & blood",
+        sci_nerves: "the brain & nerves", sci_sound: "sound", sci_heat: "heat", sci_matter: "states of matter",
+        sci_magnets: "magnets", sci_atom: "atoms", sci_elements: "elements & the periodic table",
+        sci_acids: "acids & bases", sci_reactions: "chemical reactions", sci_motion: "motion",
+        sci_newton: "Newton's laws", sci_machines: "simple machines", sci_plants: "plant life",
+        sci_animals: "the animal kingdom", sci_ecosystem: "ecosystems", sci_pollution: "pollution",
+        sci_evolution: "evolution", sci_skeleton: "the skeleton", sci_nutrition: "vitamins & nutrients",
+        math_fractions: "fractions", math_decimals: "decimals", math_percentage: "percentages",
+        math_profit_loss: "profit & loss", math_probability: "probability", math_stats: "mean median mode",
+        math_mensuration: "area & volume", math_trigonometry: "trigonometry", math_exponents: "exponents",
+        math_numbers: "the number system", math_distance: "time speed distance",
+        geo_continents: "continents & oceans", geo_rivers: "rivers", geo_mountains: "mountains",
+        geo_deserts: "deserts", geo_states: "Indian states", geo_countries: "countries of the world",
+        geo_moon: "the Moon", geo_climate: "climate zones", geo_resources: "natural resources",
+        geo_soil: "soil", geo_disasters: "natural disasters", geo_population: "population",
+        geo_maps: "maps & the globe", geo_timezones: "time zones",
+        hist_freedom: "the freedom struggle", hist_gandhi: "Gandhi", hist_ancient: "ancient India",
+        hist_mughal: "the Mughals", hist_modern: "modern India", hist_civilizations: "ancient civilizations",
+        hist_revolutions: "revolutions", hist_industrial: "the industrial revolution",
+        hist_explorers: "explorers", hist_monuments: "monuments of India",
+        civics_constitution: "the Constitution", civics_rights: "fundamental rights",
+        civics_parliament: "Parliament", civics_judiciary: "the judiciary", civics_democracy: "democracy",
+        civics_elections: "elections", civics_panchayat: "panchayati raj", civics_law: "law & order",
+        econ_money: "money", econ_banking: "banking", econ_inflation: "inflation", econ_gdp: "GDP & the economy",
+        econ_tax: "taxes", econ_business: "business & startups",
+        comp_networking: "networking", comp_coding: "coding", comp_security: "cyber security",
+        comp_mobile: "smartphones", comp_future: "future tech", comp_database: "databases",
+        sports_football: "football", sports_hockey: "hockey", sports_olympics: "the Olympics",
+        sports_badminton: "badminton", sports_chess: "chess", sports_athletics: "athletics",
+        sports_esports: "esports",
+        health_diet: "healthy eating", health_fitness: "exercise & fitness", health_hygiene: "hygiene",
+        health_diseases: "diseases & vaccines", health_firstaid: "first aid", health_mind: "mind & stress",
+        health_yoga: "yoga",
+        eng_vocabulary: "vocabulary", eng_idioms: "idioms", eng_proverbs: "proverbs",
+        eng_writing: "writing skills", eng_speaking: "English speaking", eng_reading: "reading",
+        study_focus: "focus & concentration", career_guide: "careers",
+        gk_symbols: "national symbols", gk_awards: "awards", gk_books: "books & authors",
+        gk_firsts: "India's firsts", gk_festivals: "festivals", gk_dance: "dance & music",
+        gk_records: "world records", gk_currency: "currencies", gk_days: "important days",
+        gk_scientists: "famous scientists", gk_fullforms: "full forms", gk_isro: "ISRO missions",
+        smalltalk_music: "music", smalltalk_movies: "movies", smalltalk_food: "food",
+        smalltalk_color: "colours", smalltalk_bored: "beating boredom", smalltalk_dream: "my dreams",
+        smalltalk_school: "school life", smalltalk_love: "matters of the heart", smalltalk_angry: "anger",
+        smalltalk_aliens: "aliens", smalltalk_god: "faith & questions", smalltalk_motivate: "motivation",
+        smalltalk_fav_game: "my favourite game", bot_params: "my parameters", bot_learning: "how I learned",
+        bot_limits: "my limits", bot_friend: "friendship",
+        /* ── v9: site knowledge ── */
+        site_categories: "the site's categories", site_google_login: "Google login", site_quiz_rules: "weekly quiz rules",
+        site_quiz_ban: "the quiz ban system", site_medals: "quiz medals", site_username_change: "username changes",
+        site_bio: "your profile bio", site_contact_form: "the contact form", site_admin_features: "admin features",
+        site_rotate: "the rotate-screen prompt", site_rank: "your rank card", site_invite: "friend invites",
+        site_fair_copies_drive: "Fair Copies", site_leaderboard_tabs: "leaderboard tabs", site_offline_banner: "the offline banner",
+        site_change_password_flow: "changing your password", site_profile_stats: "profile stats",
+        /* ── v9: science ── */
+        sci_genetics: "genetics & heredity", sci_cell_division: "cell division", sci_adolescence: "adolescence",
+        sci_stars: "stars", sci_universe: "the universe", sci_mirrors: "mirrors", sci_lenses: "lenses",
+        sci_pressure: "pressure", sci_static: "static electricity", sci_work_power: "work, energy & power",
+        sci_carbon: "carbon compounds", sci_plastics: "plastics & polymers", sci_combustion: "combustion & flame",
+        sci_biodiversity: "biodiversity", sci_instruments: "scientific instruments",
+        /* ── v9: SST ── */
+        hist_south_india: "South Indian dynasties", hist_maratha: "the Maratha Empire", hist_sikh: "the Sikh Empire",
+        hist_british: "British rule in India", hist_bihar: "Bihar's history", hist_renaissance: "the Renaissance",
+        hist_ww1: "World War I", hist_ww2: "World War II", hist_un: "the United Nations", hist_wonders: "wonders of the world",
+        geo_bihar: "Bihar", geo_parks: "national parks", geo_dams: "dams", geo_industries: "industries",
+        geo_transport: "transport", civics_duties: "fundamental duties", civics_amendments: "constitutional amendments",
+        civics_rti: "RTI", civics_consumer: "consumer rights", econ_planning: "five-year plans",
+        econ_globalization: "globalization", econ_budget: "the Union Budget",
+        /* ── v9: ICT ── */
+        ict_history: "computer history", ict_units: "memory units", ict_input_output: "input/output devices",
+        ict_office: "MS Office", ict_email: "email", ict_egovernance: "e-governance", ict_upi: "UPI",
+        ict_social: "social media", ict_cyberlaw: "cyber law", ict_opensource: "open source",
+        ict_cloud: "cloud computing", ict_ai: "artificial intelligence", ict_gamedev: "game development",
+        /* ── v9: maths concepts ── */
+        math_bodmas: "BODMAS", math_squares: "squares & square roots", math_cubes: "cubes & cube roots",
+        math_lcmhcf: "LCM & HCF", math_rational: "rational numbers", math_linear: "linear equations",
+        math_identities: "algebraic identities", math_coordinate: "coordinate geometry",
+        math_symmetry: "symmetry", math_sets: "sets"
     };
 
     function memActive() { return MEM.lastTag && (Date.now() - MEM.lastTime) < MEM_WINDOW; }
@@ -784,6 +950,14 @@
         var qa = quizAnswer(text);
         if (qa !== null) { cot('🎯 quiz in progress → checking your answer'); return qa; }
 
+        // v9: deterministic MATH pre-catch — a pure expression like "2+2÷2",
+        // "9-08", "5²", "12!" never touches the classifier; the BitMath
+        // engine (parser + BODMAS stepper) answers it directly, always.
+        if (window.BitMath && BitMath.looksLikeMath(text)) {
+            cot('🧮 pure math expression detected → BitMath engine (neural net skipped)');
+            return doMath(text);
+        }
+
         // 3) follow-ups — pure context, no neural net needed
         var f = handleFollowup(text);
         if (f !== null) { if (!COT.length) cot('🔗 context handler matched (memory — neural net skipped)'); return f; }
@@ -803,11 +977,19 @@
         // OOD guard: if most words are unknown to my vocabulary, it's
         // definitely not about Arcade Hub → honest fallback, no guessing
         var toks = BitBrain.tokenize(text).map(BitBrain.stem);
-        var known = 0;
-        toks.forEach(function (w) { if (vocabInfo.index[w] !== undefined) known++; });
+        var known = 0, unknown = [];
+        toks.forEach(function (w) {
+            if (vocabInfo.index[w] !== undefined) known++;
+            else if (w.length >= 2) unknown.push(w);
+        });
         var coverage = toks.length ? known / toks.length : 0;
         cot('📝 parsed ' + toks.length + ' words · ' + known + ' in my vocabulary (' + Math.round(coverage * 100) + '% coverage)');
-        cot('🧠 neural net → ' + r.tag + ' (' + (r.prob * 100).toFixed(1) + '%)' + (r.tag2 ? ' · runner-up: ' + r.tag2 + ' (' + (r.prob2 * 100).toFixed(1) + '%)' : ''));
+        if (unknown.length)
+            cot('🔤 new word' + (unknown.length > 1 ? 's' : '') + ': ' + unknown.slice(0, 4).join(', ') +
+                ' → char-trigram hash features let me still recognise its SHAPE (typo-tolerant!)');
+        cot('🧠 neural net top-3 → ① ' + r.tag + ' (' + (r.prob * 100).toFixed(1) + '%)' +
+            (r.tag2 ? ' · ② ' + r.tag2 + ' (' + (r.prob2 * 100).toFixed(1) + '%)' : '') +
+            (r.tag3 ? ' · ③ ' + r.tag3 + ' (' + (r.prob3 * 100).toFixed(1) + '%)' : ''));
 
         if (r.prob < THRESHOLD || (coverage < 0.35 && r.prob < 0.75)) {
             // low confidence → HONEST fallback, never a confident guess (+ memory hint)
@@ -1030,8 +1212,8 @@
         var h = new Date().getHours();
         var tod = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Up late";
         addMsg("bot", userName
-            ? "**" + tod + ", " + userName + "!** 👋 Welcome back — I remembered you! I'm BitBot v7 with **visible chain-of-thought**: watch the 🧠 steps before every answer!"
-            : "**" + tod + "!** 👋 I'm **BitBot v7** 🤖 — now with **visible chain-of-thought** (watch the 🧠 before every answer!), **full math**, **quiz mode**, **speed test** and **124 topics**. Tell me your name — I'll remember it!", false);
+            ? "**" + tod + ", " + userName + "!** 👋 Welcome back — I remembered you! I'm BitBot v9 with a **79-lakh-parameter brain** and **visible chain-of-thought**: watch the 🧠 steps before every answer!"
+            : "**" + tod + "!** 👋 I'm **BitBot v9** 🤖 — now with a **79-lakh-parameter neural brain**, **330 topics** (science → SST → ICT → esports!), **typo-tolerant understanding**, a **full BODMAS math engine with step-by-step working**, **visible chain-of-thought**, **quiz mode** and a **speed test**. Tell me your name — I'll remember it!", false);
         showChips(["Quiz me", "How fast are you?", "Tell me a fact", "Table of 7"]);
     }
     function send(text) {
@@ -1064,16 +1246,20 @@
             stats = document.getElementById('trainStats');
         ov.classList.add('show');
         statusEl.classList.add('busy'); statusTxt.textContent = 'training…';
-        var t = BitBrain.makeTrainer(BitData.INTENTS, { seed: 1337, hidden: 40 });
-        var EPOCHS = 60, e = 0, r = BitBrain.rng(4242);
+        window.__PATTERN_COUNT = BitData.INTENTS.reduce(function (s, i) { return s + i.patterns.length; }, 0);
+        var t = BitBrain.makeTrainer(BitData.INTENTS, { seed: 1337, hidden: 256 });
+        var EPOCHS = 12, e = 0, r = BitBrain.rng(4242);
         (function chunk() {
             var t0 = performance.now();
             while (e < EPOCHS && performance.now() - t0 < 28) {   // ≤28ms slices → 60fps
-                var loss = t.epoch(r, e < 30 ? 0.12 : 0.05);
-                if (e % 5 === 0) {
-                    fill.style.width = (e / EPOCHS * 100).toFixed(0) + '%';
-                    stats.innerHTML = 'epoch ' + e + '/' + EPOCHS + ' · loss ' + loss.toFixed(4) +
+                var loss = t.epoch(r, e < 6 ? 0.12 : 0.05);
+                fill.style.width = ((e + 1) / EPOCHS * 100).toFixed(0) + '%';
+                if (e % 4 === 0 || e === EPOCHS - 1) {
+                    stats.innerHTML = 'epoch ' + (e + 1) + '/' + EPOCHS + ' · loss ' + loss.toFixed(4) +
                         '<br>training accuracy: <b style="color:#34d399">' + (t.accuracy() * 100).toFixed(1) + '%</b>';
+                } else {
+                    stats.innerHTML = 'epoch ' + (e + 1) + '/' + EPOCHS + ' · loss ' + loss.toFixed(4) +
+                        '<br>SGD + backprop on ' + window.__PATTERN_COUNT + ' patterns…';
                 }
                 e++;
             }
@@ -1087,7 +1273,7 @@
             setTimeout(function () {
                 ov.classList.remove('show');
                 statusEl.classList.remove('busy'); statusTxt.textContent = 'self-trained ✓';
-                addMsg('bot', '🧠 I just retrained my whole brain from scratch — final accuracy ' + (acc * 100).toFixed(1) + '%! Ask me something.', false);
+                addMsg('bot', '🧠 I just grew a FRESH brain from scratch right in your browser — 12-epoch quick-train, final accuracy ' + (acc * 100).toFixed(1) + '%! (My shipped brain is the bigger 120-epoch, 79-lakh-parameter one — reload the page to bring it back.) Ask me something!', false);
                 showChips(['What games are there?', 'Tell me a fact', 'What is 45 times 3', 'How do I add friends?']);
             }, 1400);
         })();

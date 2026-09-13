@@ -9,6 +9,7 @@ const BitMath = require('./math.js');
 const BitData = require('./data.js');
 require('./data2.js');                          // pushes into BitData
 require('./data3.js');                          // v9 expansion — pushes into BitData
+require('./data4.js');                          // v10 class-8 chapter mastery
 global.window = {};                             // browser-ish global for weights.js
 eval(fs.readFileSync('./weights.js', 'utf8'));  // sets window.BITBOT_WEIGHTS
 

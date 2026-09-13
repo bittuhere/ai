@@ -5,6 +5,7 @@ const BitBrain = require('./brain.js');
 const BitData = require('./data.js');
 require('./data2.js');   // v8 knowledge expansion
 require('./data3.js');   // v9 knowledge expansion (site + SST + ICT + math concepts + templates)
+require('./data4.js');   // v10 class-8 chapter mastery (DAV syllabus, 16 chapters)
 
 const HIDDEN = +(process.env.H || 2048), EPOCHS = +(process.env.E || 120), SEED = 1337;
 const t = BitBrain.makeTrainer(BitData.INTENTS, { seed: SEED, hidden: HIDDEN });
@@ -324,11 +325,11 @@ const HELD_OUT = [
     ["which game engine was fortnite built with", "ict_gamedev"],
     /* ── v9: maths-concept held-out ── */
     ["in which order should operations be solved", "math_bodmas"],
-    ["how to find square root by the division method", "math_squares"],
+    ["how to find square root by the division method", "m8_sqrt_methods"],
     ["is there a trick to find cube roots quickly", "math_cubes"],
     ["product of hcf and lcm of two numbers equals what", "math_lcmhcf"],
     ["is 2.5 a rational number or irrational", "math_rational"],
-    ["how to solve equations using the transposing method", "math_linear"],
+    ["how to solve equations using the transposing method", "m8_linear_eq"],
     ["what is the expansion of a minus b whole square", "math_identities"],
     ["in which quadrant does the point minus 3 comma 4 lie", "math_coordinate"],
     ["how many mirror lines does a square have", "math_symmetry"],
@@ -340,6 +341,35 @@ const HELD_OUT = [
     ["cloud computing ka matlab samjhao", "ict_cloud"],
     ["samvidhan me kitne sanshodhan hue", "civics_amendments"],
     ["venn diagram me golon ka overlap kya dikhata hai", "math_sets"],
+    /* ── v10: CLASS-8 chapter mastery held-out ── */
+    ["which digits can never end a perfect square", "m8_square_props"],
+    ["how do i generate pythagorean triplets using m", "m8_square_props"],
+    ["how does the repeated subtraction method work for roots", "m8_sqrt_methods"],
+    ["steps of the long division method for square roots", "m8_sqrt_methods"],
+    ["why is 1729 called the ramanujan number", "m8_cube_props"],
+    ["is the cube root of a negative number possible", "m8_cube_props"],
+    ["what happens when an exponent is negative", "m8_exponent_laws"],
+    ["rule for dividing powers with the same base", "m8_exponent_laws"],
+    ["difference between a surd and a radical", "m8_radicals"],
+    ["if x and y vary directly what stays constant", "m8_variation"],
+    ["workers and days follow which variation", "m8_variation"],
+    ["what is igst and when is it charged", "m8_commercial"],
+    ["rate aur time half yearly compounding me kaise badalte hain", "m8_compound_int"],
+    ["formula for the difference between ci and si for two years", "m8_compound_int"],
+    ["multiply 98 and 102 without actual multiplication", "m8_identities_use"],
+    ["what is the degree of 4x cube minus 2x to the power 5", "m8_polynomials"],
+    ["what is the transpose method in equations", "m8_linear_eq"],
+    ["which angles are supplementary when a transversal cuts parallel lines", "m8_parallel_lines"],
+    ["diagonals of which quadrilateral bisect each other at 90 degrees", "m8_quadrilaterals"],
+    ["sum of exterior angles of a pentagon", "m8_quadrilaterals"],
+    ["how many measurements are needed to draw a unique quadrilateral", "m8_construction"],
+    ["signs of coordinates in the third quadrant", "math_coordinate"],
+    ["how to get speed from a distance time graph", "m8_graphs"],
+    ["formula for the curved surface area of a cylinder", "m8_mensuration"],
+    ["angle of a pie chart sector formula", "m8_statistics"],
+    ["difference between a histogram and a bar diagram", "m8_statistics"],
+    ["order of rotational symmetry of a regular hexagon", "math_symmetry"],
+    ["which capital letters have both line and rotational symmetry", "math_symmetry"],
 ];
 let ok = 0;
 const misses = [];

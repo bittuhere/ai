@@ -3,151 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0d0b22">
+<meta name="theme-color" content="#1a73e8">
 <link rel="icon" type="image/png" href="icon-512.png">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>BitBot — Arcade Hub AI Assistant (beta)</title>
+<title>BitBot v17 — Arcade Hub AI · Class 1–8 Maths Master</title>
 <style>
+    /* BitBot v17 — solid, minimal, Gemini/DuckDuckGo-like light theme. No gradients, no emoji chrome, inline SVG icons. */
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+        --bg: #ffffff; --bg2: #f5f6f7; --line: #e3e6e8; --txt: #1f2328; --txt2: #5f6368;
+        --acc: #1a73e8; --acc-d: #1765cc; --ok: #188038; --warn: #f9ab00; --bad: #d93025;
+        --bot-bg: #f1f3f4; --radius: 16px;
+    }
     html, body { height: 100%; }
     body {
-        font-family: 'Segoe UI', system-ui, sans-serif;
-        background: radial-gradient(1200px 700px at 70% -10%, #1b1440 0%, #0d0b22 55%, #070510 100%);
-        color: #e8ecf4; display: flex; flex-direction: column; overflow: hidden;
+        background: var(--bg); color: var(--txt);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 15px; line-height: 1.55; display: flex; flex-direction: column; overflow: hidden;
     }
+    svg { display: block; }
+
+    /* ── header ── */
     header {
-        flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 14px 18px;
-        background: rgba(20, 25, 36, .8); border-bottom: 1px solid rgba(255,255,255,.09); backdrop-filter: blur(8px);
+        position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--line);
     }
-    .ava {
-        width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-        background: conic-gradient(from 210deg, #00f3ff, #818cf8, #ff00ff, #00f3ff);
-        display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
-        box-shadow: 0 0 22px rgba(0,243,255,.45); animation: spin 9s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .ava > span { animation: spin 9s linear infinite reverse; }
-    header h1 { font-family: 'Teko', 'Segoe UI', sans-serif; font-size: 1.55rem; letter-spacing: 1.5px; line-height: 1; }
-    header .sub { font-size: .68rem; color: #9aa5b5; letter-spacing: .4px; }
-    #ver { position: fixed; left: 10px; bottom: 8px; font-size: .6rem; color: #4b5563; letter-spacing: 1px; z-index: 5; }
-    #status { margin-left: auto; font-size: .7rem; color: #34d399; display: flex; align-items: center; gap: 6px; }
-    #status .dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399; }
-    #status.busy { color: #fbbf24; } #status.busy .dot { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+    .logo { width: 36px; height: 36px; border-radius: 10px; background: var(--acc); color: #fff;
+            display: flex; align-items: center; justify-content: center; flex: none; }
+    .logo svg { width: 22px; height: 22px; }
+    .hwrap { min-width: 0; }
+    header h1 { font-size: 16px; font-weight: 700; line-height: 1.2; }
+    .sub { font-size: 11.5px; color: var(--txt2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw; }
+    #status { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--txt2);
+              background: var(--bg2); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+    #status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+    #status.busy .dot { background: var(--warn); }
+    .ibtn { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--txt2); flex: none; }
+    .ibtn:hover { background: var(--bg2); color: var(--txt); }
+    .ibtn svg { width: 18px; height: 18px; }
 
-    #chat { flex: 1; overflow-y: auto; padding: 18px 6%; display: flex; flex-direction: column; gap: 10px; }
-    .msg { max-width: 78%; padding: 11px 15px; border-radius: 16px; font-size: .93rem; line-height: 1.5;
-           animation: pop .22s cubic-bezier(.2,.9,.3,1.2) both; word-wrap: break-word; white-space: pre-wrap; }
-    @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
-    .bot  { align-self: flex-start; background: #1a2130; border: 1px solid rgba(255,255,255,.09); border-bottom-left-radius: 5px; }
-    .me   { align-self: flex-end; background: linear-gradient(45deg, #0891b2, #2563eb); border-bottom-right-radius: 5px; }
-    .msg b { color: #7dd3fc; }
-    .msg i { color: #c7d2fe; }
-    .msg code { background: rgba(0,243,255,.08); border: 1px solid rgba(0,243,255,.22); padding: 1px 6px; border-radius: 6px; font-family: Consolas, 'Courier New', monospace; font-size: .85em; color: #7dd3fc; }
-    .msg pre { background: #0b0f1a; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; margin: 8px 0; overflow-x: auto; }
-    .msg pre code { border: none; background: none; padding: 0; }
-    .msg h3, .msg h4 { color: #7dd3fc; margin: 8px 0 3px; font-size: .95rem; letter-spacing: .3px; }
-    .msg ul, .msg ol { margin: 6px 0 6px 4px; padding-left: 18px; }
-    .msg li { margin: 3px 0; }
-    .msg a { color: #7dd3fc; text-decoration: underline; }
-    .msg .sp { height: .5em; }
-    .typing { align-self: flex-start; display: none; gap: 5px; padding: 13px 16px; background: #1a2130; border-radius: 16px; border-bottom-left-radius: 5px; }
-    .typing.show { display: flex; }
-    .typing i { width: 7px; height: 7px; border-radius: 50%; background: #7dd3fc; animation: blink 1s infinite; }
-    .typing i:nth-child(2) { animation-delay: .18s; } .typing i:nth-child(3) { animation-delay: .36s; }
-    @keyframes blink { 0%, 70%, 100% { opacity: .25; } 35% { opacity: 1; } }
-    .chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 6% 8px; }
-    .chip { padding: 7px 13px; border-radius: 999px; border: 1px solid rgba(0,243,255,.35);
-            background: rgba(0,243,255,.07); color: #a5e8ff; font-size: .78rem; cursor: pointer; transition: .15s; }
-    .chip:hover { background: rgba(0,243,255,.2); transform: translateY(-1px); }
+    /* ── chat ── */
+    #chat { flex: 1; overflow-y: auto; padding: 22px 16px 10px; display: flex; flex-direction: column; gap: 14px;
+            width: 100%; max-width: 860px; margin: 0 auto; scroll-behavior: smooth; }
+    .msg { display: flex; flex-direction: column; max-width: 84%; animation: pop .16s ease-out; }
+    @keyframes pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .msg.me { align-self: flex-end; align-items: flex-end; }
+    .msg.bot { align-self: flex-start; align-items: flex-start; }
+    .mbody { padding: 10px 14px; border-radius: var(--radius); white-space: pre-wrap; word-break: break-word; }
+    .msg.me .mbody { background: var(--acc); color: #fff; border-bottom-right-radius: 6px; }
+    .msg.bot .mbody { background: var(--bot-bg); color: var(--txt); border-bottom-left-radius: 6px; }
+    .mbody h3, .mbody h4, .mbody h5 { white-space: normal; margin: 8px 0 4px; font-size: 15px; }
+    .mbody ul, .mbody ol { white-space: normal; margin: 6px 0 6px 20px; }
+    .mbody table { white-space: normal; border-collapse: collapse; margin: 8px 0; font-size: 13.5px; }
+    .mbody th, .mbody td { border: 1px solid var(--line); padding: 5px 9px; text-align: left; }
+    .mbody th { background: var(--bg2); }
+    .mbody pre { white-space: pre; background: var(--bg2); border: 1px solid var(--line); border-radius: 8px;
+                 padding: 8px 10px; overflow-x: auto; margin: 8px 0; font-size: 13px; }
+    .mbody code { background: #e8eaed; border-radius: 5px; padding: 1px 5px; font-size: 13px;
+                  font-family: ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace; }
+    .mbody pre code { background: none; padding: 0; }
+    .mbody a { color: var(--acc); }
+    .msg.me .mbody a { color: #fff; text-decoration: underline; }
+    .time { font-size: 10.5px; color: var(--txt2); margin: 4px 6px; }
+    .copybtn { display: inline-flex; align-items: center; gap: 5px; background: var(--bg); border: 1px solid var(--line);
+               color: var(--txt2); border-radius: 8px; padding: 4px 9px; font-size: 11.5px; cursor: pointer; margin-top: 4px; }
+    .copybtn:hover { background: var(--bg2); color: var(--txt); }
+    .copybtn svg { width: 13px; height: 13px; }
 
-    footer { flex-shrink: 0; display: flex; gap: 9px; padding: 12px 6% max(14px, env(safe-area-inset-bottom));
-             background: rgba(20,25,36,.85); border-top: 1px solid rgba(255,255,255,.09); }
-    #inp { flex: 1; padding: 13px 17px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.13);
-           background: #141924; color: #e8ecf4; outline: none; font-family: inherit; font-size: .93rem; min-width: 0; }
-    #inp:focus { border-color: rgba(0,243,255,.55); box-shadow: 0 0 0 4px rgba(0,243,255,.1); }
-    #send { width: 46px; height: 46px; border: none; border-radius: 50%; background: linear-gradient(45deg,#06b6d4,#3b82f6);
-            color: #fff; font-size: 1.1rem; cursor: pointer; transition: .15s; flex-shrink: 0; }
-    #send:hover { transform: scale(1.09); box-shadow: 0 0 18px rgba(6,182,212,.5); }
+    /* typing dots */
+    .typing { display: none; align-items: center; gap: 5px; }
+    .typing.show { display: flex; align-self: flex-start; width: max-content; margin: 0 auto 0 max(16px, calc(50% - 414px));
+                   padding: 12px 14px; background: var(--bot-bg); border-radius: var(--radius); border-bottom-left-radius: 6px; }
+    .typing i { width: 7px; height: 7px; border-radius: 50%; background: #9aa0a6; animation: blink 1.2s infinite; }
+    .typing i:nth-child(2) { animation-delay: .2s; }
+    .typing i:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%, 60%, 100% { opacity: .3; } 30% { opacity: 1; } }
 
-    /* training overlay */
-    #trainOv { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; gap: 14px;
-               align-items: center; justify-content: center; background: rgba(7,5,16,.92); backdrop-filter: blur(6px); }
-    #trainOv.show { display: flex; }
-    #trainOv h2 { font-family: 'Teko','Segoe UI',sans-serif; font-size: 2rem; letter-spacing: 2px; color: #7dd3fc; }
-    #trainOv .bar { width: min(78vw, 380px); height: 8px; background: rgba(255,255,255,.09); border-radius: 8px; overflow: hidden; }
-    #trainOv .fill { height: 100%; width: 0%; background: linear-gradient(90deg,#06b6d4,#818cf8); border-radius: 8px; transition: width .12s; }
-    #trainStats { font-size: .78rem; color: #9aa5b5; line-height: 1.8; text-align: center; }
-    /* loader (v6) */
-    #loader { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-              background: radial-gradient(1200px 700px at 70% -10%, #1b1440 0%, #0d0b22 55%, #070510 100%); transition: opacity .6s; }
-    #loader.hide { opacity: 0; pointer-events: none; }
-    .lring { width: 94px; height: 94px; border-radius: 50%; background: conic-gradient(#00f3ff, #818cf8, #ff00ff, #00f3ff);
-             animation: lspin 1.5s linear infinite; box-shadow: 0 0 36px rgba(0,243,255,.4); display: flex; align-items: center; justify-content: center; }
-    .lava { width: 78px; height: 78px; border-radius: 50%; background: #0d0b22; display: flex; align-items: center; justify-content: center; font-size: 2.1rem; animation: lspin 1.5s linear infinite reverse; }
-    @keyframes lspin { to { transform: rotate(360deg); } }
-    .lpct { font-family: 'Teko', 'Segoe UI', sans-serif; font-size: 2.3rem; color: #7dd3fc; letter-spacing: 2px; line-height: 1; text-shadow: 0 0 18px rgba(125,211,252,.45); }
-    .lbar { width: min(72vw, 320px); height: 7px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; }
-    .lfill { height: 100%; width: 0%; border-radius: 8px; background: linear-gradient(90deg, #06b6d4, #818cf8, #ff00ff, #06b6d4); background-size: 200% 100%;
-             animation: lshimmer 1.3s linear infinite; transition: width .5s cubic-bezier(.3,.8,.4,1); box-shadow: 0 0 14px rgba(6,182,212,.6); }
-    @keyframes lshimmer { to { background-position: -200% 0; } }
-    .lstep { font-size: .74rem; color: #9aa5b5; letter-spacing: .6px; min-height: 1.1em; transition: opacity .25s; }
+    /* chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 6px 16px 10px;
+             max-width: 860px; margin: 0 auto; width: 100%; }
+    .chips:empty { display: none; }
+    .chip { background: var(--bg); border: 1px solid var(--line); color: var(--txt); border-radius: 999px;
+            padding: 7px 14px; font-size: 13px; cursor: pointer; }
+    .chip:hover { background: var(--bg2); border-color: #cfd4d8; }
 
-    /* timestamps + clear chat (v6) */
-    .msg .time { display: block; font-size: .58rem; color: #5b6472; margin-top: 5px; text-align: right; letter-spacing: .4px; }
-    .me .time { color: rgba(255,255,255,.5); }
+    /* ── composer ── */
+    footer { position: sticky; bottom: 0; z-index: 30; background: var(--bg); border-top: 1px solid var(--line);
+             padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
+    footer .fwrap { display: flex; gap: 10px; align-items: center; max-width: 860px; margin: 0 auto; }
+    #inp { flex: 1; background: var(--bg); border: 1.5px solid #dadce0; border-radius: 24px; padding: 12px 18px;
+           font-size: 15px; color: var(--txt); outline: none; font-family: inherit; }
+    #inp:focus { border-color: var(--acc); }
+    #send { width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--acc); color: #fff;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+    #send:hover { background: var(--acc-d); }
+    #send:disabled { background: #c6d7f4; cursor: default; }
+    #send svg { width: 20px; height: 20px; }
 
-    /* chain of thought (v7) */
-    .cot { align-self: flex-start; max-width: 80%; padding: 8px 13px; border-radius: 14px; border-bottom-left-radius: 5px;
-           background: rgba(26,33,48,.55); border: 1px dashed rgba(125,211,252,.28); font-size: .73rem; color: #8b98ab;
-           animation: pop .2s both; }
-    .cot .thead { cursor: pointer; color: #7dd3fc; letter-spacing: .3px; user-select: none; }
-    .cot .tbody { display: none; margin-top: 7px; }
+    /* ── chain-of-thought (BitBot engine traces) ── */
+    .cot { align-self: flex-start; max-width: 84%; background: var(--bg); border: 1px solid var(--line);
+           border-radius: 10px; font-size: 12px; color: var(--txt2); overflow: hidden; }
+    .cot .thead { padding: 7px 12px; cursor: pointer; user-select: none; font-weight: 600; color: var(--txt2); }
+    .cot .tbody { display: none; padding: 4px 12px 10px; border-top: 1px solid var(--line); }
     .cot.open .tbody { display: block; }
-    .cot .tstep { padding: 2.5px 0; border-top: 1px dotted rgba(139,152,171,.18); animation: pop .22s both; }
-    #clearBtn { margin-left: 8px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15);
-                background: rgba(255,255,255,.05); color: #9aa5b5; font-size: 1.05rem; cursor: pointer; transition: .2s; flex-shrink: 0; }
-    #clearBtn:hover { color: #7dd3fc; border-color: rgba(0,243,255,.5); transform: rotate(-180deg); }
+    .cot .tstep { padding: 3px 0; border-bottom: 1px dashed var(--line); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; }
+    .cot .tstep:last-child { border-bottom: none; }
 
-    #trainBtn { position: fixed; right: 14px; bottom: 84px; z-index: 40; padding: 9px 15px; border-radius: 999px;
-                border: 1px solid rgba(129,140,248,.5); background: rgba(20,25,36,.9); color: #b6bdff;
-                font-size: .72rem; cursor: pointer; }
-    #trainBtn:hover { background: rgba(129,140,248,.2); }
+    /* ── BitLM Pro streaming UI ── */
+    .prothink { margin-bottom: 8px; width: 100%; }
+    .prothink summary { cursor: pointer; color: var(--txt2); font-size: 12px; font-weight: 600; user-select: none; list-style: none; }
+    .prothink summary::-webkit-details-marker { display: none; }
+    .prothink summary::before { content: '\25B8'; display: inline-block; margin-right: 6px; transition: transform .15s; }
+    .prothink[open] summary::before { transform: rotate(90deg); }
+    .thinkbody { white-space: pre-wrap; font-size: 12px; color: var(--txt2); max-height: 170px; overflow-y: auto;
+                 margin: 6px 0; padding: 8px 10px; border-left: 2px solid var(--line); background: var(--bg2); border-radius: 6px; }
+    .prostatus { color: var(--acc); font-size: 12px; margin: 4px 0; }
+    .calclog { white-space: pre-wrap; font-size: 11px; color: var(--ok); margin-top: 6px; }
+
+    /* ── loader / download overlays ── */
+    #loader, #dlOv { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; flex-direction: column;
+                     align-items: center; justify-content: center; gap: 14px; padding: 24px;
+                     transition: opacity .45s ease; text-align: center; }
+    #loader.hide, #dlOv.hide { opacity: 0; pointer-events: none; }
+    #dlOv { display: none; }
+    #dlOv.show { display: flex; }
+    .lmark { width: 64px; height: 64px; border-radius: 18px; background: var(--acc); color: #fff;
+             display: flex; align-items: center; justify-content: center; animation: breathe 1.6s ease-in-out infinite; }
+    .lmark svg { width: 38px; height: 38px; }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    .lpct { font-size: 40px; font-weight: 800; letter-spacing: -.5px; color: var(--txt); }
+    .lbar { width: min(78vw, 380px); height: 8px; background: var(--bg2); border: 1px solid var(--line);
+            border-radius: 999px; overflow: hidden; }
+    .lfill { height: 100%; width: 0%; background: var(--acc); border-radius: 999px; transition: width .18s ease; }
+    .lstep { font-size: 13px; color: var(--txt2); transition: opacity .16s; max-width: 80vw; }
+    #dlTitle { font-size: 17px; font-weight: 700; }
+    #dlmb { font-size: 13px; color: var(--txt); font-weight: 600; }
+    #dlCancel { margin-top: 8px; }
+
+    /* ── model choice modal ── */
+    #modelOv { position: fixed; inset: 0; z-index: 110; background: rgba(32, 33, 36, .55); display: none;
+               align-items: center; justify-content: center; padding: 20px; }
+    #modelOv.show { display: flex; }
+    .mo-box { background: var(--bg); border-radius: 20px; max-width: 640px; width: 100%; padding: 28px 26px 24px;
+              text-align: center; max-height: 92vh; overflow-y: auto; }
+    .mo-logo { width: 56px; height: 56px; border-radius: 16px; background: var(--acc); color: #fff; margin: 0 auto 14px;
+               display: flex; align-items: center; justify-content: center; }
+    .mo-logo svg { width: 32px; height: 32px; }
+    .mo-box h2 { font-size: 21px; font-weight: 800; letter-spacing: -.2px; }
+    .mo-sub { color: var(--txt2); font-size: 13.5px; margin: 6px 0 18px; }
+    .mo-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mo-card { background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 16px 14px;
+               text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 6px; font-family: inherit; }
+    .mo-card:hover { border-color: #b8c8e8; background: #fbfcfe; }
+    .mo-card.sel { border-color: var(--acc); background: #f2f7fe; }
+    .mo-name { font-size: 16px; font-weight: 800; color: var(--txt); }
+    .mo-desc { font-size: 12.5px; color: var(--txt2); line-height: 1.45; }
+    .mo-size { font-size: 12px; font-weight: 700; color: var(--acc); margin-top: auto; padding-top: 6px; }
+    .mo-note { margin: 16px 0 4px; font-size: 12.5px; color: var(--txt2); background: var(--bg2);
+               border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+    .mo-cta { margin-top: 14px; background: var(--acc); color: #fff; border: none; border-radius: 999px;
+              padding: 12px 34px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .mo-cta:hover { background: var(--acc-d); }
+    .mo-cta:disabled { background: #c6d7f4; cursor: default; }
+    .mo-cta.ghost { background: var(--bg); color: var(--txt2); border: 1px solid var(--line); font-weight: 600; font-size: 13px; padding: 9px 20px; }
+    .mo-cta.ghost:hover { background: var(--bg2); }
+    .mo-req { margin-top: 12px; font-size: 12.5px; color: var(--bad); min-height: 16px; }
+
+    /* ── history panel ── */
+    #histOv { position: fixed; inset: 0; z-index: 90; background: rgba(32, 33, 36, .45); display: none; }
+    #histOv.show { display: block; }
+    #histPanel { position: absolute; top: 0; right: 0; bottom: 0; width: min(92vw, 380px); background: var(--bg);
+                 border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+    .hp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 16px;
+               border-bottom: 1px solid var(--line); font-size: 15px; }
+    .hp-head button { background: none; border: none; color: var(--txt2); cursor: pointer; width: 32px; height: 32px;
+                      display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .hp-head button:hover { background: var(--bg2); }
+    .hp-head svg { width: 16px; height: 16px; }
+    #histList { overflow-y: auto; padding: 8px; flex: 1; }
+    .hp-row { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 10px; }
+    .hp-row:hover { background: var(--bg2); }
+    .hp-info { flex: 1; min-width: 0; }
+    .hp-info b { display: block; font-size: 13.5px; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hp-info span { display: block; font-size: 11px; color: var(--txt2); margin-top: 2px; }
+    .hp-open, .hp-del { background: var(--bg); border: 1px solid var(--line); color: var(--txt2); border-radius: 8px;
+                        padding: 5px 10px; font-size: 12px; cursor: pointer; }
+    .hp-open:hover { background: var(--bg2); color: var(--txt); }
+    .hp-del:hover { border-color: var(--bad); color: var(--bad); }
+    .hp-empty { padding: 26px 14px; text-align: center; color: var(--txt2); font-size: 13px; }
+
+    /* ── error banner ── */
+    #errBanner { position: fixed; top: 0; left: 0; right: 0; z-index: 120; display: none; align-items: center; gap: 10px;
+                 background: #fce8e6; color: #a50e0e; border-bottom: 1px solid #f5c6c0; padding: 10px 16px; font-size: 13px; }
+    #errBanner.show { display: flex; }
+    #errText { flex: 1; }
+    #errClose { background: none; border: none; color: #a50e0e; cursor: pointer; width: 28px; height: 28px;
+                display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+    #errClose:hover { background: rgba(165, 14, 14, .08); }
+    #errClose svg { width: 14px; height: 14px; }
+
+    #ver { position: fixed; left: 10px; bottom: 6px; font-size: 10.5px; color: #9aa0a6; z-index: 5; pointer-events: none; }
+
+    @media (max-width: 640px) {
+        .sub { display: none; }
+        .msg { max-width: 94%; }
+        .mo-cards { grid-template-columns: 1fr; }
+        #chat { padding: 14px 10px 8px; }
+        .typing.show { margin-left: 10px; }
+    }
 </style>
 </head>
 <body>
 <div id="loader">
-    <div class="lring"><div class="lava">🤖</div></div>
+    <div class="lmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7.5" width="16" height="11.5" rx="3"></rect><path d="M12 4.2V7.5"></path><circle cx="12" cy="3.4" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="9.2" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="14.8" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><path d="M9.8 16.3h4.4"></path></svg></div>
     <div class="lpct" id="lpct">0%</div>
     <div class="lbar"><div class="lfill" id="lfill"></div></div>
-    <div class="lstep" id="lstep">waking up…</div>
+    <div class="lstep" id="lstep">starting…</div>
 </div>
+
+<div id="modelOv">
+    <div class="mo-box">
+        <div class="mo-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7.5" width="16" height="11.5" rx="3"></rect><path d="M12 4.2V7.5"></path><circle cx="12" cy="3.4" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="9.2" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="14.8" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><path d="M9.8 16.3h4.4"></path></svg></div>
+        <h2>Which AI do you want to use?</h2>
+        <p class="mo-sub">You can switch anytime later from the header.</p>
+        <div class="mo-cards">
+            <button class="mo-card" id="cardBitlm" type="button">
+                <span class="mo-name">BitLM</span>
+                <span class="mo-desc">A large language model — writing, ideas, stories, homework and daily works. Runs on your own device.</span>
+                <span class="mo-size" id="bitlmSize">494M params · ~400 MB one-time download</span>
+            </button>
+            <button class="mo-card" id="cardBitbot" type="button">
+                <span class="mo-name">BitBot</span>
+                <span class="mo-desc">A model completely made from scratch — Arcade Hub personal assistant + Class 1–8 Maths Master with exact engines.</span>
+                <span class="mo-size" id="bitbotSize">1.27 cr params · ~17 MB · included — instant &amp; offline</span>
+            </button>
+        </div>
+        <p class="mo-note">Once you would download, you would not need to download next time.</p>
+        <button id="moGo" class="mo-cta" type="button" disabled>Continue</button>
+        <p class="mo-req" id="moReq"></p>
+    </div>
+</div>
+
+<div id="dlOv">
+    <div class="lmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7.5" width="16" height="11.5" rx="3"></rect><path d="M12 4.2V7.5"></path><circle cx="12" cy="3.4" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="9.2" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="14.8" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><path d="M9.8 16.3h4.4"></path></svg></div>
+    <h3 id="dlTitle">Downloading BitLM…</h3>
+    <div class="lpct" id="dlpct">0%</div>
+    <div class="lbar"><div class="lfill" id="dlfill"></div></div>
+    <div id="dlmb">0 MB of 400 MB</div>
+    <div class="lstep" id="dlstep">preparing…</div>
+    <button id="dlCancel" class="mo-cta ghost" type="button">Cancel — use BitBot instead</button>
+</div>
+
 <header>
-    <div class="ava"><span>🤖</span></div>
-    <div>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7.5" width="16" height="11.5" rx="3"></rect><path d="M12 4.2V7.5"></path><circle cx="12" cy="3.4" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="9.2" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="14.8" cy="12.8" r="1.1" fill="currentColor" stroke="none"></circle><path d="M9.8 16.3h4.4"></path></svg></div>
+    <div class="hwrap">
         <h1>BitBot</h1>
-        <div class="sub">Arcade Hub assistant · neural net · <span id="brainspec">…</span></div>
+        <div class="sub">Arcade Hub assistant · Class 1–8 Maths Master · <span id="brainspec">…</span></div>
     </div>
     <div id="status"><span class="dot"></span><span id="statusTxt">booting…</span></div>
-    <button id="clearBtn" title="Clear chat">↺</button>
+    <button id="modelBtn" class="ibtn" title="Switch model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13"></path><path d="M14 5l3 3-3 3"></path><path d="M20 16H7"></path><path d="M10 13l-3 3 3 3"></path></svg></button>
+    <button id="histBtn" class="ibtn" title="Saved chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></button>
+    <button id="clearBtn" class="ibtn" title="New chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
 </header>
 
 <div id="chat"></div>
 <div class="typing" id="typing"><i></i><i></i><i></i></div>
 <div class="chips" id="chips"></div>
 
+<div id="histOv">
+    <div id="histPanel">
+        <div class="hp-head"><b>Saved chats <span id="histCount" style="color:var(--txt2);font-weight:400"></span></b><button id="histClose" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button></div>
+        <div id="histList"></div>
+    </div>
+</div>
+
 <footer>
-    <input id="inp" type="text" placeholder="Ask about games, account, Fair Copies, chat…" autocomplete="off">
-    <button id="send" title="Send">➤</button>
+    <div class="fwrap">
+        <input id="inp" type="text" placeholder="Ask anything — maths, science, writing, Arcade Hub…" autocomplete="off">
+        <button id="send" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><path d="M5.5 11.5L12 5l6.5 6.5"></path></svg></button>
+    </div>
 </footer>
 
-<div id="ver">BitBot v7</div>
-<button id="trainBtn">🧠 Watch BitBot learn</button>
-<div id="trainOv">
-    <h2>BitBot is training its brain…</h2>
-    <div class="bar"><div class="fill" id="trainFill"></div></div>
-    <div id="trainStats"></div>
-</div>
+<div id="errBanner"><span id="errText"></span><button id="errClose" title="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button></div>
+<div id="ver">BitBot v17</div>
 
 <script>
 /* BitBot loader (v6) — REAL progress: every % step is an actual file load. */
@@ -162,7 +302,7 @@
     }
     window.__setLoad = setP;
     window.__loaderDone = function () {
-        setP(100, 'ready! 🚀');
+        setP(100, 'ready');
         setTimeout(function () {
             var l = document.getElementById('loader');
             if (l) { l.classList.add('hide'); setTimeout(function () { if (l.parentNode) l.parentNode.removeChild(l); }, 700); }
@@ -180,12 +320,18 @@
         requestAnimationFrame(tick);
         setP(6, 'starting neural core…');
         var files = [
-            ['brain.js?v=10',   16, 'loading my brain engine…'],
-            ['math.js?v=10',    26, 'loading my math engine — BODMAS, √, ², !, lakh/crore…'],
-            ['data.js?v=10',    36, 'loading core knowledge…'],
-            ['data2.js?v=10',   48, 'loading the v8 knowledge expansion…'],
-            ['data3.js?v=10',   62, 'loading the v9 expansion — 330 topics, SST + ICT + deep maths…'],
-            ['weights.js?v=10', 90, 'loading 79-lakh quantized weights — all my memories…']
+            ['brain.js?v=17',   16, 'loading my brain engine…'],
+            ['math.js?v=17',    24, 'loading my math engine — BODMAS, √, ², !, algebra…'],
+            ['wordmath.js?v=17',32, 'loading my word-problem solver — ages, profit, mensuration…'],
+            ['solvex.js?v=17',  36, 'loading my brain-teaser engine — BT/HOTS master solver…'],
+            ['data.js?v=17',    40, 'loading core knowledge…'],
+            ['data2.js?v=17',   48, 'loading the v8 knowledge expansion…'],
+            ['data3.js?v=17',   58, 'loading the v9 expansion — 330 topics, SST + ICT + deep maths…'],
+            ['data4.js?v=17',   70, 'loading Class-8 mastery — all 16 DAV chapters…'],
+            ['weights.js?v=17', 84, 'loading 82-lakh quantized weights — all my memories…'],
+            ['bitlm.js?v=17',   88, 'loading my generative language engine…'],
+            ['bitlm-weights.js?v=17', 93, 'loading BitLM-mini — a transformer I trained FROM SCRATCH on my own data…'],
+            ['bitlm-pro.js?v=17', 96, 'loading the BitLM Pro engine — big in-browser AI + javascript console tools…']
         ];
         var i = 0;
         function loadCurrent(tries) {
@@ -234,9 +380,10 @@
                 vocabInfo.words.length + '→' + net.H + '→' + net.N + ' · ' +
                 (net.W1.length + net.b1.length + net.W2.length + net.b2.length).toLocaleString() + ' params';
             PARAMS = net.W1.length + net.b1.length + net.W2.length + net.b2.length;
-            statusTxt.textContent = 'neural net ready';
+            statusTxt.textContent = 'ready';
             statusEl.classList.remove('busy');
-            greet();
+            if (window.BitLMPro && modelChoice() === '') setTimeout(function () { showModelModal(true); }, 950);  // v17: ask first
+            else greet();
             if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {   // v6: offline cache
                 navigator.serviceWorker.register('./sw.js').catch(function () {});
             }
@@ -412,8 +559,101 @@
         if (be > 1e-9 || bd === 1 || bn === 0) return null;
         return (sign < 0 ? '-' : '') + bn + '/' + bd;
     }
+    // ── v10: algebra answers — equations & expansions, textbook style ──────
+    function rootStr10(r, exact) {
+        var rounded = Math.round(r * 1e9) / 1e9;
+        if (exact && exact !== String(rounded)) return exact + ' = ' + rounded;
+        return String(rounded);
+    }
+    function fmtEquation(EQ, rawText) {
+        var src10 = window.BitMath ? BitMath.normalize(rawText).expr : rawText;
+        if (EQ.identity !== undefined) {
+            if (EQ.numeric) return (EQ.identity ? '✅ **True!** ' : '❌ **False.** ') + EQ.lhsVal + (EQ.identity ? ' = ' : ' ≠ ') + EQ.rhsVal;
+            return EQ.identity
+                ? '♾️ **Identity** — both sides are identical, so it holds for **every** value of ' + EQ.variable + '.'
+                : '🚫 **No solution** — the two sides can never be equal (something like 3 = 9 would have to be true).';
+        }
+        var out = ['🧮 **Solving `' + src10 + '`:**', ''];
+        (EQ.steps || []).forEach(function (st, i) {
+            out.push('**Step ' + (i + 1) + '** — ' + st.why + ': `' + st.calc + '`');
+            cot('  🧮 step ' + (i + 1) + ': ' + st.calc);
+        });
+        out.push('');
+        if (EQ.infinite) out.push('♾️ **Infinitely many solutions** — any value of ' + EQ.variable + ' works!');
+        else if (EQ.none) out.push('🚫 **No solution.**');
+        else if (EQ.complex) out.push('🌀 **No real roots** — the discriminant D = ' + fmtNum2(EQ.D) + ' is negative, so the roots would be complex numbers (beyond Class 8!).');
+        else {
+            var ans = EQ.roots.map(function (r, i) { return EQ.variable + ' = ' + rootStr10(r, EQ.exact[i]); });
+            out.push('✅ **' + ans.join('   or   ') + '**');
+            (EQ.checks || []).forEach(function (c) {
+                out.push('🔍 Check ' + EQ.variable + ' = ' + (Math.round(c.root * 1e6) / 1e6) + ':  LHS = ' + c.lhs + ',  RHS = ' + c.rhs + (c.ok ? '  ✔' : '  ✘'));
+            });
+        }
+        return out.join('\n');
+    }
+    function fmtBitX(r) {
+        var out = ['🧠 **' + r.title + '**', ''];
+        var st = r.steps || [];
+        for (var bi = 0; bi < st.length; bi++) {
+            out.push((st.length > 1 ? '**Step ' + (bi + 1) + '** — ' : '') + st[bi]);
+        }
+        if (st.length) out.push('');
+        out.push('✅ **Answer: ' + r.answer + '**');
+        return out.join('\n');
+    }
+
+    function fmtWordProblem(WP) {
+        var out = ['📝 **Word Problem — ' + WP.title + '**', ''];
+        if (WP.given) out.push('**Given:** ' + WP.given, '');
+        (WP.steps || []).forEach(function (s, i) {
+            out.push('**Step ' + (i + 1) + '** — ' + s.why + (s.calc ? ': `' + s.calc + '`' : ''));
+            cot('  📝 step ' + (i + 1) + ': ' + s.why + (s.calc ? ' → ' + s.calc : ''));
+        });
+        out.push('', '✅ **Answer:** ' + WP.answer);
+        if (WP.check) out.push('', '🔍 **Check:** ' + WP.check);
+        return out.join('\n');
+    }
+    function fmtExpand(EX, rawText) {
+        cot('🧮 algebra engine → ' + EX.input + ' = ' + EX.result);
+        var word = /[()^²³]/.test(rawText) || /expand/i.test(rawText) ? 'Expanding' : 'Simplifying';
+        return '🧮 **' + word + ' `' + EX.input + '`:**\n\n= **' + EX.result + '**' +
+            '\n\n_Tell me **"expand (a+b)³"** or **"solve 2x + 3 = 11"** — I do full Class 8 algebra!_';
+    }
     function doMath(text) {
         var t = text.toLowerCase(), m;
+        // ── v10: symbolic algebra — equations & expansions come FIRST ────────
+        //    (v11 guard: pure NUMERIC input like sqrt(0.0441)/sqrt(0.000441) must
+        //     fall through to the BODMAS engine below — never the poly expander)
+        var PURE_NUM = window.BitMath && BitMath.looksLikeMath && BitMath.looksLikeMath(text);
+        if (!PURE_NUM && window.BitMath && BitMath.solveEquation) {
+            var EQ = null, EX = null;
+            try { EQ = BitMath.solveEquation(text); } catch (e10) { EQ = null; }
+            if (EQ && EQ.ok) { cot('🧮 algebra engine → equation solved symbolically'); return fmtEquation(EQ, text); }
+            // only try expand on genuine algebra input (brackets/^(superscript/2x-style),
+            // so "is 17 a prime" can never be misread as 17a
+            if (/[()^²³√]/.test(text) || /\b(expand|simplify|factori[sz]e)\b/.test(t) || /\d[a-z]\b/.test(t.replace(/\b(prime|percent|pi|mod|km|m|cm|mm|kg|g|lb|l|ml|ft|in|mi|s|min|h|hr|am|pm)\b/g, ' '))) {
+                try { EX = BitMath.expand(text); } catch (e10b) { EX = null; }
+                if (EX && EX.ok) return fmtExpand(EX, text);
+            }
+            if (EQ && EQ.error && text.indexOf('=') > -1) {
+                // v12: last chance — BitX handles rational equations (ax+b)/(cx+d)=e/f etc.
+                if (window.BitX) {
+                    var BXR2 = null;
+                    try { BXR2 = BitX.solve(text); } catch (e12x) { BXR2 = null; }
+                    if (BXR2 && BXR2.ok) { cot('🧠 BitX rescued an equation the algebra engine rejected'); return fmtBitX(BXR2); }
+                }
+                return '🤔 ' + EQ.error + '.\n\n_I solve **linear & quadratic** equations in one variable (Class 8–10 level), with full steps._';
+            }
+            if (EX && EX.error && /\b(expand|simplify|factori)/.test(t))
+                return '🤔 ' + EX.error + '.';
+        }
+        // ── v10: WORD PROBLEMS — before the numeric parser, so "2 apples and
+        //    3 mangoes" is never misread as an expression ──────────────────
+        if (window.BitWords) {
+            var WP = null;
+            try { WP = BitWords.solve(text); } catch (e10c) { WP = null; }
+            if (WP) { cot('📝 word problem solved deterministically → ' + WP.title); return fmtWordProblem(WP); }
+        }
         // ── special solvers ──────────────────────────────────────────
         if ((m = t.match(/(?:table of|table)\s*(\d{1,15})/)) || (m = t.match(/(\d{1,15})\s*(?:ka|ki|ker)?\s*(?:table|pahada)/))) {
             var n = parseInt(m[1], 10), lines = '';
@@ -557,6 +797,26 @@
     }
 
     var PARAMS = 20000;                          // true count is set at boot()
+    /* ── v15: DYNAMIC LAYER — BitLM, my from-scratch generative language model.
+          When every exact engine and the KB are out of ideas, BitLM writes a
+          fresh answer word-by-word (no templates) before I admit ignorance. ── */
+    function lmEnabled() {
+        try { return localStorage.getItem('bb_lm_mode') === '1'; } catch (e) { return false; }
+    }
+    function dynamicAttempt(text) {
+        if (!lmEnabled()) return null;                        // experimental layer — opt-in only
+        if (!text || text.length < 6 || text.length > 240) return null;
+        if (!window.BitLM || !BitLM.ready || !BitLM.ready()) return null;
+        try {
+            var gen = BitLM.generate(text, { max: 42 });
+            if (gen && gen.split(/\s+/).length >= 5) {
+                var inf = BitLM.info();
+                cot('🎨 BitLM (' + (inf ? (inf.params / 100000).toFixed(0) : '?') + '-lakh params, trained from scratch on my own corpus) → generated a dynamic answer word-by-word');
+                return '🎨 **BitLM-mini (experimental)** — _generated word-by-word by my own from-scratch 44-lakh-param transformer. I trained it on 2 CPU cores, so it talks like a toddler learning English — enjoy the babble, trust my engines for facts! (For the BIG model, say **"switch to bitlm"**.)_ \n\n' + gen;
+            }
+        } catch (e) {}
+        return null;
+    }
     function fallbackMsg() {
         var fbs = [
             "I honestly don't know that one yet 🤷 — I'm still learning! I'm best at: **Arcade Hub, games, full math, science, GK, history, sports** and school stuff.",
@@ -916,6 +1176,47 @@
 
     function respond(text) {
         COT.length = 0;
+        // v13: strip conversational request prefixes ("pls solve this: …", "with full steps: …",
+        // "can you tell me, …", "batao, …") so the solvers/classifier see the bare question.
+        text = String(text);
+        var PRE_STRIPS = [
+            /^\s*(?:pls|please|plz|kindly|plzz+)\b[\s,:.]*/i,
+            /^\s*(?:can|could|would)\s+you\s+(?:please\s+)?/i,
+            /^\s*(?:tell\s+me|solve\s+this|solve\s+it|answer\s+this|answer\s+it|do\s+this)\s*[:,]\s*/i,
+            /^\s*solve\s*[:,]\s*/i,
+            /^\s*(?:with\s+)?(?:full\s+|complete\s+|all\s+)?steps?\s*[:,]\s*/i,
+            /^\s*with\s+full\s+steps\s*[:,]?\s*/i,
+            /^\s*(?:batao|batana|bataiye|nikalo|solve\s+karo)\s*[,:]\s*/i,
+            /^\s*show\s+(?:me\s+)?(?:the\s+)?(?:full\s+)?(?:steps|working|solution)\s*(?:for\s+this)?\s*[:,]?\s*/i
+        ];
+        for (var _pi = 0; _pi < 3; _pi++) {
+            PRE_STRIPS.forEach(function (re) { text = text.replace(re, ''); });
+        }
+        text = text.trim();
+        // trailing Hinglish ask ("… kitna hoga?") → drop so routing sees the bare question
+        text = text.replace(/\s*[,.]?\s*(?:kitna|kitne|kitni|kya)\s+(?:hoga|hogi|hai|tha|thi)\s*\?*\s*$/i, '').trim();
+
+        // v16: model selector — greet asks once; a/b picks BitLM (big) vs BitBot (mini)
+        if (window.BitLMPro && modelChoice() === '') {
+            var _ch = BitLMPro.parseChoice(text);
+            if (_ch) return chooseModel(_ch);
+        }
+        // v16: BitLM Pro commands (switch / which model / lite-max / load)
+        if (window.BitLMPro) {
+            var _pc = BitLMPro.isProCommand(text);
+            if (_pc) { var _pa = handleProCommand(_pc); if (_pa !== null && _pa !== undefined) return _pa; }
+        }
+
+        // v15: BitLM experimental mode toggle — "experimental mode on", "baby mode on", "lm on"…
+        var lmt = text.match(/^(?:experimental|dynamic|baby|gen(?:erative)?|lm|bitlm)\s*-?\s*(?:ai\s*|lm\s*)?mode\s+(on|off)$|^(?:lm|bitlm)\s+(on|off)$/i);
+        if (lmt) {
+            var on = String(lmt[1] || lmt[2]).toLowerCase() === 'on';
+            try { localStorage.setItem('bb_lm_mode', on ? '1' : '0'); } catch (e) {}
+            cot('🎨 BitLM-mini experimental mode → ' + (on ? 'ON' : 'OFF'));
+            return on
+                ? '🎨 **BitLM-mini experimental mode: ON.**\n\nWhen my exact engines and knowledge base both come up empty, my from-scratch transformer (44 lakh params, trained on THIS laptop-grade CPU on my own corpus) will now try to generate an answer word-by-word instead of just admitting ignorance.\n\n**Honest warning:** it is a BABY model — 1 hour of training on 2 CPU cores vs the trillions of tokens big AIs get. Expect curious babble, not facts. Maths/factual answers are untouched — engines always win. Say **"experimental mode off"** anytime. (Want the BIG browser model? Say **"switch to bitlm"**.)'
+                : '🎨 **BitLM-mini experimental mode: OFF** — back to my honest "I don\'t know" whenever the engines and KB are out of ideas. (Say **"experimental mode on"** to hear my baby transformer babble again!)';
+        }
         // 1) name memory first ("my name is …", "what is my name")
         var nm = handleName(text);
         if (nm !== null) { cot('👤 name memory matched — no classification needed'); return nm; }
@@ -958,6 +1259,37 @@
             return doMath(text);
         }
 
+        // v12: BRAIN-TEASER pre-catch (BitX) — squares/cubes families, exponent
+        // equations, x+1/x ladders, factorisation, rational equations, CI/PLD
+        // chains, symmetry KB, MCQs… (must run BEFORE the generic algebra catch:
+        // "Factorise: z^2-4z-77" and "(2z+7)/(3z+8)=1/4" are BitX-specialised)
+        if (window.BitX) {
+            var BXR = null;
+            try { BXR = BitX.solve(text); } catch (e11x) { BXR = null; }
+            if (BXR && BXR.ok) {
+                cot('🧠 brain-teaser detected → BitX rule engine (neural net skipped)');
+                return fmtBitX(BXR);
+            }
+        }
+
+        // v10: ALGEBRA pre-catch — equations like "2x+3=11", "solve for x: 5x-2=3x+8"
+        // and identities like "expand (a+b)²" go to the exact symbolic solver.
+        if (window.BitMath && BitMath.looksLikeEquation && BitMath.looksLikeEquation(text)) {
+            cot('🧮 algebra detected → symbolic solver (neural net skipped)');
+            return doMath(text);
+        }
+
+        // v10: WORD-PROBLEM pre-catch — "the sum of two numbers is 25…", "a car
+        // travels 150 km in 3 hours…" are solved exactly, never guessed.
+        if (window.BitWords && BitWords.looksLikeWordProblem(text)) {
+            var WP0 = null;
+            try { WP0 = BitWords.solve(text); } catch (e10w) { WP0 = null; }
+            if (WP0) {
+                cot('📝 word problem detected → deterministic solver (neural net skipped)');
+                return fmtWordProblem(WP0);
+            }
+        }
+
         // 3) follow-ups — pure context, no neural net needed
         var f = handleFollowup(text);
         if (f !== null) { if (!COT.length) cot('🔗 context handler matched (memory — neural net skipped)'); return f; }
@@ -995,7 +1327,7 @@
             // low confidence → HONEST fallback, never a confident guess (+ memory hint)
             cot('🚦 below ' + Math.round(THRESHOLD * 100) + '% confidence → admitting I do not know');
             setTimeout(function () { showChips(["Tell me a fact", "Tell me a joke", "What games are there?", "How do I add friends?"]); }, 300);
-            var fb = fallbackMsg();
+            var fb = dynamicAttempt(text) || fallbackMsg();
             var pm = text.match(/who (?:is|was|are)\s+([a-z][a-z .]{1,25})/i);
             if (pm) fb = "I don't know **" + pm[1].trim() + "** — a friend of yours? 😄 I know Arcade Hub, school subjects (science, math, history, GK) and general knowledge!";
             if (memActive()) fb += "\n\nPS: we were just talking about " + topicLabel(MEM.lastTag) + ' — say "more" if you want more of that!';
@@ -1007,10 +1339,10 @@
         if (salientUnknown.length && r.prob < 0.75) {
             cot('🚨 unknown word' + (salientUnknown.length > 1 ? 's' : '') + ': ' + salientUnknown.join(', ') + ' — only ' + (r.prob * 100).toFixed(0) + '% sure → admitting ignorance');
             setTimeout(function () { showChips(["Tell me a fact", "Tell me a joke", "What games are there?", "How do I add friends?"]); }, 300);
-            var fb2 = fallbackMsg();
+            var fb2 = dynamicAttempt(text) || fallbackMsg();
             var pm2 = text.match(/who (?:is|was|are)\s+([a-z][a-z .]{1,25})/i);
             if (pm2) fb2 = "I don't know **" + pm2[1].trim() + "** — a friend of yours? 😄 I know Arcade Hub, school subjects (science, math, history, GK) and general knowledge!";
-            else fb2 = "I don't fully understand that — some words are new to me! 🤷 Try simpler wording, or ask about games, math, science, GK, history or the site.";
+            else if (fb2.indexOf('🎨') !== 0) fb2 = "I don't fully understand that — some words are new to me! 🤷 Try simpler wording, or ask about games, math, science, GK, history or the site.";
             if (memActive()) fb2 += "\n\nPS: we were just talking about " + topicLabel(MEM.lastTag) + ' — say "more" if you want more of that!';
             return fb2;
         }
@@ -1034,7 +1366,7 @@
         if (r.tag === "skill_convert") {
             var cv = doConvert(text);
             if (cv) { rememberTurn("skill_convert"); return cv; }
-            if (!/\d/.test(text)) return fallbackMsg();     // no numbers → was a misclassification
+            if (!/\d/.test(text)) return dynamicAttempt(text) || fallbackMsg();     // no numbers → was a misclassification
             return 'Give me units to convert! 📐 Try "5 km to miles", "10 kg in pounds" or "100 c to f".';
         }
         if (r.tag === "skill_random") { cot('🎲 dice/coin/random skill'); rememberTurn("skill_random"); return doRandom(text); }
@@ -1060,17 +1392,30 @@
         // find the intent's responses (anti-repeat cycling)
         var rs = intentResponses(r.tag);
         if (rs && rs.length) { rememberTurn(r.tag); return pickFresh(rs, r.tag); }
-        return fallbackMsg();
+        return dynamicAttempt(text) || fallbackMsg();
     }
 
     // v7: multi-question v2 — answer every understood part, ADMIT the rest
     function multiAnswer(text) {
+        // strip leading greeting so it can't dilute per-part prediction
+        text = String(text).replace(/^(?:hey|hi|hello|yo|hiya|namaste|namaskar|ok|okay)\s+(?:bitbot|bit|bot)\s*[,!.]?\s*/i, '')
+                           .replace(/^(?:hey|hi|hello|yo|namaste|namaskar)\s*[,!.]?\s+/i, '');
         var parts = text.split(/[?!.]\s+/).map(function (s) { return s.trim(); })
                         .filter(function (s) { return s.length > 2; });
         if (parts.length < 2) return null;
+        // whole text solvable by BitX (word problem spanning the split point) → don't split.
+        // only when ≤1 '?' — true multi-question texts (2+ '?') should still split & answer all parts
+        if ((text.match(/\?/g) || []).length <= 1) {
+            try { if (window.BitX && BitX.solve(text)) return null; } catch (e) {}
+        }
         var answers = [], unknown = 0, seenTags = {};
         for (var i = 0; i < parts.length && i < 3; i++) {
             var seg = parts[i];
+            // v14: each part gets the full BitX maths solver FIRST — a word problem
+            // split by its own sentence dots must not fall back to brain KB.
+            var bxPart = null;
+            try { bxPart = window.BitX ? BitX.solve(seg) : null; } catch (eBx) { bxPart = null; }
+            if (bxPart && bxPart.ok) { answers.push({ tag: 'bitx-' + i, ans: fmtBitX(bxPart) }); continue; }
             var toks = BitBrain.tokenize(seg).map(BitBrain.stem);
             var known = 0;
             toks.forEach(function (w) { if (vocabInfo.index[w] !== undefined) known++; });
@@ -1102,12 +1447,44 @@
     // ── MARKDOWN RENDERER (v5) ─────────────────────────────────────────────
     // BitBot answers in markdown (like real AIs); this renders it in the
     // chat: **bold**, *italic*, code, code blocks, # headings, lists, links.
+    /* ── GREAT PARSER (v14) — math in bot output always encodes correctly:
+          2^2 → 2², x^(-1) → x⁻¹, 1/3 → ⅓, 1/52 → stacked fraction, 2*3 → 2×3.
+          Code spans and links are stashed first so their innards are never touched. ── */
+    var SUP_MAP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+                    '-':'⁻','+':'⁺','(':'⁽',')':'⁾','n':'ⁿ','i':'ⁱ' };
+    var FRAC_MAP = { '1/2':'½','1/3':'⅓','2/3':'⅔','1/4':'¼','3/4':'¾','1/5':'⅕','2/5':'⅖','3/5':'⅗','4/5':'⅘',
+                     '1/6':'⅙','5/6':'⅚','1/7':'⅐','1/8':'⅛','3/8':'⅜','5/8':'⅝','7/8':'⅞','1/9':'⅑','1/10':'⅒','1/12':'⅟₁₂' };
+    function mathEncode(t) {
+        return String(t)
+            .replace(/\^\(([^)]{1,8})\)|\^([0-9ni+-]{1,3})/g, function (mm, g1, g2) {
+                var e = g1 || g2, ok = true, sup = '';
+                for (var k = 0; k < e.length; k++) {
+                    if (SUP_MAP[e[k]] === undefined) { ok = false; break; }
+                    sup += SUP_MAP[e[k]];
+                }
+                return ok ? sup : '<sup>' + e + '</sup>';
+            })
+            .replace(/(^|[^\d.a-zA-Z\/])(\d{1,2}\/\d{1,2})(?![\d\/a-zA-Z.])/g, function (mm, pre, f) {
+                if (FRAC_MAP[f]) return pre + FRAC_MAP[f];
+                var pp = f.split('/');
+                if (+pp[0] < 1000 && +pp[1] < 1000)
+                    return pre + '<span class="frac"><span class="fn">' + pp[0] + '</span><span class="fd">' + pp[1] + '</span></span>';
+                return mm;
+            })
+            .replace(/(\d|[a-z)\u2212])\*(\d|\()/g, '$1×$2');
+    }
     function mdInline(t) {
-        return t
-            .replace(/\u0060([^\u0060]+)\u0060/g, '<code>$1</code>')
+        var stash = [];
+        function keep(html) { stash.push(html); return '\u0001' + (stash.length - 1) + '\u0001'; }
+        t = String(t)
+            .replace(/\u0060([^\u0060]+)\u0060/g, function (mm, c) { return keep('<code>' + c + '</code>'); })
+            .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (mm, tx, url) {
+                return keep('<a href="' + url + '" target="_blank" rel="noopener">' + tx + '</a>');
+            });
+        t = mathEncode(t)
             .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-            .replace(/(^|\s)\*([^*\n]+)\*/g, '$1<i>$2</i>')
-            .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+            .replace(/(^|\s)\*([^*\n]+)\*/g, '$1<i>$2</i>');
+        return t.replace(/\u0001(\d+)\u0001/g, function (mm, i) { return stash[+i]; });
     }
     function mdRender(src) {
         var esc = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1124,6 +1501,24 @@
             if (inCode) { buf.push(ln); continue; }
             var h = ln.match(/^(#{1,3})\s+(.*)$/);
             if (h) { closeList(); out.push('<h' + (h[1].length + 2) + '>' + mdInline(h[2]) + '</h' + (h[1].length + 2) + '>'); continue; }
+            // v10: markdown tables (| a | b |) — header row + |---| separator
+            if (/^\s*\|/.test(ln)) {
+                var tbuf = [];
+                while (i < lines.length && /^\s*\|/.test(lines[i])) { tbuf.push(lines[i].trim()); i++; }
+                i--;
+                closeList();
+                var html = '<table>', headerDone = false;
+                tbuf.forEach(function (row) {
+                    if (/^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/.test(row) && row.indexOf('-') !== -1) { headerDone = true; return; }
+                    var cells = row.replace(/^\|/, '').replace(/\|$/, '').split('|');
+                    var tag = headerDone ? 'td' : 'th';
+                    html += '<tr>' + cells.map(function (c) { return '<' + tag + '>' + mdInline(c.trim()) + '</' + tag + '>'; }).join('') + '</tr>';
+                    if (!headerDone) headerDone = 'pending';
+                });
+                html += '</table>';
+                out.push(html);
+                continue;
+            }
             var ul = ln.match(/^[-•]\s+(.*)$/);
             var ol = ln.match(/^\d+[.)]\s+(.*)$/);
             if (ul || ol) {
@@ -1152,7 +1547,7 @@
         d.className = 'cot open';
         var head = document.createElement('div');
         head.className = 'thead';
-        head.textContent = '🧠 thinking…';
+        head.textContent = 'Thinking…';
         var body = document.createElement('div');
         body.className = 'tbody';
         d.appendChild(head); d.appendChild(body);
@@ -1164,11 +1559,11 @@
                 ln.className = 'tstep';
                 ln.textContent = trace[i++];
                 body.appendChild(ln); scroll();
-                head.textContent = '🧠 thinking (' + i + '/' + trace.length + ')…';
+                head.textContent = 'Thinking (' + i + '/' + trace.length + ')…';
                 setTimeout(next, 240);
             } else {
                 d.classList.remove('open');
-                head.textContent = '🧠 ' + trace.length + ' steps ▾';
+                head.textContent = trace.length + ' thought steps — tap to view';
                 head.onclick = function () { d.classList.toggle('open'); scroll(); };
                 setTimeout(done, 200);
             }
@@ -1176,6 +1571,118 @@
     }
 
     // ── UI ─────────────────────────────────────────────────────────────────
+    /* ── CHAT SAVING (v14) — every conversation auto-saved to IndexedDB
+          with an auto-generated heading; 💾 button opens the history panel ── */
+    var ChatStore = (function () {
+        var DB = 'bitbot-chats', STORE = 'chats', db = null, mem = null;
+        function lsGet() { if (mem) return mem; try { mem = JSON.parse(localStorage.getItem('bb_chats') || '{}'); } catch (e) { mem = {}; } return mem; }
+        function lsPut() { try { localStorage.setItem('bb_chats', JSON.stringify(mem)); } catch (e) {} }
+        function open(cb) {
+            try {
+                if (typeof indexedDB === 'undefined') throw 0;
+                var rq = indexedDB.open(DB, 1);
+                rq.onupgradeneeded = function (e) {
+                    var d = e.target.result;
+                    if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id' });
+                };
+                rq.onsuccess = function (e) { db = e.target.result; if (cb) cb(); };
+                rq.onerror = function () { db = null; if (cb) cb(); };
+            } catch (e) { db = null; if (cb) cb(); }
+        }
+        function put(chat, cb) {
+            if (!chat || !chat.msgs || !chat.msgs.length) { if (cb) cb(); return; }
+            if (!db) { lsGet(); mem[chat.id] = chat; lsPut(); if (cb) cb(); return; }
+            try {
+                var tx = db.transaction(STORE, 'readwrite');
+                tx.objectStore(STORE).put(chat);
+                tx.oncomplete = function () { if (cb) cb(); };
+                tx.onerror = function () { if (cb) cb(); };
+            } catch (e) { if (cb) cb(); }
+        }
+        function all(cb) {
+            if (!db) { lsGet(); cb(Object.keys(mem).map(function (k) { return mem[k]; })); return; }
+            try {
+                var rq = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+                rq.onsuccess = function () { cb(rq.result || []); };
+                rq.onerror = function () { cb([]); };
+            } catch (e) { cb([]); }
+        }
+        function del(id, cb) {
+            if (!db) { lsGet(); delete mem[id]; lsPut(); if (cb) cb(); return; }
+            try {
+                var tx = db.transaction(STORE, 'readwrite');
+                tx.objectStore(STORE).delete(id);
+                tx.oncomplete = function () { if (cb) cb(); };
+                tx.onerror = function () { if (cb) cb(); };
+            } catch (e) { if (cb) cb(); }
+        }
+        return { open: open, put: put, all: all, del: del };
+    })();
+    var curChat = null, chatSaveT = null;
+    function newChat() {
+        PRO_HIST = []; PRO_CTX_NOTED = false;                                  // v17: fresh BitLM context
+        curChat = { id: 'c' + Date.now() + '-' + Math.floor(Math.random() * 1e4), title: '', created: Date.now(), updated: Date.now(), msgs: [] };
+    }
+    function autoTitle(t) {
+        t = String(t || '').replace(/\s+/g, ' ').trim()
+            .replace(/^(?:(?:pls|please|plz|hey|hi|hello|bitbot|yaar|bhai|solve this|solve|batao|can you tell me|with full steps|tell me|this|it|the question|question)[,:]?\s*)+/i, '')
+            .replace(/[?!]+$/, '');
+        if (!t) return 'New chat';
+        if (t.length > 44) t = t.slice(0, 44).replace(/\s+\S*$/, '') + '…';
+        return t.charAt(0).toUpperCase() + t.slice(1);
+    }
+    function chatAdd(role, text) {
+        if (!text) return;
+        if (!curChat) newChat();
+        curChat.msgs.push({ role: role, text: String(text), t: Date.now() });
+        curChat.updated = Date.now();
+        if (!curChat.title && role === 'me' && !/^(hi|hey|hello|namaste|good (morning|afternoon|evening))\b/i.test(text.trim()))
+            curChat.title = autoTitle(text);
+        if (!curChat.title && curChat.msgs.length >= 2) curChat.title = autoTitle(curChat.msgs[0].text);
+        clearTimeout(chatSaveT);
+        chatSaveT = setTimeout(function () { ChatStore.put(curChat); }, 400);
+    }
+    function renderHist() {
+        ChatStore.all(function (chats) {
+            chats = chats.filter(function (c) { return c && c.msgs && c.msgs.length; });
+            chats.sort(function (a, b) { return (b.updated || 0) - (a.updated || 0); });
+            var el = document.getElementById('histList');
+            var cnt = document.getElementById('histCount');
+            if (cnt) cnt.textContent = chats.length ? '(' + chats.length + ')' : '';
+            el.innerHTML = '';
+            if (!chats.length) {
+                el.innerHTML = '<div class="hp-empty">No saved chats yet — ask me something and this chat appears here automatically.</div>';
+                return;
+            }
+            chats.slice(0, 100).forEach(function (c) {
+                var row = document.createElement('div'); row.className = 'hp-row';
+                var info = document.createElement('div'); info.className = 'hp-info';
+                var ttl = document.createElement('b'); ttl.textContent = c.title || 'Chat';
+                var sub = document.createElement('span');
+                var d = new Date(c.updated || c.created || Date.now());
+                sub.textContent = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) +
+                    ' · ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) +
+                    ' · ' + c.msgs.length + ' message' + (c.msgs.length === 1 ? '' : 's');
+                info.appendChild(ttl); info.appendChild(sub);
+                var openB = document.createElement('button'); openB.className = 'hp-open'; openB.textContent = 'Open';
+                openB.onclick = function () { loadChat(c); };
+                var delB = document.createElement('button'); delB.className = 'hp-del'; delB.textContent = 'Delete';
+                delB.title = 'Delete this chat';
+                delB.onclick = function () { ChatStore.del(c.id, renderHist); };
+                row.appendChild(info); row.appendChild(openB); row.appendChild(delB);
+                el.appendChild(row);
+            });
+        });
+    }
+    function loadChat(c) {
+        curChat = c;
+        chat.innerHTML = ''; chipsEl.innerHTML = '';
+        MEM.turns = []; MEM.lastTag = null; MEM.lastTime = 0;
+        c.msgs.forEach(function (m) { addMsg(m.role === 'me' ? 'me' : 'bot', m.text, true); });
+        document.getElementById('histOv').classList.remove('show');
+    }
+    ChatStore.open();
+
     function addMsg(cls, text, instant) {
         var d = document.createElement('div');
         d.className = 'msg ' + cls;
@@ -1187,15 +1694,33 @@
         ts.textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
         d.appendChild(ts);
         chat.appendChild(d);
-        if (instant || cls === 'me') { c.textContent = text; scroll(); return; }
-        // stream the bot's answer character by character, then render markdown
-        var i = 0;
+        if (instant || cls === 'me') {
+            if (cls === 'bot' && instant) { try { c.innerHTML = mdRender(text); } catch (e) { c.textContent = text; } }
+            else c.textContent = text;
+            scroll(); return;
+        }
+        // stream the bot's answer — adaptive speed so long answers don't crawl (~2.5s max)
+        var i = 0, chunk = Math.max(2, Math.ceil(text.length / 175));
         (function step() {
-            i += 2;
+            i += chunk;
             c.textContent = text.slice(0, i);
             scroll();
             if (i < text.length) setTimeout(step, 14);
-            else { try { c.innerHTML = mdRender(text); } catch (e) { c.textContent = text; } scroll(); }
+            else {
+                try { c.innerHTML = mdRender(text); } catch (e) { c.textContent = text; }
+                var cp = document.createElement('button');                    // v17: copy button (SVG)
+                cp.className = 'copybtn'; cp.innerHTML = COPY_ICON + '<span>Copy</span>';
+                cp.onclick = function () {
+                    var sp = cp.querySelector('span');
+                    var done = function () { sp.textContent = 'Copied'; setTimeout(function () { sp.textContent = 'Copy'; }, 1400); };
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+                        else done();
+                    } catch (e2) { done(); }
+                };
+                d.insertBefore(cp, ts);
+                scroll();
+            }
         })();
     }
     function scroll() { chat.scrollTop = chat.scrollHeight; }
@@ -1208,77 +1733,371 @@
             chipsEl.appendChild(c);
         });
     }
+    /* ── v17: first-run model modal · BitLM download overlay · error banner ── */
+    var modelOv = document.getElementById('modelOv'),
+        moGo = document.getElementById('moGo'),
+        moReq = document.getElementById('moReq'),
+        dlOv = document.getElementById('dlOv'),
+        errBanner = document.getElementById('errBanner');
+    var moPick = null, PRO_CTX_NOTED = false;
+    var COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h8"></path></svg>';
+    function moSelect(ch) {
+        moPick = ch;
+        document.getElementById('cardBitlm').classList.toggle('sel', ch === 'bitlm');
+        document.getElementById('cardBitbot').classList.toggle('sel', ch === 'bitbot');
+        moGo.disabled = false;
+        moReq.textContent = '';
+    }
+    document.getElementById('cardBitlm').onclick = function () { moSelect('bitlm'); };
+    document.getElementById('cardBitbot').onclick = function () { moSelect('bitbot'); };
+    function showModelModal(first) {
+        moPick = modelChoice() || null;
+        if (moPick) moSelect(moPick); else moGo.disabled = true;
+        moGo.textContent = first ? 'Continue' : 'Switch';
+        modelOv.classList.add('show');
+    }
+    moGo.onclick = function () {
+        if (!moPick) return;
+        var ch = moPick;
+        if (ch === 'bitlm' && !(window.BitLMPro && BitLMPro.webgpuOK())) {
+            moReq.textContent = 'BitLM needs a WebGPU-capable browser (Chrome/Edge 113+ with a GPU) — not available here, so BitBot was selected. BitBot is instant and works offline; everything still works.';
+            moSelect('bitbot');
+            try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e) {}
+            return;
+        }
+        modelOv.classList.remove('show');
+        try { localStorage.setItem('bb_model_choice', ch); } catch (e) {}
+        if (ch === 'bitlm') { dlStart(); return; }
+        if (!chat.childNodes.length) greet();
+        var t = chooseModel('bitbot'); addMsg('bot', t, false); chatAdd('bot', t);
+    };
+    document.getElementById('modelBtn').onclick = function () { showModelModal(false); };
+    function dlStart() {
+        var mm = (window.BitLMPro && BitLMPro.MODELS[proModel()]) || { name: 'BitLM', dlMB: 400 };
+        var pc = document.getElementById('dlpct'), fl = document.getElementById('dlfill'),
+            mb = document.getElementById('dlmb'), st = document.getElementById('dlstep');
+        document.getElementById('dlTitle').textContent = 'Downloading ' + mm.name + '…';
+        pc.textContent = '0%'; fl.style.width = '0%';
+        mb.textContent = '0 MB of ' + mm.dlMB + ' MB';
+        st.textContent = 'connecting…';
+        dlOv.classList.add('show');
+        proEngine(function (p) {
+            var f = Math.max(0, Math.min(1, p.progress || 0));
+            pc.textContent = Math.round(f * 100) + '%';
+            fl.style.width = (f * 100) + '%';
+            mb.textContent = Math.round(f * mm.dlMB) + ' MB of ' + mm.dlMB + ' MB';
+            if (p.text) st.textContent = String(p.text).slice(0, 90);
+        }).then(function () {
+            dlOv.classList.remove('show');
+            if (!chat.childNodes.length) greet();
+            var t = chooseModel('bitlm'); addMsg('bot', t, false); chatAdd('bot', t);
+        }).catch(function (e) {
+            dlOv.classList.remove('show');
+            try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e2) {}
+            showErr('BitLM could not load: ' + String((e && e.message) || e).slice(0, 140) + ' — switched to BitBot so nothing is broken.');
+            if (!chat.childNodes.length) greet();
+        });
+    }
+    document.getElementById('dlCancel').onclick = function () {
+        dlOv.classList.remove('show');
+        try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e) {}
+        if (!chat.childNodes.length) greet();
+        var t = chooseModel('bitbot'); addMsg('bot', t, false); chatAdd('bot', t);
+    };
+    function showErr(txt) {
+        var t = document.getElementById('errText');
+        if (t) t.textContent = txt;
+        if (errBanner) { errBanner.classList.add('show'); clearTimeout(showErr._t); showErr._t = setTimeout(hideErr, 9000); }
+    }
+    function hideErr() { if (errBanner) errBanner.classList.remove('show'); }
+    var errCloseB = document.getElementById('errClose');
+    if (errCloseB) errCloseB.onclick = hideErr;
+    window.addEventListener('error', function (e) { showErr('Something broke: ' + ((e && e.message) || 'unknown') + '. The bot still works — if not, reload the page.'); });
+    window.addEventListener('unhandledrejection', function (e) { showErr('Background task failed: ' + String((e && e.reason && e.reason.message) || (e && e.reason) || '').slice(0, 140)); });
+
     function greet() {
         var h = new Date().getHours();
         var tod = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Up late";
-        addMsg("bot", userName
-            ? "**" + tod + ", " + userName + "!** 👋 Welcome back — I remembered you! I'm BitBot v9 with a **79-lakh-parameter brain** and **visible chain-of-thought**: watch the 🧠 steps before every answer!"
-            : "**" + tod + "!** 👋 I'm **BitBot v9** 🤖 — now with a **79-lakh-parameter neural brain**, **330 topics** (science → SST → ICT → esports!), **typo-tolerant understanding**, a **full BODMAS math engine with step-by-step working**, **visible chain-of-thought**, **quiz mode** and a **speed test**. Tell me your name — I'll remember it!", false);
-        showChips(["Quiz me", "How fast are you?", "Tell me a fact", "Table of 7"]);
+        var lakh = (typeof PARAMS === 'number' && PARAMS > 100000) ? (PARAMS / 100000).toFixed(1).replace(/\.0$/, '') : '79';
+        var topics = (typeof vocabInfo !== 'undefined' && vocabInfo && vocabInfo.tags) ? vocabInfo.tags.length : 347;
+        var modeLine = modelChoice() === 'bitlm'
+            ? "\n\n**BitLM mode ON** — the large model answers daily-work questions; pure maths still snaps to the exact engines. Say **\"switch to bitbot\"** to change."
+            : "";
+        addMsg("bot", (userName
+            ? "**" + tod + ", " + userName + "!** Welcome back — I remembered you.\n"
+            : "**" + tod + "!** ") +
+            "I'm **BitBot v17** by **Anurag** — Arcade Hub's assistant and your **Class 1–8 Maths Master**:\n" +
+            "- **Algebra engine** — equations & identities with full steps + verification: try `2x + 3 = 11` or `expand (a+b)²`\n" +
+            "- **Word-problem solver** — ages, speed–distance–time, work–time, profit-loss-GST, SI/CI, mensuration, probability — all 16 Class-8 chapters\n" +
+            "- **" + lakh + "-lakh-parameter neural brain** · **" + topics + " topics** (science, SST, ICT, esports) · chain-of-thought · quiz mode" + modeLine + "\n" +
+            (userName ? "" : "\nTell me your name — I'll remember it."), false);
+        showChips(["solve 2x + 3 = 11", "expand (a+b)²", "CI on 10000 at 10% for 2 years", "Quiz me"]);
+    }
+    /* ── v16: BitLM Pro — the BIG in-browser model (WebLLM/WebGPU, <500M params,
+          rebranded, identity: BitLM by Anurag). Mini-RAG grounds it in BitBot's
+          KB; <calc> javascript console gives it exact maths; think-stream UI. ── */
+    var PRO_HIST = [], PRO_ENGINE = null, PRO_LOADING = null;
+    function modelChoice() { try { return localStorage.getItem('bb_model_choice') || ''; } catch (e) { return ''; } }
+    function proModel() { try { var m = localStorage.getItem('bb_pro_model'); return (m === 'lite' || m === 'max') ? m : 'max'; } catch (e) { return 'max'; } }
+    function chooseModel(ch) {
+        if (ch === 'bitlm' && !(window.BitLMPro && BitLMPro.webgpuOK())) {
+            try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e) {}
+            return 'You picked **BitLM** — but this browser has **no WebGPU** (the large model runs on YOUR GPU; needs Chrome/Edge 113+, and works best on the hosted site **https://bittuhere.github.io** — file:// pages cannot cache the model).\n\nSo I kept you on **BitBot** — instant, offline, everything works. On a WebGPU browser just say **"switch to bitlm"**.';
+        }
+        try { localStorage.setItem('bb_model_choice', ch); } catch (e) {}
+        if (ch === 'bitlm') {
+            cot('model choice → BitLM (large, in-browser)');
+            var m = (window.BitLMPro && BitLMPro.MODELS[proModel()]) || { name: 'BitLM Max', paramsM: 494, dlMB: 400 };
+            return '**BitLM selected — large language AI mode.** (' + m.name + ', ' + (m.paramsM / 10) + ' crore params)\n\n' +
+                'The model downloads once (~' + m.dlMB + ' MB) and is cached — after that everything runs **offline in your browser**. Developer: **Anurag**.\n\n' +
+                '- Pure maths still snaps to the exact engines (faster and perfect)\n' +
+                '- BitLM has a **javascript console** — it calculates with `<calc>` and shows results\n' +
+                '- Its thinking streams in a collapsible box; answers render as **markdown**\n' +
+                '- Say **"switch to bitbot"** for the mini assistant, **"bitlm lite"** for the smaller/faster model';
+        }
+        cot('model choice → BitBot (mini assistant)');
+        return '**BitBot selected — miniature personal assistant mode.** Instant and offline:\n\n' +
+            '- Class 1–8 Maths Master — algebra, word problems, all 16 chapters, exact engines\n' +
+            '- Arcade Hub guide — I know bittuhere.github.io inside out\n' +
+            '- 82-lakh-param brain · 347 topics · chain-of-thought · quiz mode\n\n' +
+            'Say **"switch to bitlm"** anytime for the large daily-work model.';
+    }
+    function handleProCommand(pc) {
+        if (!pc) return null;
+        if (pc.type === 'switch') return chooseModel(pc.to);
+        if (pc.type === 'ask') {
+            var cur = modelChoice();
+            return '**Current model: ' + (cur === 'bitlm' ? 'BitLM (large, in-browser)' : cur === 'bitbot' ? 'BitBot (mini assistant)' : 'not chosen yet') + '.**\n\n' +
+                '- **BitLM** — large language AI for daily works (runs on your GPU, ~400 MB one-time)\n' +
+                '- **BitBot** — miniature from-scratch Arcade Hub assistant + exact Class 1–8 maths (~17 MB, included)\n\n' +
+                'Say **"switch to bitlm"** or **"switch to bitbot"**, or use the switch button in the header. BitLM sizes: **"bitlm max"** (49.4 cr) / **"bitlm lite"** (36 cr).';
+        }
+        if (pc.type === 'size') {
+            try { localStorage.setItem('bb_pro_model', pc.size); } catch (e) {}
+            PRO_ENGINE = null; PRO_LOADING = null;
+            var m = BitLMPro.MODELS[pc.size] || BitLMPro.MODELS.max;
+            return '**BitLM size set: ' + m.name + '** (' + (m.paramsM / 10) + ' crore params, ~' + m.dlMB + ' MB one-time download). It loads on your next message.';
+        }
+        if (pc.type === 'load') {
+            if (modelChoice() !== 'bitlm') return 'BitLM is not your active model — say **"switch to bitlm"** first.';
+            proWarm();
+            return 'Warming up BitLM — watch the progress…';
+        }
+        return null;
+    }
+    function proEngine(onProg) {
+        if (PRO_ENGINE) return Promise.resolve(PRO_ENGINE);
+        if (!window.BitLMPro || !BitLMPro.webgpuOK()) return Promise.reject(new Error('WebGPU is not available in this browser'));
+        if (!PRO_LOADING) {
+            PRO_LOADING = BitLMPro.loadEngine(proModel(), onProg).then(function (e) { PRO_ENGINE = e; return e; })
+                .catch(function (e) { PRO_LOADING = null; throw e; });
+        }
+        return PRO_LOADING;
+    }
+    function proWarm() {
+        proEngine(function (p) {
+            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.add('busy');
+            if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM ' + Math.round((p.progress || 0) * 100) + '%';
+        }).then(function () {
+            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
+            if (typeof statusTxt !== 'undefined' && statusTxt) { statusTxt.textContent = 'BitLM ready'; setTimeout(function () { statusTxt.textContent = 'ready'; }, 2600); }
+        }).catch(function (e) {
+            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
+            if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM failed: ' + String((e && e.message) || e).slice(0, 60);
+        });
+    }
+    function proEngine(onProg) {
+        if (PRO_ENGINE) return Promise.resolve(PRO_ENGINE);
+        if (!window.BitLMPro || !BitLMPro.webgpuOK()) return Promise.reject(new Error('WebGPU is not available in this browser'));
+        if (!PRO_LOADING) {
+            PRO_LOADING = BitLMPro.loadEngine(proModel(), onProg).then(function (e) { PRO_ENGINE = e; return e; })
+                .catch(function (e) { PRO_LOADING = null; throw e; });
+        }
+        return PRO_LOADING;
+    }
+    function proWarm() {
+        proEngine(function (p) {
+            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.add('busy');
+            if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM ' + Math.round((p.progress || 0) * 100) + '%';
+        }).then(function () {
+            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
+            if (typeof statusTxt !== 'undefined' && statusTxt) { statusTxt.textContent = 'BitLM ready 🧠'; setTimeout(function () { statusTxt.textContent = 'online'; }, 2600); }
+        }).catch(function (e) {
+            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
+            if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM failed: ' + String((e && e.message) || e).slice(0, 60);
+        });
+    }
+    function proBubble() {
+        var d = document.createElement('div');
+        d.className = 'msg bot';
+        var c = document.createElement('div');
+        c.className = 'mbody';
+        var det = document.createElement('details');
+        det.className = 'prothink';
+        var sum = document.createElement('summary');
+        sum.textContent = 'Thinking…';
+        var tb = document.createElement('div');
+        tb.className = 'thinkbody';
+        det.appendChild(sum); det.appendChild(tb);
+        var st = document.createElement('div'); st.className = 'prostatus';
+        var ans = document.createElement('div'); ans.className = 'proans';
+        c.appendChild(det); c.appendChild(st); c.appendChild(ans);
+        var ts = document.createElement('span'); ts.className = 'time';
+        ts.textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        d.appendChild(c); d.appendChild(ts);
+        chat.appendChild(d);
+        det.open = true;
+        scroll();
+        return { node: d, det: det, sum: sum, think: tb, status: st, ans: ans, ts: ts };
+    }
+    function proStatus(b, txt) { if (!b) return; b.status.textContent = txt || ''; b.status.style.display = txt ? '' : 'none'; }
+    function proRender(b, p) {
+        if (!b) return;
+        b.think.textContent = (p.think || '') + (p.tailCalc !== null && p.tailCalc !== undefined ? '\nconsole: ' + p.tailCalc + ' …' : '');
+        if (p.think) b.sum.textContent = 'Thinking… (click to collapse)';
+        try { b.ans.innerHTML = mdRender(p.answer || ''); } catch (e) { b.ans.textContent = p.answer || ''; }
+        scroll();
+    }
+    function proFinish(b, res) {
+        if (!b) return;
+        b.det.open = false;
+        b.sum.textContent = 'Thought for a moment' + (res.calcLog && res.calcLog.length ? ' · console used ' + res.calcLog.length + '×' : '');
+        if (res.calcLog && res.calcLog.length) {
+            var lg = document.createElement('div');
+            lg.className = 'calclog';
+            lg.textContent = res.calcLog.map(function (c) { return 'console: ' + c.expr + ' = ' + (c.ok ? c.value : 'ERROR'); }).join('\n');
+            b.det.appendChild(lg);
+        }
+        var finalText = (res.answer && res.answer.trim()) ? res.answer : '(BitLM produced no answer — please try again, or say "switch to bitbot".)';
+        try { b.ans.innerHTML = mdRender(finalText); } catch (e) { b.ans.textContent = finalText; }
+        var cp = document.createElement('button');
+        cp.className = 'copybtn'; cp.innerHTML = COPY_ICON + '<span>Copy</span>';
+        cp.onclick = function () {
+            var sp = cp.querySelector('span');
+            var done = function () { sp.textContent = 'Copied'; setTimeout(function () { sp.textContent = 'Copy'; }, 1400); };
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(finalText).then(done, done);
+                else done();
+            } catch (e2) { done(); }
+        };
+        b.node.insertBefore(cp, b.ts);
+        scroll();
+        return finalText;
+    }
+    function proWeak(ans) {                                   // engine answer too weak → let BitLM try
+        if (!ans) return true;
+        return /^(🤔|Hmm|Give me a math)/.test(ans) || ans.indexOf('Not fully sure') !== -1 ||
+            ans.indexOf('went over my head') !== -1 || ans.indexOf('neurons hiccuped') !== -1 ||
+            ans.indexOf('🎨 **BitLM-mini') !== -1;
+    }
+    async function proStream(text) {
+        var bubble = null;
+        typingEl.classList.add('show'); scroll();
+        try {
+            if (text.length > 8000) {                                          // v17: context hard limit
+                typingEl.classList.remove('show');
+                var tl = 'That message is longer than my context limit (8000 characters). Please split it into smaller parts, or start a **new chat**.';
+                addMsg('bot', tl, false); chatAdd('bot', tl);
+                return;
+            }
+            var sys = BitLMPro.buildSystem({ userName: userName, model: proModel() });
+            var tr = BitLMPro.trimHistory(PRO_HIST, 12000);                    // v17: context compactor
+            if (tr.dropped && !PRO_CTX_NOTED) {
+                PRO_CTX_NOTED = true;
+                var cn = '**Context compacted** — oldest messages were dropped to stay inside the model limit. For a fresh topic, start a **new chat**.';
+                addMsg('bot', cn, true); chatAdd('bot', cn);
+            }
+            var msgs = [{ role: 'system', content: sys }].concat(tr.hist.slice(-10), [{ role: 'user', content: text }]);
+            bubble = proBubble();
+            typingEl.classList.remove('show');
+            var mm = BitLMPro.MODELS[proModel()] || BitLMPro.MODELS.max;
+            var eng = await proEngine(function (p) {
+                var f = Math.max(0, Math.min(1, p.progress || 0));
+                proStatus(bubble, 'Downloading ' + mm.name + ' (one-time)… ' + Math.round(f * 100) + '% · ' + Math.round(f * mm.dlMB) + ' MB of ' + mm.dlMB + ' MB');
+            });
+            proStatus(bubble, null);
+            var lastRender = 0;
+            var res = await BitLMPro.chat(eng, msgs, {
+                maxTokens: 700,
+                onChunk: function (p) {
+                    var now = Date.now();
+                    if (now - lastRender > 110) { lastRender = now; proRender(bubble, p); }
+                }
+            });
+            var finalText = proFinish(bubble, res);
+            PRO_HIST.push({ role: 'user', content: text }, { role: 'assistant', content: finalText });
+            if (PRO_HIST.length > 14) PRO_HIST = PRO_HIST.slice(-14);
+            chatAdd('bot', finalText);
+        } catch (e) {
+            typingEl.classList.remove('show');
+            if (bubble && bubble.node && bubble.node.parentNode) bubble.node.parentNode.removeChild(bubble.node);
+            var msg = '**BitLM could not run here:** ' + String((e && e.message) || e).slice(0, 200) + '\n\nBitLM needs **WebGPU** (Chrome/Edge 113+ with a GPU) and works best on the **hosted site** (https://bittuhere.github.io) — not from file://. It also needs internet once for the model download.\n\nMeanwhile BitBot can still answer everything — say **"switch to bitbot"**, or ask me right now.';
+            addMsg('bot', msg, false); chatAdd('bot', msg);
+        }
+    }
+    function proSend(text) {
+        // commands + selector answers keep working in BitLM mode
+        if (BitLMPro.isProCommand(text)) {
+            typingEl.classList.add('show');
+            setTimeout(function () {
+                typingEl.classList.remove('show');
+                var a; try { a = respond(text); } catch (e) { a = 'Oops — hiccup! 🤯'; }
+                showThinking(COT.slice(), function () { addMsg('bot', a, false); chatAdd('bot', a); });
+            }, 260);
+            return;
+        }
+        // pure maths → exact engine first (instant + perfect); BitLM catches weak answers
+        if (BitLMPro.looksPureMath(text)) {
+            var ans = null;
+            try { ans = respond(text); } catch (eM) { ans = null; }
+            if (!proWeak(ans)) {
+                typingEl.classList.add('show');
+                setTimeout(function () {
+                    typingEl.classList.remove('show');
+                    showThinking(COT.slice(), function () { addMsg('bot', ans, false); chatAdd('bot', ans); });
+                }, 250);
+                return;
+            }
+        }
+        proStream(text);
     }
     function send(text) {
         text = (text || '').trim();
         if (!text || !net) return;
         addMsg('me', text);
+        chatAdd('me', text);
         inp.value = '';
+        if (window.BitLMPro && modelChoice() === 'bitlm') { proSend(text); return; }   // v16: BitLM mode
         typingEl.classList.add('show'); scroll();
         setTimeout(function () {
             typingEl.classList.remove('show');
             var ans;
             try { ans = respond(text); }                                        // v6: never crash on a bug
             catch (e) { ans = "Oops — my neurons hiccuped! 🤯 Ask me again, maybe in simpler words?"; }
-            showThinking(COT.slice(), function () { addMsg('bot', ans, false); });   // v7: chain of thought first
+            showThinking(COT.slice(), function () { addMsg('bot', ans, false); chatAdd('bot', ans); });   // v7: CoT first · v14: auto-save
         }, 420 + Math.random() * 500);
     }
 
-    document.getElementById('clearBtn').onclick = function () {           // v6: fresh chat, instantly
+    document.getElementById('clearBtn').onclick = function () {           // v6: fresh chat · v14: previous one stays saved
+        clearTimeout(chatSaveT); ChatStore.put(curChat);                  // flush the old session first
+        newChat();
         chat.innerHTML = ''; chipsEl.innerHTML = '';
         MEM.turns = []; MEM.lastTag = null; MEM.lastTime = 0; MEM.used = {}; MEM.quiz = null;
         greet();
     };
+    document.getElementById('histBtn').onclick = function () {            // v14: saved chats panel
+        clearTimeout(chatSaveT); ChatStore.put(curChat);                  // make sure current chat is in the list
+        renderHist();
+        document.getElementById('histOv').classList.add('show');
+    };
+    document.getElementById('histClose').onclick = function () {
+        document.getElementById('histOv').classList.remove('show');
+    };
+    document.getElementById('histOv').addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('show');
+    });
     document.getElementById('send').onclick = function () { send(inp.value); };
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(inp.value); });
-
-    // ── LIVE TRAINING ("watch it learn") — chunked, non-blocking ──────────
-    document.getElementById('trainBtn').onclick = function () {
-        var ov = document.getElementById('trainOv'),
-            fill = document.getElementById('trainFill'),
-            stats = document.getElementById('trainStats');
-        ov.classList.add('show');
-        statusEl.classList.add('busy'); statusTxt.textContent = 'training…';
-        window.__PATTERN_COUNT = BitData.INTENTS.reduce(function (s, i) { return s + i.patterns.length; }, 0);
-        var t = BitBrain.makeTrainer(BitData.INTENTS, { seed: 1337, hidden: 256 });
-        var EPOCHS = 12, e = 0, r = BitBrain.rng(4242);
-        (function chunk() {
-            var t0 = performance.now();
-            while (e < EPOCHS && performance.now() - t0 < 28) {   // ≤28ms slices → 60fps
-                var loss = t.epoch(r, e < 6 ? 0.12 : 0.05);
-                fill.style.width = ((e + 1) / EPOCHS * 100).toFixed(0) + '%';
-                if (e % 4 === 0 || e === EPOCHS - 1) {
-                    stats.innerHTML = 'epoch ' + (e + 1) + '/' + EPOCHS + ' · loss ' + loss.toFixed(4) +
-                        '<br>training accuracy: <b style="color:#34d399">' + (t.accuracy() * 100).toFixed(1) + '%</b>';
-                } else {
-                    stats.innerHTML = 'epoch ' + (e + 1) + '/' + EPOCHS + ' · loss ' + loss.toFixed(4) +
-                        '<br>SGD + backprop on ' + window.__PATTERN_COUNT + ' patterns…';
-                }
-                e++;
-            }
-            if (e < EPOCHS) { setTimeout(chunk, 0); return; }
-            fill.style.width = '100%';
-            var acc = t.accuracy();
-            stats.innerHTML = '✅ Training complete!<br>final training accuracy: <b style="color:#34d399">' + (acc * 100).toFixed(1) + '%</b>' +
-                '<br>weights swapped into the live net.';
-            net = t.net;                                            // hot-swap the brain
-            vocabInfo = t.vocab; vocabInfo.tags = t.tags;             // vocab + tag list!
-            setTimeout(function () {
-                ov.classList.remove('show');
-                statusEl.classList.remove('busy'); statusTxt.textContent = 'self-trained ✓';
-                addMsg('bot', '🧠 I just grew a FRESH brain from scratch right in your browser — 12-epoch quick-train, final accuracy ' + (acc * 100).toFixed(1) + '%! (My shipped brain is the bigger 120-epoch, 79-lakh-parameter one — reload the page to bring it back.) Ask me something!', false);
-                showChips(['What games are there?', 'Tell me a fact', 'What is 45 times 3', 'How do I add friends?']);
-            }, 1400);
-        })();
-    };
-
     if (window.__AI_DEPS_READY) boot();
     else window.addEventListener('ai-deps-ready', boot, { once: true });
 })();

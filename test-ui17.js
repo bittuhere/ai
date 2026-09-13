@@ -54,7 +54,7 @@ ck(html.indexOf('Which AI do you want to use?') > -1, 'modal question exact');
 ck(html.indexOf('Once you would download, you would not need to download next time.') > -1, 'download-once note exact');
 ck(/A large language model/.test(html), 'BitLM card: "A large language model"');
 ck(/completely made from scratch/.test(html), 'BitBot card: "completely made from scratch"');
-ck(/494M params · ~400 MB one-time download/.test(html), 'BitLM size in MB shown');
+ck(/494M params · ~295 MB one-time download/.test(html), 'BitLM size in MB shown');
 ck(/1\.27 cr params · ~17 MB/.test(html), 'BitBot size in MB shown');
 
 /* ── 5. emoji-free chrome: no emoji outside <script> blocks ── */
@@ -70,12 +70,12 @@ ck(style.indexOf('#1a73e8') > -1, 'solid accent color present');
 ck(/font-family:\s*system-ui/.test(style), 'system font stack (no external fonts)');
 
 /* ── 7. version coherence ── */
-ck(/<title>BitBot v17/.test(html), 'title v17');
-ck(html.indexOf('<div id="ver">BitBot v17</div>') > -1, 'ver badge v17');
-ck(html.indexOf("BitBot v17") > -1 && /I'm \*\*BitBot v17\*\* by \*\*Anurag\*\*/.test(html), 'greet v17 by Anurag');
+ck(/<title>BitBot v18/.test(html), 'title v18');
+ck(html.indexOf('<div id="ver">BitBot v18</div>') > -1, 'ver badge v18');
+ck(html.indexOf("BitBot v18") > -1 && /I'm \*\*BitBot v18\*\* by \*\*Anurag\*\*/.test(html), 'greet v18 by Anurag');
 const vq = [...html.matchAll(/\?v=(\d+)'/g)].map(m => m[1]);
-ck(vq.length === 12 && vq.every(v => v === '17'), 'all 12 loader files at ?v=17', vq.join(','));
-ck(/CACHE = 'bitbot-v18'/.test(sw), 'sw cache v18');
+ck(vq.length === 12 && vq.every(v => v === '18'), 'all 12 loader files at ?v=18', vq.join(','));
+ck(/CACHE = 'bitbot-v19'/.test(sw), 'sw cache v19');
 ck(sw.indexOf("'./bitlm-pro.js'") > -1, 'sw caches bitlm-pro.js');
 ck(/"theme_color": "#1a73e8"/.test(man) && /"background_color": "#ffffff"/.test(man), 'PWA manifest solid light colors');
 
@@ -92,7 +92,7 @@ const huge = P.trimHistory([{ role: 'user', content: 'y'.repeat(50000) }], 1000)
 ck(huge.hist.length === 0, 'oversized single message → cleared');
 
 /* ── 9. model sizes honest + under cap ── */
-ck(P.MODELS.max.dlMB === 400 && P.MODELS.lite.dlMB === 250, 'dlMB sizes for loader');
+ck(P.MODELS.max.dlMB === 295 && P.MODELS.lite.dlMB === 215, 'dlMB sizes for loader (f32 editions)');
 ck(P.MODELS.max.paramsM < 500 && P.MODELS.lite.paramsM < 500, 'both models under 500M cap');
 
 /* ── 10. boot modal wiring exists ── */

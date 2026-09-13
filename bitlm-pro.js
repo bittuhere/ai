@@ -5,40 +5,291 @@
  * HARD LIMIT set by the developer: every model UNDER 500M (50 cr) parameters.
  *
  * Features:
- *  - model catalog + lazy CDN loader (esm.run) with sanitized progress
+ *  - model catalog (f32 COMPATIBLE + f16 fast editions) with self-hosted
+ *    models/ detection, vendored engine bundle + CDN fallbacks, 1-second GPU
+ *    pre-flight (shader-f16 probe) and a CPU (ONNX/WASM) fallback engine
  *  - <calc>EXPRESSION</calc> javascript-console tool loop (like big AIs' python)
  *    with a hardened whitelist evaluator (safeCalc)
  *  - <think>…</think> chain-of-thought stream parser (parseAll)
  *  - debrand() identity filter  · buildSystem() mindset prompt
  *  - retrieveFacts(): grounds BitLM in BitBot's own 347-intent knowledge base
  *  - looksPureMath()/parseChoice()/isProCommand(): routing helpers
- * Pure logic works in Node for testing (module.exports); WebLLM is imported
- * ONLY inside loadEngine(), so tests never touch the CDN. */
+ * Pure logic works in Node for testing (module.exports); engines are imported
+ * ONLY inside loadEngine()/loadCpuEngine(), so tests never touch a CDN. */
 (function (root) {
     'use strict';
 
-    /* ── model catalog — ALL UNDER 500M PARAMS (developer's hard limit) ── */
+    /* ── model catalog — ALL UNDER 500M PARAMS (developer's hard limit) ──────
+     * v18: every model ships in TWO compiled editions —
+     *   f32 = COMPATIBLE edition (pure 32-bit shaders — runs on virtually every
+     *         WebGPU adapter; this is the default now)
+     *   f16 = fast edition (needs the optional 'shader-f16' GPU feature; on some
+     *         drivers it crashes with 'Invalid ShaderModule' — the v18 fix)
+     * loadEngine() probes the GPU (~1 s), tries f32 first, then f16 only on
+     * capable GPUs, and finally drops to a CPU engine (WASM) so BitLM runs even
+     * with no WebGPU at all. Weights + wasm libs can be SELF-HOSTED under
+     * models/ on the same site (see MODEL-HOSTING.md) — auto-detected at load,
+     * otherwise pulled from the public CDNs. */
     var MODELS = {
-        lite: { id: 'SmolLM2-360M-Instruct-q4f16_1-MLC', name: 'BitLM Lite', paramsM: 360, dlMB: 250 },
-        max:  { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', name: 'BitLM Max',  paramsM: 494, dlMB: 400 }
+        lite: { id: 'SmolLM2-360M-Instruct-q4f32_1-MLC', name: 'BitLM Lite', paramsM: 360, dlMB: 215 },
+        max:  { id: 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', name: 'BitLM Max',  paramsM: 494, dlMB: 295 }
     };
-    var CDN = 'https://esm.run/@mlc-ai/web-llm@0.2.85';
+    var VARIANTS = {
+        max: [
+            { id: 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', dir: 'bitlm-max',     lib: 'Qwen2-0.5B-Instruct-q4f32_1_cs1k-webgpu.wasm',   f16: false, dlMB: 295 },
+            { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', dir: 'bitlm-max-f16', lib: 'Qwen2-0.5B-Instruct-q4f16_1_cs1k-webgpu.wasm',   f16: true,  dlMB: 265 }
+        ],
+        lite: [
+            { id: 'SmolLM2-360M-Instruct-q4f32_1-MLC', dir: 'bitlm-lite',     lib: 'SmolLM2-360M-Instruct-q4f32_1_cs1k-webgpu.wasm', f16: false, dlMB: 215 },
+            { id: 'SmolLM2-360M-Instruct-q4f16_1-MLC', dir: 'bitlm-lite-f16', lib: 'SmolLM2-360M-Instruct-q4f16_1_cs1k-webgpu.wasm', f16: true,  dlMB: 210 }
+        ]
+    };
+    var LIB_PREFIX = 'https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_84/base/';
+    var ENGINE_SRCS = [
+        'vendor/web-llm.js',                                    // self-hosted engine bundle — no CDN stall
+        'https://esm.run/@mlc-ai/web-llm@0.2.85',
+        'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+esm'
+    ];
+    var TJS_SRCS = [                                           // CPU-mode engine (ONNX Runtime WASM)
+        'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.5/+esm',
+        'https://esm.run/@huggingface/transformers@3.7.5'
+    ];
+    var CPU_MODEL = 'onnx-community/SmolLM2-360M-Instruct-ONNX';
+    var CDN = 'https://esm.run/@mlc-ai/web-llm@0.2.85';        // kept for compatibility
 
     function webgpuOK() {
         return !!(root.navigator && root.navigator.gpu);
     }
+    /* v18: BitLM always HAS a path (GPU f32 → GPU f16 → CPU). Only a failed
+       script load blocks it, so the UI no longer hard-gates on WebGPU. */
+    function canRun() { return true; }
+
+    function withTimeout(p, ms, label) {
+        return Promise.race([
+            p,
+            new Promise(function (_, rej) {
+                setTimeout(function () { rej(new Error((label || 'operation') + ' timed out after ' + Math.round(ms / 1000) + 's')); }, ms);
+            })
+        ]);
+    }
+    function siteBase() {
+        try {
+            var h = String((root.location && root.location.href) || '');
+            if (!/^https?:/.test(h)) return '';                  // file:// → no self-host probing
+            return h.replace(/[^/]*$/, '');
+        } catch (e) { return ''; }
+    }
+    async function probeUrl(url, ms) {
+        try {
+            if (!url || typeof fetch !== 'function') return false;
+            var r = await withTimeout(fetch(url, { method: 'GET', cache: 'no-store' }), ms || 8000, 'probe');
+            return !!(r && r.ok);
+        } catch (e) { return false; }
+    }
+    async function importFirst(srcs, onStep, ms) {
+        ms = ms || 25000;
+        var lastErr = null;
+        for (var i = 0; i < srcs.length; i++) {
+            try {
+                if (onStep) onStep(srcs[i].indexOf('http') === 0
+                    ? 'Connecting to engine source ' + (i + 1) + ' of ' + srcs.length + '…'
+                    : 'Loading bundled engine…');
+                return await withTimeout(import(srcs[i]), ms, 'engine import');
+            } catch (e) { lastErr = e; }
+        }
+        throw new Error('could not load the BitLM engine from any source (' +
+            String((lastErr && lastErr.message) || lastErr).slice(0, 120) + ')');
+    }
+    function engineSrcs() {
+        var base = siteBase();
+        return ENGINE_SRCS.map(function (s) {
+            return s.indexOf('http') === 0 ? s : (base ? base + s : s);
+        });
+    }
+    /* 1-second GPU pre-flight: does an adapter exist, and does it expose the
+       optional 'shader-f16' feature? Decides the variant order BEFORE any
+       multi-hundred-MB download — no more crash-after-400MB. */
+    async function gpuCaps() {
+        try {
+            var nav = root.navigator;
+            if (!(nav && nav.gpu && nav.gpu.requestAdapter)) return { webgpu: false, f16: false };
+            var adapter = await withTimeout(nav.gpu.requestAdapter(), 8000, 'GPU detection');
+            if (!adapter) return { webgpu: false, f16: false };
+            var f16 = false;
+            try { f16 = !!(adapter.features && adapter.features.has && adapter.features.has('shader-f16')); } catch (e) {}
+            return { webgpu: true, f16: f16 };
+        } catch (e) { return { webgpu: false, f16: false }; }
+    }
+    function planVariants(key, caps) {
+        var vs = (VARIANTS[key] || VARIANTS.max).slice();        // f32 first = compatibility first
+        if (!caps || !caps.f16) vs = vs.filter(function (v) { return !v.f16; });
+        return vs;
+    }
+    /* Pure record builder — self-hosted paths when the files exist locally,
+       public CDN URLs otherwise. Local weight dirs live at
+       models/<dir>/resolve/main/ (the engine appends nothing then). */
+    function buildRecord(v, local) {
+        var base = siteBase();
+        var selfW = !!(local && local.weights && base);
+        var selfL = !!(local && local.lib && base);
+        return {
+            model: selfW ? base + 'models/' + v.dir + '/resolve/main/' : 'https://huggingface.co/mlc-ai/' + v.id,
+            model_id: v.id,
+            model_lib: selfL ? 'models/lib/' + v.lib : LIB_PREFIX + v.lib,
+            low_resource_required: true,
+            overrides: { context_window_size: 4096 }
+        };
+    }
+    function isShaderErr(e) {
+        var s = String((e && (e.message || e.name)) || e || '').toLowerCase();
+        return /shadermodule|shader-f16|shader f16|tvmerror|wgsl|webgpu|device.*lost|out of memory|no adapter|gpu/.test(s);
+    }
+
+    /* ── CPU engine (no WebGPU needed): ONNX Runtime WASM facade shaped
+       exactly like the WebGPU engine (chat.completions.create + async
+       iterator) so chat()/streamCompletion work unchanged. ─────────────── */
+    function makeCpuEngine(gen, tjs) {
+        function genOpts(params, streamer) {
+            var o = {
+                max_new_tokens: Math.min((params && params.max_tokens) || 256, 512),
+                do_sample: false
+            };
+            var stops = (params && params.stop) || [];
+            if (stops.length) { try { o.stop_sequences = stops.map(String); } catch (e) {} }
+            if (streamer) o.streamer = streamer;
+            return o;
+        }
+        function lastText(out) {
+            var gt = out && out[0] && out[0].generated_text;
+            if (Array.isArray(gt) && gt.length) return String(gt[gt.length - 1].content || '');
+            return String(gt == null ? '' : gt);
+        }
+        return {
+            kind: 'cpu',
+            chat: {
+                completions: {
+                    create: function (params) {
+                        var msgs = (params && params.messages) || [];
+                        if (!params || !params.stream) {
+                            return gen(msgs, genOpts(params, null)).then(function (out) {
+                                return { choices: [{ message: { role: 'assistant', content: lastText(out) } }] };
+                            });
+                        }
+                        var queue = [], done = false, err = null, waiter = null;
+                        function kick() { if (waiter) { var w = waiter; waiter = null; w(); } }
+                        var streamer = new tjs.TextStreamer(gen.tokenizer, {
+                            skip_prompt: true,
+                            callback_function: function (t) { if (t) { queue.push(t); kick(); } }
+                        });
+                        gen(msgs, genOpts(params, streamer)).then(function () {
+                            done = true; kick();
+                        }).catch(function (e) { err = e; done = true; kick(); });
+                        var it = {
+                            next: function () {
+                                if (queue.length) {
+                                    return Promise.resolve({ done: false, value: { choices: [{ delta: { content: queue.shift() } }] } });
+                                }
+                                if (err) return Promise.reject(err);
+                                if (done) return Promise.resolve({ done: true, value: undefined });
+                                return new Promise(function (res, rej) {
+                                    waiter = function () { it.next().then(res, rej); };   // re-poll when data/done lands
+                                });
+                            }
+                        };
+                        var stream = { next: it.next };
+                        stream[Symbol.asyncIterator] = function () { return it; };
+                        return Promise.resolve(stream);
+                    }
+                }
+            }
+        };
+    }
+    async function loadCpuEngine(onProgress) {
+        var tjs = await importFirst(TJS_SRCS, function (t) { if (onProgress) onProgress({ progress: 0.02, text: t, dlMB: 390 }); }, 40000);
+        try { tjs.env.allowLocalModels = false; tjs.env.allowRemoteModels = true; } catch (e) {}
+        var files = {};
+        var gen = await tjs.pipeline('text-generation', CPU_MODEL, {
+            dtype: 'q4',
+            device: 'wasm',
+            progress_callback: function (p) {
+                if (!p || !p.file || !onProgress) return;
+                if (p.status === 'progress' || p.status === 'download') {
+                    files[p.file] = { loaded: p.loaded || 0, total: p.total || 0 };
+                    var L = 0, T = 0;
+                    Object.keys(files).forEach(function (k) { L += files[k].loaded; T += files[k].total; });
+                    onProgress({
+                        progress: T > 0 ? Math.max(0, Math.min(1, L / T)) : 0,
+                        text: 'CPU mode — downloading ' + String(p.file).split('/').pop() +
+                              ' (' + Math.round(L / 1048576) + ' MB of ' + Math.round(T / 1048576) + ' MB)',
+                        dlMB: Math.round(T / 1048576) || 390
+                    });
+                }
+            }
+        });
+        return makeCpuEngine(gen, tjs);
+    }
 
     async function loadEngine(key, onProgress) {
         var m = MODELS[key] || MODELS.max;
-        var webllm = await import(CDN);
-        return await webllm.CreateMLCEngine(m.id, {
-            initProgressCallback: function (p) {
-                if (onProgress) onProgress({
-                    progress: (p && p.progress) || 0,
-                    text: debrand(String((p && p.text) || 'loading ' + m.name + '…'))
-                });
+        var prog = function (text, p, dlMB) {
+            if (onProgress) onProgress({ progress: p == null ? 0 : p, text: debrand(text), dlMB: dlMB || m.dlMB });
+        };
+        var caps = await gpuCaps();
+        prog(caps.webgpu
+            ? 'WebGPU detected' + (caps.f16 ? ' (f16-capable)' : '') + ' — preparing ' + m.name + '…'
+            : 'No WebGPU on this device — preparing ' + m.name + ' CPU mode…', 0.01);
+        var lastErr = null;
+        if (caps.webgpu) {
+            var webllm = null;
+            try {
+                webllm = await importFirst(engineSrcs(), function (t) { prog(t, 0.02); });
+            } catch (e) { lastErr = e; }
+            if (webllm && webllm.CreateMLCEngine) {
+                var plan = planVariants(key, caps);
+                for (var i = 0; i < plan.length; i++) {
+                    var v = plan[i];
+                    try {
+                        var local = {
+                            weights: await probeUrl(siteBase() + 'models/' + v.dir + '/resolve/main/mlc-chat-config.json'),
+                            lib: await probeUrl(siteBase() + 'models/lib/' + v.lib)
+                        };
+                        if (local.weights) prog('Self-hosted model files found on this site — loading locally…', 0.03, v.dlMB);
+                        var rec = buildRecord(v, local);
+                        var engine = await webllm.CreateMLCEngine(v.id, {
+                            appConfig: { model_list: [rec] },
+                            initProgressCallback: (function (vv) {
+                                return function (p) {
+                                    prog(String((p && p.text) || 'loading ' + m.name + '…'), (p && p.progress) || 0, vv.dlMB);
+                                };
+                            })(v)
+                        });
+                        engine.bitlmKind = 'webgpu';
+                        engine.bitlmVariant = v.id;
+                        engine.bitlmLocal = !!local.weights;
+                        return engine;
+                    } catch (e) {
+                        lastErr = e;
+                        if (isShaderErr(e) && i < plan.length - 1) {
+                            prog('This GPU rejected the current edition — switching to the compatible edition…', 0.03);
+                            continue;
+                        }
+                        break;                                   // → CPU fallback below
+                    }
+                }
             }
-        });
+        }
+        try {
+            prog('Starting CPU engine (slower, works everywhere)…', 0.04);
+            var cpu = await loadCpuEngine(function (p) { prog(p.text, p.progress, p.dlMB); });
+            cpu.bitlmVariant = CPU_MODEL;
+            return cpu;
+        } catch (e2) {
+            var msg = 'BitLM could not start on this device.';
+            if (lastErr) msg += ' GPU path: ' + String(lastErr.message || lastErr).slice(0, 110) + '.';
+            msg += ' CPU path: ' + String((e2 && e2.message) || e2).slice(0, 110) + '.';
+            msg += ' Try a Chrome/Edge update, or use BitBot — it answers everything instantly.';
+            throw new Error(msg);
+        }
     }
 
     /* ── debrand: never leak the base model / framework / company ───────── */
@@ -315,8 +566,12 @@
     }
 
     var BitLMPro = {
-        MODELS: MODELS, CDN: CDN,
-        webgpuOK: webgpuOK, loadEngine: loadEngine,
+        MODELS: MODELS, VARIANTS: VARIANTS, CDN: CDN,
+        LIB_PREFIX: LIB_PREFIX, ENGINE_SRCS: ENGINE_SRCS, TJS_SRCS: TJS_SRCS, CPU_MODEL: CPU_MODEL,
+        webgpuOK: webgpuOK, canRun: canRun, loadEngine: loadEngine,
+        gpuCaps: gpuCaps, planVariants: planVariants, buildRecord: buildRecord,
+        siteBase: siteBase, isShaderErr: isShaderErr, makeCpuEngine: makeCpuEngine,
+        withTimeout: withTimeout,
         debrand: debrand, safeCalc: safeCalc, fmtNum: fmtNum, parseAll: parseAll,
         buildSystem: buildSystem, retrieveFacts: retrieveFacts, trimHistory: trimHistory,
         looksPureMath: looksPureMath, parseChoice: parseChoice, isProCommand: isProCommand,

@@ -7,9 +7,9 @@
 <link rel="icon" type="image/png" href="icon-512.png">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>BitBot v17 — Arcade Hub AI · Class 1–8 Maths Master</title>
+<title>BitBot v18 — Arcade Hub AI · Class 1–8 Maths Master</title>
 <style>
-    /* BitBot v17 — solid, minimal, Gemini/DuckDuckGo-like light theme. No gradients, no emoji chrome, inline SVG icons. */
+    /* BitBot v18 — solid, minimal, Gemini/DuckDuckGo-like light theme. No gradients, no emoji chrome, inline SVG icons. */
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     :root {
         --bg: #ffffff; --bg2: #f5f6f7; --line: #e3e6e8; --txt: #1f2328; --txt2: #5f6368;
@@ -232,7 +232,7 @@
             <button class="mo-card" id="cardBitlm" type="button">
                 <span class="mo-name">BitLM</span>
                 <span class="mo-desc">A large language model — writing, ideas, stories, homework and daily works. Runs on your own device.</span>
-                <span class="mo-size" id="bitlmSize">494M params · ~400 MB one-time download</span>
+                <span class="mo-size" id="bitlmSize">494M params · ~295 MB one-time download</span>
             </button>
             <button class="mo-card" id="cardBitbot" type="button">
                 <span class="mo-name">BitBot</span>
@@ -251,7 +251,7 @@
     <h3 id="dlTitle">Downloading BitLM…</h3>
     <div class="lpct" id="dlpct">0%</div>
     <div class="lbar"><div class="lfill" id="dlfill"></div></div>
-    <div id="dlmb">0 MB of 400 MB</div>
+    <div id="dlmb">0 MB of 295 MB</div>
     <div class="lstep" id="dlstep">preparing…</div>
     <button id="dlCancel" class="mo-cta ghost" type="button">Cancel — use BitBot instead</button>
 </div>
@@ -287,7 +287,7 @@
 </footer>
 
 <div id="errBanner"><span id="errText"></span><button id="errClose" title="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button></div>
-<div id="ver">BitBot v17</div>
+<div id="ver">BitBot v18</div>
 
 <script>
 /* BitBot loader (v6) — REAL progress: every % step is an actual file load. */
@@ -320,18 +320,18 @@
         requestAnimationFrame(tick);
         setP(6, 'starting neural core…');
         var files = [
-            ['brain.js?v=17',   16, 'loading my brain engine…'],
-            ['math.js?v=17',    24, 'loading my math engine — BODMAS, √, ², !, algebra…'],
-            ['wordmath.js?v=17',32, 'loading my word-problem solver — ages, profit, mensuration…'],
-            ['solvex.js?v=17',  36, 'loading my brain-teaser engine — BT/HOTS master solver…'],
-            ['data.js?v=17',    40, 'loading core knowledge…'],
-            ['data2.js?v=17',   48, 'loading the v8 knowledge expansion…'],
-            ['data3.js?v=17',   58, 'loading the v9 expansion — 330 topics, SST + ICT + deep maths…'],
-            ['data4.js?v=17',   70, 'loading Class-8 mastery — all 16 DAV chapters…'],
-            ['weights.js?v=17', 84, 'loading 82-lakh quantized weights — all my memories…'],
-            ['bitlm.js?v=17',   88, 'loading my generative language engine…'],
-            ['bitlm-weights.js?v=17', 93, 'loading BitLM-mini — a transformer I trained FROM SCRATCH on my own data…'],
-            ['bitlm-pro.js?v=17', 96, 'loading the BitLM Pro engine — big in-browser AI + javascript console tools…']
+            ['brain.js?v=18',   16, 'loading my brain engine…'],
+            ['math.js?v=18',    24, 'loading my math engine — BODMAS, √, ², !, algebra…'],
+            ['wordmath.js?v=18',32, 'loading my word-problem solver — ages, profit, mensuration…'],
+            ['solvex.js?v=18',  36, 'loading my brain-teaser engine — BT/HOTS master solver…'],
+            ['data.js?v=18',    40, 'loading core knowledge…'],
+            ['data2.js?v=18',   48, 'loading the v8 knowledge expansion…'],
+            ['data3.js?v=18',   58, 'loading the v9 expansion — 330 topics, SST + ICT + deep maths…'],
+            ['data4.js?v=18',   70, 'loading Class-8 mastery — all 16 DAV chapters…'],
+            ['weights.js?v=18', 84, 'loading 82-lakh quantized weights — all my memories…'],
+            ['bitlm.js?v=18',   88, 'loading my generative language engine…'],
+            ['bitlm-weights.js?v=18', 93, 'loading BitLM-mini — a transformer I trained FROM SCRATCH on my own data…'],
+            ['bitlm-pro.js?v=18', 96, 'loading the BitLM Pro engine — big in-browser AI + javascript console tools…']
         ];
         var i = 0;
         function loadCurrent(tries) {
@@ -1759,8 +1759,8 @@
     moGo.onclick = function () {
         if (!moPick) return;
         var ch = moPick;
-        if (ch === 'bitlm' && !(window.BitLMPro && BitLMPro.webgpuOK())) {
-            moReq.textContent = 'BitLM needs a WebGPU-capable browser (Chrome/Edge 113+ with a GPU) — not available here, so BitBot was selected. BitBot is instant and works offline; everything still works.';
+        if (ch === 'bitlm' && !window.BitLMPro) {
+            moReq.textContent = 'The BitLM engine files did not finish loading — BitBot was selected instead. Refresh the page once to retry; BitBot is instant and everything still works.';
             moSelect('bitbot');
             try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e) {}
             return;
@@ -1773,7 +1773,7 @@
     };
     document.getElementById('modelBtn').onclick = function () { showModelModal(false); };
     function dlStart() {
-        var mm = (window.BitLMPro && BitLMPro.MODELS[proModel()]) || { name: 'BitLM', dlMB: 400 };
+        var mm = (window.BitLMPro && BitLMPro.MODELS[proModel()]) || { name: 'BitLM', dlMB: 295 };
         var pc = document.getElementById('dlpct'), fl = document.getElementById('dlfill'),
             mb = document.getElementById('dlmb'), st = document.getElementById('dlstep');
         document.getElementById('dlTitle').textContent = 'Downloading ' + mm.name + '…';
@@ -1783,18 +1783,26 @@
         dlOv.classList.add('show');
         proEngine(function (p) {
             var f = Math.max(0, Math.min(1, p.progress || 0));
+            var sz = p.dlMB || mm.dlMB;
             pc.textContent = Math.round(f * 100) + '%';
             fl.style.width = (f * 100) + '%';
-            mb.textContent = Math.round(f * mm.dlMB) + ' MB of ' + mm.dlMB + ' MB';
+            mb.textContent = Math.round(f * sz) + ' MB of ' + sz + ' MB';
             if (p.text) st.textContent = String(p.text).slice(0, 90);
-        }).then(function () {
+        }).then(function (eng) {
             dlOv.classList.remove('show');
             if (!chat.childNodes.length) greet();
             var t = chooseModel('bitlm'); addMsg('bot', t, false); chatAdd('bot', t);
+            if (eng && eng.bitlmKind === 'cpu' && !PRO_CPU_NOTED) {
+                PRO_CPU_NOTED = true;
+                var cn = '**CPU mode active** — this device has no usable WebGPU, so BitLM is running on the CPU. Everything works; replies are just slower than GPU mode.';
+                addMsg('bot', cn, true); chatAdd('bot', cn);
+            }
         }).catch(function (e) {
             dlOv.classList.remove('show');
             try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e2) {}
-            showErr('BitLM could not load: ' + String((e && e.message) || e).slice(0, 140) + ' — switched to BitBot so nothing is broken.');
+            var em = String((e && e.message) || e);
+            if (window.BitLMPro) em = BitLMPro.debrand(em);
+            showErr('BitLM could not load: ' + em.slice(0, 160) + ' — switched to BitBot so nothing is broken.');
             if (!chat.childNodes.length) greet();
         });
     }
@@ -1826,7 +1834,7 @@
         addMsg("bot", (userName
             ? "**" + tod + ", " + userName + "!** Welcome back — I remembered you.\n"
             : "**" + tod + "!** ") +
-            "I'm **BitBot v17** by **Anurag** — Arcade Hub's assistant and your **Class 1–8 Maths Master**:\n" +
+            "I'm **BitBot v18** by **Anurag** — Arcade Hub's assistant and your **Class 1–8 Maths Master**:\n" +
             "- **Algebra engine** — equations & identities with full steps + verification: try `2x + 3 = 11` or `expand (a+b)²`\n" +
             "- **Word-problem solver** — ages, speed–distance–time, work–time, profit-loss-GST, SI/CI, mensuration, probability — all 16 Class-8 chapters\n" +
             "- **" + lakh + "-lakh-parameter neural brain** · **" + topics + " topics** (science, SST, ICT, esports) · chain-of-thought · quiz mode" + modeLine + "\n" +
@@ -1836,20 +1844,20 @@
     /* ── v16: BitLM Pro — the BIG in-browser model (WebLLM/WebGPU, <500M params,
           rebranded, identity: BitLM by Anurag). Mini-RAG grounds it in BitBot's
           KB; <calc> javascript console gives it exact maths; think-stream UI. ── */
-    var PRO_HIST = [], PRO_ENGINE = null, PRO_LOADING = null;
+    var PRO_HIST = [], PRO_ENGINE = null, PRO_LOADING = null, PRO_CPU_NOTED = false;
     function modelChoice() { try { return localStorage.getItem('bb_model_choice') || ''; } catch (e) { return ''; } }
     function proModel() { try { var m = localStorage.getItem('bb_pro_model'); return (m === 'lite' || m === 'max') ? m : 'max'; } catch (e) { return 'max'; } }
     function chooseModel(ch) {
-        if (ch === 'bitlm' && !(window.BitLMPro && BitLMPro.webgpuOK())) {
+        if (ch === 'bitlm' && !window.BitLMPro) {
             try { localStorage.setItem('bb_model_choice', 'bitbot'); } catch (e) {}
-            return 'You picked **BitLM** — but this browser has **no WebGPU** (the large model runs on YOUR GPU; needs Chrome/Edge 113+, and works best on the hosted site **https://bittuhere.github.io** — file:// pages cannot cache the model).\n\nSo I kept you on **BitBot** — instant, offline, everything works. On a WebGPU browser just say **"switch to bitlm"**.';
+            return 'You picked **BitLM** — but its engine files did not load on this page, so I kept you on **BitBot** (instant, offline, everything works). Refresh the page once and say **"switch to bitlm"** to retry.';
         }
         try { localStorage.setItem('bb_model_choice', ch); } catch (e) {}
         if (ch === 'bitlm') {
             cot('model choice → BitLM (large, in-browser)');
-            var m = (window.BitLMPro && BitLMPro.MODELS[proModel()]) || { name: 'BitLM Max', paramsM: 494, dlMB: 400 };
+            var m = (window.BitLMPro && BitLMPro.MODELS[proModel()]) || { name: 'BitLM Max', paramsM: 494, dlMB: 295 };
             return '**BitLM selected — large language AI mode.** (' + m.name + ', ' + (m.paramsM / 10) + ' crore params)\n\n' +
-                'The model downloads once (~' + m.dlMB + ' MB) and is cached — after that everything runs **offline in your browser**. Developer: **Anurag**.\n\n' +
+                'The model downloads once (~' + m.dlMB + ' MB) and is cached — after that everything runs **offline in your browser**. It uses your **GPU** when possible; if this device has no WebGPU (or its GPU rejects the shaders), BitLM automatically switches to **CPU mode** — slower, but it works. Developer: **Anurag**.\n\n' +
                 '- Pure maths still snaps to the exact engines (faster and perfect)\n' +
                 '- BitLM has a **javascript console** — it calculates with `<calc>` and shows results\n' +
                 '- Its thinking streams in a collapsible box; answers render as **markdown**\n' +
@@ -1868,7 +1876,7 @@
         if (pc.type === 'ask') {
             var cur = modelChoice();
             return '**Current model: ' + (cur === 'bitlm' ? 'BitLM (large, in-browser)' : cur === 'bitbot' ? 'BitBot (mini assistant)' : 'not chosen yet') + '.**\n\n' +
-                '- **BitLM** — large language AI for daily works (runs on your GPU, ~400 MB one-time)\n' +
+                '- **BitLM** — large language AI for daily works (GPU, or CPU mode automatically · ~295 MB one-time)\n' +
                 '- **BitBot** — miniature from-scratch Arcade Hub assistant + exact Class 1–8 maths (~17 MB, included)\n\n' +
                 'Say **"switch to bitlm"** or **"switch to bitbot"**, or use the switch button in the header. BitLM sizes: **"bitlm max"** (49.4 cr) / **"bitlm lite"** (36 cr).';
         }
@@ -1887,7 +1895,7 @@
     }
     function proEngine(onProg) {
         if (PRO_ENGINE) return Promise.resolve(PRO_ENGINE);
-        if (!window.BitLMPro || !BitLMPro.webgpuOK()) return Promise.reject(new Error('WebGPU is not available in this browser'));
+        if (!window.BitLMPro) return Promise.reject(new Error('BitLM engine files did not load — refresh the page'));
         if (!PRO_LOADING) {
             PRO_LOADING = BitLMPro.loadEngine(proModel(), onProg).then(function (e) { PRO_ENGINE = e; return e; })
                 .catch(function (e) { PRO_LOADING = null; throw e; });
@@ -1901,27 +1909,6 @@
         }).then(function () {
             if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
             if (typeof statusTxt !== 'undefined' && statusTxt) { statusTxt.textContent = 'BitLM ready'; setTimeout(function () { statusTxt.textContent = 'ready'; }, 2600); }
-        }).catch(function (e) {
-            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
-            if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM failed: ' + String((e && e.message) || e).slice(0, 60);
-        });
-    }
-    function proEngine(onProg) {
-        if (PRO_ENGINE) return Promise.resolve(PRO_ENGINE);
-        if (!window.BitLMPro || !BitLMPro.webgpuOK()) return Promise.reject(new Error('WebGPU is not available in this browser'));
-        if (!PRO_LOADING) {
-            PRO_LOADING = BitLMPro.loadEngine(proModel(), onProg).then(function (e) { PRO_ENGINE = e; return e; })
-                .catch(function (e) { PRO_LOADING = null; throw e; });
-        }
-        return PRO_LOADING;
-    }
-    function proWarm() {
-        proEngine(function (p) {
-            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.add('busy');
-            if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM ' + Math.round((p.progress || 0) * 100) + '%';
-        }).then(function () {
-            if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
-            if (typeof statusTxt !== 'undefined' && statusTxt) { statusTxt.textContent = 'BitLM ready 🧠'; setTimeout(function () { statusTxt.textContent = 'online'; }, 2600); }
         }).catch(function (e) {
             if (typeof statusEl !== 'undefined' && statusEl) statusEl.classList.remove('busy');
             if (typeof statusTxt !== 'undefined' && statusTxt) statusTxt.textContent = 'BitLM failed: ' + String((e && e.message) || e).slice(0, 60);
@@ -2013,8 +2000,14 @@
             var mm = BitLMPro.MODELS[proModel()] || BitLMPro.MODELS.max;
             var eng = await proEngine(function (p) {
                 var f = Math.max(0, Math.min(1, p.progress || 0));
-                proStatus(bubble, 'Downloading ' + mm.name + ' (one-time)… ' + Math.round(f * 100) + '% · ' + Math.round(f * mm.dlMB) + ' MB of ' + mm.dlMB + ' MB');
+                var sz = p.dlMB || mm.dlMB;
+                proStatus(bubble, 'Downloading ' + mm.name + ' (one-time)… ' + Math.round(f * 100) + '% · ' + Math.round(f * sz) + ' MB of ' + sz + ' MB');
             });
+            if (eng && eng.bitlmKind === 'cpu' && !PRO_CPU_NOTED) {
+                PRO_CPU_NOTED = true;
+                var cpn = '**CPU mode active** — no usable WebGPU here, so BitLM runs on the CPU. Everything works; replies are slower than GPU mode.';
+                addMsg('bot', cpn, true); chatAdd('bot', cpn);
+            }
             proStatus(bubble, null);
             var lastRender = 0;
             var res = await BitLMPro.chat(eng, msgs, {
@@ -2041,7 +2034,7 @@
             typingEl.classList.add('show');
             setTimeout(function () {
                 typingEl.classList.remove('show');
-                var a; try { a = respond(text); } catch (e) { a = 'Oops — hiccup! 🤯'; }
+                var a; try { a = respond(text); } catch (e) { a = 'Oops — hiccup!'; }
                 showThinking(COT.slice(), function () { addMsg('bot', a, false); chatAdd('bot', a); });
             }, 260);
             return;

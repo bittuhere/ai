@@ -74,11 +74,12 @@ elCache['chat'] = makeEl();
 greet();
 const chatEl = elCache['chat'];
 // greet uses addMsg → createElement stubs; instead test via respond flow:
-/* 2. selector intercept: 'a' with no WebGPU in node → honest fallback to BitBot */
+/* 2. selector intercept: 'a' → BitLM selected (v18: CPU mode means no-WebGPU is no longer a blocker) */
 setChoice(null);
 let a = R('a');
-ck(/no WebGPU/i.test(a) && /kept you on \*\*BitBot\*\*/i.test(a), 'no-choice + "a" → honest WebGPU fallback', a);
-ck(global.__modelChoice() === 'bitbot', 'fallback persisted choice=bitbot', global.__modelChoice());
+ck(/BitLM selected/i.test(a), 'no-choice + "a" → BitLM selected (GPU-or-CPU)', a);
+ck(/CPU mode/i.test(a), 'selection message mentions CPU fallback', a);
+ck(global.__modelChoice() === 'bitlm', 'choice persisted = bitlm', global.__modelChoice());
 
 /* 3. 'b' picks BitBot cleanly */
 setChoice(null);
@@ -89,8 +90,7 @@ ck(global.__modelChoice() === 'bitbot', 'choice persisted');
 /* 4. switch commands */
 setChoice('bitbot');
 a = R('switch to bitlm');
-ck(/no WebGPU/i.test(a), 'switch to bitlm without WebGPU → honest message', a);
-// force bitlm choice (simulate WebGPU browser)
+ck(/BitLM selected/i.test(a), 'switch to bitlm works on any device (v18 CPU fallback)', a);
 setChoice('bitlm');
 a = R('switch to bitbot');
 ck(/BitBot selected/i.test(a), 'switch to bitbot works', a);

@@ -12,7 +12,7 @@ function eq(a, b, name) { ck(a === b, name, 'got ' + JSON.stringify(a) + ' want 
 Object.keys(P.MODELS).forEach(k => {
     const m = P.MODELS[k];
     ck(m.paramsM < 500, `catalog ${k} under 500M cap`, m.paramsM + 'M');
-    ck(/q4f16_1-MLC$/.test(m.id), `catalog ${k} valid webllm id`);
+    ck(/q4f(16|32)_1-MLC$/.test(m.id), `catalog ${k} valid webllm id`);
     ck(/BitLM/.test(m.name) && !/qwen|smol|llama/i.test(m.name), `catalog ${k} rebranded name`);
 });
 
